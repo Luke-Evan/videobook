@@ -27,12 +27,13 @@
 
 ## ⚙️ 内部 Pipeline 运作原理 (Agent 侧)
 
-当你向助手发放链接任务时，本工具箱实质为其底层配置了一套四步组合流水线（参考指令文档 `instructions.md`）：
+当你向助手发放链接任务时，本工具箱实质为其底层配置了一套五步组合流水线（参考指令文档 `instructions.md`）：
 
 1. **抓取 字幕 (Scraping)**: 调用脚本 `python dump_transcript.py <url>` 剥离得到原始口语字幕 JSON。
 2. **重写 编排 (Stitching)**: AI 利用大模型能力将乱七八糟的字幕提取要义改写为 Markdown，并在关键讲解处插入 `![描述](SCREENSHOT:00:15:30)` 时间戳指令占位。
-3. **渲染 网页 (Rendering)**: 调用 `python post_process.py <url> <md>` 把所有占位的锚点改造成 YouTube/B站原生轻量级 `iframe` 代码，并且注入极简暗色主题，把枯燥的 `.md` 内容最终渲染为可直接在线看的富文本 `.html`。
-4. **发服 预览 (Serving)**: 通过 Python 挂起一个简易的本地 HTTP 服务器。
+3. **截帧 插图 (Capturing)**：在已登录浏览器中直接截取平台播放器画面（画质直接来自平台，不下载任何媒体文件）：Codex 桌面环境首选 Chrome 扩展（@Chrome）；通用脚本 `python capture_frames.py` 使用专用截帧配置（`.capture-profile/`，一次性登录、长期复用登录态；Chrome 136+ 禁止对默认配置远程调试，故不触碰主 Chrome），失败后才兜底 `python extract_frames.py`（下载视频源用 ffmpeg 抽帧，文件保留至流程结束并询问用户是否删除）。两者都会把 `book.md` 中的占位符物化为真实图片链接（原标签稿自动备份为 `book.tagged.md`）；HTML 中的截图支持点击放大浏览。
+4. **渲染 网页 (Rendering)**: 调用 `python post_process.py <url> <md>` 把所有占位的锚点改造成 YouTube/B站原生轻量级 `iframe` 代码，并且注入极简暗色主题，把枯燥的 `.md` 内容最终渲染为可直接在线看的富文本 `.html`。
+5. **发服 预览 (Serving)**: 通过 Python 挂起一个简易的本地 HTTP 服务器。
 
 
 ## ⚠️ 常见踩坑指南

@@ -24,3 +24,6 @@ venv.bak/
 
 memory/
 .claude/settings.local.json
+
+# dedicated Chrome capture profile (cookies, large)
+.capture-profile/

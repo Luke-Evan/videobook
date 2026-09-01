@@ -47,9 +47,16 @@ def timestamp_to_seconds(ts: str) -> int:
 # 嵌入式视频卡片生成
 # ─────────────────────────────────────────────
 
-def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str, description: str) -> str:
+def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str, description: str, image_rel: str = None) -> str:
     """根据平台生成嵌入式视频播放器 HTML 卡片"""
     seconds = timestamp_to_seconds(timestamp)
+
+    # 若已提供页内截图，则渲染静态截图卡片（真·截图模式）
+    if image_rel:
+        return f'''<div class="video-card screenshot-card">
+  <img src="{image_rel}" alt="{description}" loading="lazy">
+  <p class="video-caption">📷 {description}<br><a href="{video_url}?t={seconds}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
+</div>'''
 
     if platform == "youtube":
         # 使用 nocookie 域名 + 清洁参数，尽可能隐藏悬浮 UI
@@ -79,7 +86,7 @@ def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str
 # Markdown → HTML 转换
 # ─────────────────────────────────────────────
 
-def replace_screenshots_with_embeds(md_content: str, video_url: str) -> str:
+def replace_screenshots_with_embeds(md_content: str, video_url: str, images_dir: str = None) -> str:
     """将 Markdown 中的 ![desc](SCREENSHOT:HH:MM:SS) 替换为 HTML 视频卡片"""
     platform = detect_platform(video_url)
     video_id = None
@@ -89,12 +96,28 @@ def replace_screenshots_with_embeds(md_content: str, video_url: str) -> str:
         video_id = extract_bilibili_bvid(video_url)
 
     # 匹配 ![任意描述](SCREENSHOT:HH:MM:SS) 或 ![任意描述](SCREENSHOT:HH:MM:SS.xxx)
-    pattern = r'!\[([^\]]*)\]\(SCREENSHOT:(\d{2}:\d{2}:\d{2}(?:\.\d+)?)\)'
+    # 匹配两种形态：
+    #   1) 占位符 ![描述](SCREENSHOT:HH:MM:SS[.xxx])
+    #   2) 已物化图片链接 ![描述](images/shot_HH_MM_SS.png) 或 ![描述](shot_HH_MM_SS.png)
+    pattern = (
+        r'!\[([^\]]*)\]\('
+        r'(?:SCREENSHOT:(\d{2}:\d{2}:\d{2}(?:\.\d+)?)'
+        r'|(?:images/)?shot_(\d{2})_(\d{2})_(\d{2})\.png'
+        r')\)'
+    )
 
     def replacer(match):
         desc = match.group(1)
-        ts = match.group(2)
-        return make_video_card(platform, video_id, video_url, ts, desc)
+        if match.group(2):
+            ts = match.group(2).split('.')[0]
+        else:
+            ts = ":".join(match.group(i) for i in (3, 4, 5))
+        image_rel = None
+        if images_dir:
+            fname = "shot_" + ts.split('.')[0].replace(":", "_") + ".png"
+            if os.path.exists(os.path.join(images_dir, fname)):
+                image_rel = "images/" + fname
+        return make_video_card(platform, video_id, video_url, ts, desc, image_rel=image_rel)
 
     return re.sub(pattern, replacer, md_content)
 
@@ -119,7 +142,7 @@ def md_to_html(md_content: str, title: str) -> str:
 
 def process_markdown(video_url: str, md_file: str):
     if not os.path.exists(md_file):
-        print(f"❌ 找不到文件: {md_file}")
+        print(f"[ERR] 找不到文件: {md_file}")
         return
 
     with open(md_file, 'r', encoding='utf-8') as f:
@@ -131,11 +154,14 @@ def process_markdown(video_url: str, md_file: str):
 
     # 1) 将 SCREENSHOT 占位符替换为嵌入式视频卡片 HTML
     print(">> 正在将截图占位符替换为嵌入式视频播放器...")
-    screenshot_pattern = r'!\[([^\]]*)\]\(SCREENSHOT:\d{2}:\d{2}:\d{2}(?:\.\d+)?\)'
+    screenshot_pattern = (
+        r'!\[[^\]]*\]\((?:SCREENSHOT:\d{2}:\d{2}:\d{2}(?:\.\d+)?'
+        r'|(?:images/)?shot_\d{2}_\d{2}_\d{2}\.png)\)'
+    )
     count = len(re.findall(screenshot_pattern, content))
 
     if count > 0:
-        content = replace_screenshots_with_embeds(content, video_url)
+        content = replace_screenshots_with_embeds(content, video_url, images_dir=os.path.join(os.path.dirname(os.path.abspath(md_file)), "images"))
         print(f">> 已替换 {count} 处截图为视频播放器卡片")
     else:
         print(">> 未发现截图占位符，直接转换")
@@ -149,7 +175,7 @@ def process_markdown(video_url: str, md_file: str):
     with open(html_file, 'w', encoding='utf-8') as f:
         f.write(html_output)
 
-    print(f"\n✅ 电子书已生成: {html_file}")
+    print(f"\n[OK] 电子书已生成: {html_file}")
     print(f"   请在浏览器中打开此文件阅读！")
 
 
@@ -384,6 +410,11 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
             height: 100%;
         }
 
+        .video-card img {
+            width: 100%;
+            display: block;
+        }
+
         .video-caption {
             padding: 12px 16px;
             font-size: 0.88em;
@@ -399,6 +430,25 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         .video-card.fallback {
             padding: 20px;
             text-align: center;
+        }
+
+        /* ── Lightbox：截图点击放大 ── */
+        .screenshot-card img { cursor: zoom-in; transition: opacity 0.15s; }
+        .screenshot-card img:hover { opacity: 0.9; }
+        .lightbox {
+            position: fixed; inset: 0; z-index: 999;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(5, 5, 8, 0.92); backdrop-filter: blur(4px);
+            cursor: zoom-out; padding: 24px;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox img {
+            max-width: 96vw; max-height: 90vh;
+            border-radius: 8px; box-shadow: 0 12px 60px rgba(0,0,0,0.7);
+        }
+        .lightbox-caption {
+            position: absolute; bottom: 14px; left: 0; right: 0;
+            text-align: center; color: var(--text-secondary); font-size: 0.85em;
         }
 
         /* ── 顶部信息栏 ── */
@@ -460,6 +510,33 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
             
             // 所有节点转换完成，统一进行图表动态绘制
             mermaid.run();
+        });
+    </script>
+    <!-- Lightbox：截图点击放大 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const lightbox = document.createElement('div');
+            lightbox.className = 'lightbox';
+            lightbox.innerHTML = '<img alt=""><div class="lightbox-caption"></div>';
+            document.body.appendChild(lightbox);
+            const lbImg = lightbox.querySelector('img');
+            const lbCap = lightbox.querySelector('.lightbox-caption');
+            function openLightbox(src, alt) {
+                lbImg.src = src; lbImg.alt = alt || '';
+                lbCap.textContent = alt || '';
+                lightbox.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeLightbox() {
+                lightbox.classList.remove('open');
+                lbImg.src = '';
+                document.body.style.overflow = '';
+            }
+            document.querySelectorAll('.screenshot-card img').forEach(function(img) {
+                img.addEventListener('click', function() { openLightbox(img.src, img.alt); });
+            });
+            lightbox.addEventListener('click', closeLightbox);
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
         });
     </script>
 </body>
