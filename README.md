@@ -48,3 +48,13 @@
 
 3. **专享和会员加密资源抓取受限？**
    对于大会员等登录拦截权限视频，可以通过在内部提取命令后边挂载 `--cookies-from chrome` 的相关指令，向你所在的本地机器的相应常驻浏览器的 Cookie 中调用以通过验证拿到字幕文件！
+
+4. **在 AI 沙箱（如 Codex）里运行为何报"拒绝访问"？哪些命令需要沙箱外执行？**
+   本流水线的截帧与字幕抓取需要启动 Chrome / Playwright、读取浏览器 cookie 库，属于沙箱外权限。托管给 AI 助手时，以下命令应申请沙箱外执行（Codex 中即批准 require_escalated）：
+   - `python capture_frames.py <video_id> <url>`（启动无头 Chrome 截帧）
+   - `python capture_frames.py --setup-profile`（弹出 Chrome 供一次性登录）
+   - `python dump_transcript.py <url>`（yt-dlp 网络请求；B 站需登录态时会自动从 .capture-profile 导出 cookies，期间启动无头 Chrome）
+   纯本地步骤（`post_process.py`、`python -m http.server`）在沙箱内即可运行。
+
+5. **自动导出的 cookies 会泄露吗？**
+   不会落在仓库里：`dump_transcript.py` / `login_utils.py` 导出的 cookies 写入系统临时目录、用完即删；`cookies.txt` 等模式已加入 `.gitignore`。若需更高清晰度（大会员档位），在 `--setup-profile` 窗口登录大会员账号即可，截帧管线会自动按顶档原生分辨率截取。

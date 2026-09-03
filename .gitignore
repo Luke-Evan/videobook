@@ -27,3 +27,7 @@ memory/
 
 # dedicated Chrome capture profile (cookies, large)
 .capture-profile/
+
+# exported cookies (never commit login state)
+cookies.txt
+*.cookies.txt
