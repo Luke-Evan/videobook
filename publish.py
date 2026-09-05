@@ -98,11 +98,12 @@ def build_index_html(manifest):
                if meta.get("corrected") else "")
         cards.append(
             f'      <div class="card">\n'
+            f'        <a class="stretch" href="{href}" aria-label="开始阅读"></a>\n'
             f'        <div class="badge b{i % 4}">{i + 1:02d}</div>\n'
-            f'        <a class="title" href="{href}"><h2>{meta["title"] or vid}</h2></a>\n'
+            f'        <h2>{meta["title"] or vid}</h2>\n'
             f'        <p class="meta">{vid} · 更新于 {meta.get("updated", "")[:10]}</p>\n'
             f'        <div class="grow"></div>\n'
-            f'        <div class="actions">{txt}<a class="btn" href="{href}">开始阅读 →</a></div>\n'
+            f'        <div class="actions">{txt}<a class="btn read hb{i % 4}" href="{href}">开始阅读</a></div>\n'
             f'      </div>')
     body = "\n".join(cards) or '      <p class="empty">暂无成品</p>'
     return f"""<!DOCTYPE html>
@@ -146,14 +147,19 @@ def build_index_html(manifest):
   .card h2 {{ font-size: 1.06em; font-weight: 600; line-height: 1.5; }}
   .meta {{ color: #6e7781; font-size: .82em; }}
   .grow {{ flex: 1; }}
-  .title {{ display: block; color: inherit; text-decoration: none; }}
-  .actions {{ display: flex; justify-content: flex-end; align-items: center; gap: 14px; }}
+  .card {{ position: relative; }}
+  .stretch {{ position: absolute; inset: 0; z-index: 1; }}
+  .actions {{ position: relative; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 14px; }}
   .txt:hover {{ text-decoration: underline; }}
   .btn {{
     display: inline-block; background: #f0f1f3; color: #1f2328; border-radius: 10px;
     padding: 7px 14px; font-size: .82em; font-weight: 500; text-decoration: none;
   }}
-  .card:hover .btn {{ background: #e4e6ea; }}
+  .btn:hover {{ background: #e4e6ea; }}
+  .read.hb0:hover {{ background: linear-gradient(135deg,#dbeafe,#e0e7ff); }}
+  .read.hb1:hover {{ background: linear-gradient(135deg,#ede9fe,#fce7f3); }}
+  .read.hb2:hover {{ background: linear-gradient(135deg,#dcfce7,#dbeafe); }}
+  .read.hb3:hover {{ background: linear-gradient(135deg,#fef3c7,#fce7f3); }}
   .empty {{ color: #6e7781; }}
   footer {{ margin-top: 44px; color: #8b949e; font-size: .8em; text-align: center; }}
 </style>
