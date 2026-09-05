@@ -101,6 +101,7 @@ def correct(text: str):
     for old, new in _MAP_ITEMS:
         if old in text:
             text = text.replace(old, new)
+    text = text.replace("呃", "").replace("嗯", "")
     text = STUTTER.sub(r"\1", text)
     text = TAIL_FILLER.sub("", text).strip()
     return text
