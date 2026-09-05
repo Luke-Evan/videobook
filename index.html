@@ -39,12 +39,13 @@
   .card h2 { font-size: 1.06em; font-weight: 600; line-height: 1.5; }
   .meta { color: #6e7781; font-size: .82em; }
   .grow { flex: 1; }
-  .actions { display: flex; justify-content: flex-end; align-items: center; }
-  .txt { color: #2563eb; font-size: .82em; text-decoration: none; margin-right: auto; }
+  .title { display: block; color: inherit; text-decoration: none; }
+  .actions { display: flex; justify-content: flex-end; align-items: center; gap: 14px; }
+  .txt { color: #2563eb; font-size: .82em; text-decoration: none; }
   .txt:hover { text-decoration: underline; }
   .btn {
-    background: #f0f1f3; color: #1f2328; border-radius: 10px;
-    padding: 7px 14px; font-size: .82em; font-weight: 500;
+    display: inline-block; background: #f0f1f3; color: #1f2328; border-radius: 10px;
+    padding: 7px 14px; font-size: .82em; font-weight: 500; text-decoration: none;
   }
   .card:hover .btn { background: #e4e6ea; }
   .empty { color: #6e7781; }
@@ -58,20 +59,20 @@
       <p>视频课程 → 图文电子书 · 点击卡片在线阅读（含截图放大与流程图交互）</p>
     </header>
     <div class="grid">
-      <a class="card" href="%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B%20%5B02-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/book.html">
+      <div class="card">
         <div class="badge b0">01</div>
-        <h2>提示词工程 [02-Raw/26生成式软件工程/NJU]</h2>
+        <a class="title" href="%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B%20%5B02-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/book.html"><h2>提示词工程 [02-Raw/26生成式软件工程/NJU]</h2></a>
         <p class="meta">BV1CQt365EzW · 更新于 2026-09-05</p>
         <div class="grow"></div>
-        <div class="actions"><a class="txt" href="%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B%20%5B02-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/transcript.corrected.txt">字幕对照</a><span class="btn">开始阅读 →</span></div>
-      </a>
-      <a class="card" href="%E6%AC%A2%E8%BF%8E%E6%9D%A5%E5%88%B0%E6%9C%AA%E6%9D%A5%20%5B01-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/book.html">
+        <div class="actions"><a class="txt" href="%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B%20%5B02-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/transcript.corrected.txt">字幕对照</a><a class="btn" href="%E6%8F%90%E7%A4%BA%E8%AF%8D%E5%B7%A5%E7%A8%8B%20%5B02-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/book.html">开始阅读 →</a></div>
+      </div>
+      <div class="card">
         <div class="badge b1">02</div>
-        <h2>欢迎来到未来 [01-Raw/26生成式软件工程/NJU]</h2>
+        <a class="title" href="%E6%AC%A2%E8%BF%8E%E6%9D%A5%E5%88%B0%E6%9C%AA%E6%9D%A5%20%5B01-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/book.html"><h2>欢迎来到未来 [01-Raw/26生成式软件工程/NJU]</h2></a>
         <p class="meta">BV1pb8o6yE8f · 更新于 2026-09-05</p>
         <div class="grow"></div>
-        <div class="actions"><span class="btn">开始阅读 →</span></div>
-      </a>
+        <div class="actions"><a class="txt" href="%E6%AC%A2%E8%BF%8E%E6%9D%A5%E5%88%B0%E6%9C%AA%E6%9D%A5%20%5B01-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/transcript.corrected.txt">字幕对照</a><a class="btn" href="%E6%AC%A2%E8%BF%8E%E6%9D%A5%E5%88%B0%E6%9C%AA%E6%9D%A5%20%5B01-Raw%EF%BC%8F26%E7%94%9F%E6%88%90%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B%EF%BC%8FNJU%5D/book.html">开始阅读 →</a></div>
+      </div>
     </div>
     <footer>由 VideoBook 流水线自动生成 · 内容衍生自 B 站公开课程视频</footer>
   </div>
