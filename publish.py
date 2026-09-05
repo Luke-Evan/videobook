@@ -94,7 +94,7 @@ def build_index_html(manifest):
     cards = []
     for i, (vid, meta) in enumerate(rows):
         href = quote(meta["folder"]) + "/book.html"
-        txt = (f'<a class="txt" href="{quote(meta["folder"])}/{CORRECTED}">字幕对照</a>'
+        txt = (f'<a class="btn" href="{quote(meta["folder"])}/{CORRECTED}">字幕对照</a>'
                if meta.get("corrected") else "")
         cards.append(
             f'      <div class="card">\n'
@@ -148,7 +148,6 @@ def build_index_html(manifest):
   .grow {{ flex: 1; }}
   .title {{ display: block; color: inherit; text-decoration: none; }}
   .actions {{ display: flex; justify-content: flex-end; align-items: center; gap: 14px; }}
-  .txt {{ color: #2563eb; font-size: .82em; text-decoration: none; }}
   .txt:hover {{ text-decoration: underline; }}
   .btn {{
     display: inline-block; background: #f0f1f3; color: #1f2328; border-radius: 10px;

@@ -40,7 +40,7 @@ python dump_transcript.py "<VIDEO_URL>"
 - 如果原始语言不是中文，必须翻译为中文
 - **官方章节仅供参考**：`chapters` 字段往往较粗糙，只用于辅助定位内容与选择截图时间戳；顶层分章请按内容自身逻辑组织，**不要求**与官方章节一一对应；`SCREENSHOT:` 时间戳落在其所属内容的时间区间内即可。
 - **容忍 ASR 噪声**：AI 字幕含同音错词（如"深圳市软件工程"→生成式、"威尔法/WIFI"→verifier、"KIMIK3"→Kimi K3、"chain of salt"→chain of thought、"舔狗/做题家"等口语梗保留原意）。动笔前先结合标题与 chapters 建立术语表，改写时统一规范化。
-- **产出修正版字幕对照稿**：运行 `python make_corrected.py <video_id>`（或 `--all`）生成 `output/<video_id>/transcript.corrected.txt`——与 transcript.txt 同格式（`[MM:SS] 原文`、逐段不合并），**保留讲师原始字词与顺序**，仅做两类修改：ASR 错词替换（脚本内 MAP，按视频扩充）与口癖清理（纯语气词段删除、句尾语气词剥离、单字口吃折叠）；不改写为书面语、不概括；生成后抽查若干行确认无过改；该文件随发布上传 pages 供人工对照视频。
+- **产出修正版字幕对照稿**：运行 `python make_corrected.py <video_id>`（或 `--all`）生成 `output/<video_id>/transcript.corrected.txt`——与 transcript.txt 同格式（`[MM:SS] 原文`、逐段不合并），**保留讲师原始字词与顺序**，仅做两类修改：ASR 错词替换（脚本内 MAP，按视频扩充）与口癖清理（纯语气词段删除、句尾语气词剥离、单字口吃折叠）；不改写为书面语、不概括；随后由 AI 通读全文做一轮行级订正（仅修明显错词/截断词/不通顺处，保留逐段结构与讲师原词，可委派子代理产出 old->new 清单后脚本应用）；生成后抽查若干行确认无过改；该文件随发布上传 pages 供人工对照视频。
 - **截图时间戳选择**：优先章节边界、新幻灯片出现时刻、演示画面时刻；结合前后字幕语义定位，格式 `HH:MM:SS`。
 
 ### 第三步：截帧并将截图占位符替换为图片
