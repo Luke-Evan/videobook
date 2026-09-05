@@ -145,3 +145,14 @@ python -m http.server 8080 --directory output/<video_id>
 - **cookies 安全**：自动导出的 cookies 写入系统临时目录、用完即删；不要在仓库里手放 cookies.txt（已被 .gitignore 忽略，但仍应避免）。
 - **可重跑性**：流水线各步幂等。若 `output/<video_id>` 被意外清理：重跑第一步恢复字幕；只要 `book.tagged.md` 还在，重跑第三步即可恢复截图（占位符清单读自 tagged 稿）。
 - 在生成或修改 HTML 时，请确保文本颜色与背景颜色的对比度符合 WCAG AA 标准（对比度至少 4.5:1）。
+
+### 第六步（可选）：发布成品到 pages 分支
+
+`ash
+python publish.py <video_id>   # 或 python publish.py --all
+git push origin pages
+`
+
+- 将三件套（book.html / book.md / images/）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
+- 纯本地 git 操作，沙箱内可跑；push 需网络。
+- 首次推送后需在 GitHub 仓库 Settings → Pages 一次性启用（分支 `pages`、目录 `/ (root)`），之后每次 push 自动部署。

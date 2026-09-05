@@ -58,3 +58,11 @@
 
 5. **自动导出的 cookies 会泄露吗？**
    不会落在仓库里：`dump_transcript.py` / `login_utils.py` 导出的 cookies 写入系统临时目录、用完即删；`cookies.txt` 等模式已加入 `.gitignore`。若需更高清晰度（大会员档位），在 `--setup-profile` 窗口登录大会员账号即可，截帧管线会自动按顶档原生分辨率截取。
+
+---
+
+## 📚 成品在哪里看？
+
+- **在线阅读（GitHub Pages）**：`https://luke-evan.github.io/videobook/` —— 落地页列出全部电子书，点击标题即可阅读（含截图放大、Mermaid 交互）。需在仓库 Settings → Pages 一次性选择分支 `pages` + `/ (root)`。
+- **分支布局**：`main` = 工具代码；`pages` = 成品（独立 orphan 分支，目录名 = 视频标题，如 `提示词工程 [02-Raw／26生成式软件工程／NJU]`）。
+- **发布方式**：`python publish.py <video_id>` 或 `python publish.py --all`，然后 `git push origin pages`。只发布 `book.html / book.md / images/` 三件套，字幕、transcript 等中间物不进公开仓库；`output/` 本地工作区不受任何 git 操作影响。
