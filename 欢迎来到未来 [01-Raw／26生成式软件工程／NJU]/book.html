@@ -11,19 +11,20 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg-primary: #0f0f11;
-            --bg-secondary: #1a1a1f;
-            --bg-card: #22222a;
-            --bg-code: #2a2a35;
-            --text-primary: #e8e6e3;
-            --text-secondary: #9a9a9f;
-            --text-muted: #6a6a6f;
-            --accent: #6c8cff;
-            --accent-glow: rgba(108, 140, 255, 0.15);
-            --border: #2e2e36;
-            --border-subtle: #252530;
+            color-scheme: light;
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --bg-card: #eef0f3;
+            --bg-code: #f2f3f5;
+            --text-primary: #1f2328;
+            --text-secondary: #57606a;
+            --text-muted: #6e7781;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --border: #d9dce1;
+            --border-subtle: #e7e9ec;
             --radius: 12px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
         }
 
         html {
@@ -51,7 +52,7 @@
             font-size: 2.2em;
             font-weight: 700;
             margin: 0 0 12px;
-            background: linear-gradient(135deg, #6c8cff 0%, #a78bfa 50%, #f472b6 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -81,7 +82,7 @@
         }
 
         strong {
-            color: #fff;
+            color: #0f172a;
             font-weight: 600;
         }
 
@@ -169,7 +170,7 @@
             padding: 2px 7px;
             border-radius: 5px;
             font-size: 0.88em;
-            color: #e0b0ff;
+            color: #6d28d9;
         }
 
         pre {
@@ -199,7 +200,7 @@
         }
         .video-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
         }
 
         .video-wrapper {
@@ -328,7 +329,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_00_32.png" alt="1975 年的第一台个人计算机（AI 生成的课程插图）" loading="lazy">
-  <p class="video-caption">📷 1975 年的第一台个人计算机（AI 生成的课程插图）<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=32" target="_blank" rel="noopener">在 B 站中打开 (00:00:32)</a></p>
+  <p class="video-caption">📷 1975 年的第一台个人计算机（AI 生成的课程插图）<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=32" target="_blank" rel="noopener">在 B 站中打开 (00:00:32)</a></p>
 </div>
 
 <p>在这样的人类命运交叉路口，<strong>我们上课的方式、我们该学什么，都需要重新思考</strong>。这门《生成式软件工程》课程正是在这个背景下开设的。</p>
@@ -349,7 +350,7 @@
 <p>最切实的痛苦来自求职。主讲人展示了一份收到的真实简历（个人信息已用 Unicode 黑色方块字符抹掉）：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_04_41.png" alt="课上展示的一份 AI 生成的简历" loading="lazy">
-  <p class="video-caption">📷 课上展示的一份 AI 生成的简历<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=281" target="_blank" rel="noopener">在 B 站中打开 (00:04:41)</a></p>
+  <p class="video-caption">📷 课上展示的一份 AI 生成的简历<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=281" target="_blank" rel="noopener">在 B 站中打开 (00:04:41)</a></p>
 </div>
 
 <p>这份简历堪称"完美"：列着一整排 CCF 期刊列表上的论文。但在主讲人眼中，这是一份<strong>零分简历</strong>——</p>
@@ -378,13 +379,13 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_09_25.png" alt="F5 播放的 AI 生成幻灯片（紫色部分为模型加工内容）" loading="lazy">
-  <p class="video-caption">📷 F5 播放的 AI 生成幻灯片（紫色部分为模型加工内容）<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=565" target="_blank" rel="noopener">在 B 站中打开 (00:09:25)</a></p>
+  <p class="video-caption">📷 F5 播放的 AI 生成幻灯片（紫色部分为模型加工内容）<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=565" target="_blank" rel="noopener">在 B 站中打开 (00:09:25)</a></p>
 </div>
 
 <p>背后是一个名为 <code>make-slides</code> 的 skill：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_10_12.png" alt="make-slides skill 的提示词" loading="lazy">
-  <p class="video-caption">📷 make-slides skill 的提示词<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=612" target="_blank" rel="noopener">在 B 站中打开 (00:10:12)</a></p>
+  <p class="video-caption">📷 make-slides skill 的提示词<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=612" target="_blank" rel="noopener">在 B 站中打开 (00:10:12)</a></p>
 </div>
 
 <p>它的工作方式很有代表性——从一份写好的演讲稿 Markdown 出发，生成三个 subagent，赋予它们不同的 personality（人格），让它们在隔离的上下文中各自干活；最后主 agent 回来汇总。<strong>这就是"用算力换智力"：付出更多算力，就获得更多智力。</strong></p>
@@ -410,7 +411,7 @@
 <p>这背后是一个真实的时代难题：<strong>评判标准是什么？</strong> 同一个任务，用 Claude 做就是比用 DeepSeek V4 Flash 做得好，而课程没办法限制大家用什么模型，那该怎么评分？</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_17_30.png" alt="关于考核方式的讨论" loading="lazy">
-  <p class="video-caption">📷 关于考核方式的讨论<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=1050" target="_blank" rel="noopener">在 B 站中打开 (00:17:30)</a></p>
+  <p class="video-caption">📷 关于考核方式的讨论<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=1050" target="_blank" rel="noopener">在 B 站中打开 (00:17:30)</a></p>
 </div>
 
 <p>他给出的建议是：课程网站后续会更新，建议同学们<strong>实现一个自己的 eval 管理系统</strong>——老师通过一个专用邮箱给你发邮件，你把邮件回回来；你可以做一个常驻的服务，跑在宿舍里一台一直开着的小电脑上。这本身就是一个不错的 Vibe Coding 实验，有人做得复杂些，有人做得简单些。</p>
@@ -470,7 +471,7 @@
 <p>课上选择的 agent 工具，只要跟它说话就可以干活，并且支持配置文件，比如 <code>AGENTS.md</code>：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_31_05.png" alt="向 Agent 提问"你是谁"：它通过 AGENTS.md 知道自己是课程教学辅助" loading="lazy">
-  <p class="video-caption">📷 向 Agent 提问"你是谁"：它通过 AGENTS.md 知道自己是课程教学辅助<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=1865" target="_blank" rel="noopener">在 B 站中打开 (00:31:05)</a></p>
+  <p class="video-caption">📷 向 Agent 提问"你是谁"：它通过 AGENTS.md 知道自己是课程教学辅助<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=1865" target="_blank" rel="noopener">在 B 站中打开 (00:31:05)</a></p>
 </div>
 
 <p>你可以问它："你是谁？"它会回答自己是《生成式软件工程》的教学辅助。再追问："你不就是个模型吗，为什么还知道生成式软件工程？"它会告诉你：它之所以知道这门课、这个仓库，是因为读到了 <code>AGENTS.md</code> 的配置。</p>
@@ -492,7 +493,7 @@
 <p>点睛之笔是"<strong>用模拟器验证</strong>"。Agent 装完之后，真的在 QEMU 里启动系统，看到登录界面，创建用户、设置密码，确认登录成功，然后汇报"验证完成"。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_33_59.png" alt="U 盘 Linux 系统在 QEMU 中启动验证" loading="lazy">
-  <p class="video-caption">📷 U 盘 Linux 系统在 QEMU 中启动验证<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=2039" target="_blank" rel="noopener">在 B 站中打开 (00:33:59)</a></p>
+  <p class="video-caption">📷 U 盘 Linux 系统在 QEMU 中启动验证<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=2039" target="_blank" rel="noopener">在 B 站中打开 (00:33:59)</a></p>
 </div>
 
 <p>当然，主讲人自己是有"脑袋"的——他知道这个安装是怎么完成的。但这不妨碍整个流程由 AI 执行。</p>
@@ -500,7 +501,7 @@
 <p>同样的方式，他让 AI 装了一个平铺式（tiled）窗口管理器：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_34_30.png" alt="平铺窗口管理器演示：Win+Enter 在右侧新开窗口" loading="lazy">
-  <p class="video-caption">📷 平铺窗口管理器演示：Win+Enter 在右侧新开窗口<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=2070" target="_blank" rel="noopener">在 B 站中打开 (00:34:30)</a></p>
+  <p class="video-caption">📷 平铺窗口管理器演示：Win+Enter 在右侧新开窗口<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=2070" target="_blank" rel="noopener">在 B 站中打开 (00:34:30)</a></p>
 </div>
 
 <p>操作非常顺滑——Win+Enter 在右边新开一个窗口，Win+空格把窗口"摸"出来。不会用怎么办？他直接让 DeepSeek V4 Flash 生成了一份文档："看一下我系统现在的设置，我要做各种事情，怎么办？"模型告诉他：Super+Enter 是打开终端，Super+D 是打开应用启动器。</p>
@@ -524,7 +525,7 @@
 <p>他推荐的学习方式是：<strong>先把东西搞出来，再回头复盘理解。</strong> 这个效率比从零开始一点一滴学要高得多。但危险在于：你的理解可能与"比较好的理解"存在差距——这个差距有多大，我们并不知道。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_25_50.png" alt="现代化终端：btop、eza、fd 等，全部由一条 prompt 配置完成" loading="lazy">
-  <p class="video-caption">📷 现代化终端：btop、eza、fd 等，全部由一条 prompt 配置完成<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=1550" target="_blank" rel="noopener">在 B 站中打开 (00:25:50)</a></p>
+  <p class="video-caption">📷 现代化终端：btop、eza、fd 等，全部由一条 prompt 配置完成<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=1550" target="_blank" rel="noopener">在 B 站中打开 (00:25:50)</a></p>
 </div>
 
 <p>顺带一提，他现场展示的现代化终端——漂亮的进程监控（btop）、<code>ls</code> 自动替换为 <code>eza</code>、<code>find</code> 自动替换为 <code>fd</code>——全部来自一条 prompt："帮我把命令行终端和系统都配置成现代的样子、比较好用的样子。"模型用的还是 DeepSeek V4 Flash。</p>
@@ -538,13 +539,13 @@
 <p>这些全靠事先写好的 instructions。更有意思的是与待办系统的联动：他像大家用 OpenClaw 或 Hermes 那样，但用的是自己 Apple 的 Reminders——在手机的备忘录/提醒事项里加一句"帮我把今天的发票打印出来"；他还有一个叫 "bot" 的地方，加一条"把我收到的上一张发票打印出来"，点勾、commit，就多了一个 to-do 事项，就像在 Telegram 里跟 bot 聊天一样。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_39_19.png" alt="在 Reminders 的 bot 列表中添加"打印发票"任务" loading="lazy">
-  <p class="video-caption">📷 在 Reminders 的 bot 列表中添加"打印发票"任务<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=2359" target="_blank" rel="noopener">在 B 站中打开 (00:39:19)</a></p>
+  <p class="video-caption">📷 在 Reminders 的 bot 列表中添加"打印发票"任务<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=2359" target="_blank" rel="noopener">在 B 站中打开 (00:39:19)</a></p>
 </div>
 
 <p>之后只要等。后台处理完毕后，agent 会推送一条通知，通过 Reminders 送到他的手表上——手表告诉他可以去打印了。<strong>所有的日常事务都可以交给它处理。</strong> 这个流程还在不断进步：在 OpenClaw 出现之前他就这样做；他认为 OpenClaw 和 Hermes 只是<strong>个人 agent 产品的中级形态</strong>，还可以做得更好，未来还有很多空间。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_44_45.png" alt="发票打印完成，手表收到通知" loading="lazy">
-  <p class="video-caption">📷 发票打印完成，手表收到通知<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=2685" target="_blank" rel="noopener">在 B 站中打开 (00:44:45)</a></p>
+  <p class="video-caption">📷 发票打印完成，手表收到通知<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=2685" target="_blank" rel="noopener">在 B 站中打开 (00:44:45)</a></p>
 </div>
 
 <h3 id="83-ai">8.3 用 AI 读书、读论文</h3>
@@ -574,7 +575,7 @@
 </ol>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_46_05.png" alt="B 站视频被自动整理成图文时间轴" loading="lazy">
-  <p class="video-caption">📷 B 站视频被自动整理成图文时间轴<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=2765" target="_blank" rel="noopener">在 B 站中打开 (00:46:05)</a></p>
+  <p class="video-caption">📷 B 站视频被自动整理成图文时间轴<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=2765" target="_blank" rel="noopener">在 B 站中打开 (00:46:05)</a></p>
 </div>
 
 <p>于是，他可以在几分钟内"看完"一个两小时的视频。</p>
@@ -592,7 +593,7 @@
 <p>课间发生了一个绝佳的实时案例：直播用的 USB 采集卡断了——画面里只剩左边的摄像头还能动。主讲人当场让 agent 修复：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_49_36.png" alt="一条 prompt 让 Agent 排查并重置 USB 采集卡" loading="lazy">
-  <p class="video-caption">📷 一条 prompt 让 Agent 排查并重置 USB 采集卡<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=2976" target="_blank" rel="noopener">在 B 站中打开 (00:49:36)</a></p>
+  <p class="video-caption">📷 一条 prompt 让 Agent 排查并重置 USB 采集卡<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=2976" target="_blank" rel="noopener">在 B 站中打开 (00:49:36)</a></p>
 </div>
 
 <p>"我的 USB 有问题，能不能 reconnect？"DeepSeek V4 Flash 用了一些"你们前所未见的 Linux 命令"——有些主讲人自己也只有个概念——<strong>用软件的方式把采集卡"拔出来又插进去"</strong>（物理接口在机器后面，他够不着）。拔了一下、插了一下，好了，视频恢复正常。</p>
@@ -646,7 +647,7 @@
 <p>浏览器有一个专为开发者设计的接口：<strong>Chrome DevTools</strong>（按 F12）。大家应该都用过，比如打开 Chromium、按 F12 改改页面——"比如你很讨厌某个元素？讨厌就删了，没有了。"一个冷知识：很多网站会在 Console 里嵌入招聘广告——"同学们上 B 站按 F12 看看，有没有招聘广告？"</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_52_36.png" alt="Chrome DevTools：F12 打开的开发者工具" loading="lazy">
-  <p class="video-caption">📷 Chrome DevTools：F12 打开的开发者工具<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=3156" target="_blank" rel="noopener">在 B 站中打开 (00:52:36)</a></p>
+  <p class="video-caption">📷 Chrome DevTools：F12 打开的开发者工具<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=3156" target="_blank" rel="noopener">在 B 站中打开 (00:52:36)</a></p>
 </div>
 
 <p>在 pre-AI 时代，开发者用 DevTools 做什么？比如在 Network 面板找到一个请求，Copy as cURL——把命令连同浏览器的 Cookie、所有状态一起复制出来，在终端里直接请求，就能拿到数据。</p>
@@ -657,14 +658,14 @@
 <p>现场演示的任务是：<strong>填写教学周历</strong>。"你们都很讨厌动不动就叫你们填东西吧？我也很讨厌。"</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_55_54.png" alt="Agent 打开内置浏览器，准备填写教学周历" loading="lazy">
-  <p class="video-caption">📷 Agent 打开内置浏览器，准备填写教学周历<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=3354" target="_blank" rel="noopener">在 B 站中打开 (00:55:54)</a></p>
+  <p class="video-caption">📷 Agent 打开内置浏览器，准备填写教学周历<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=3354" target="_blank" rel="noopener">在 B 站中打开 (00:55:54)</a></p>
 </div>
 
 <p>他让 agent 打开浏览器（这个浏览器是属于 agent 自己的），然后下达指令："现在教学周历是空的，帮我随便用什么 AI Slop 填写。不要看任何东西！"——因为如果模型知道当前目录是这门课的 repo，它会去读 lecture notes，而他不要。</p>
 <p>过程并不顺利：DeepSeek V4 Flash 一直在干别的事，<strong>不听指令</strong>。"这是 V4 Flash 的麻烦——如果换更强的模型，它会知道。"翻车也是经常有的。模型的能力还在不断增长，用最一线的模型会做得更好；用 Flash 的另一个原因是<strong>它在课上更快</strong>。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_58_37.png" alt="Agent 反思与重试：事件注入失败后改用鼠标点击" loading="lazy">
-  <p class="video-caption">📷 Agent 反思与重试：事件注入失败后改用鼠标点击<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=3517" target="_blank" rel="noopener">在 B 站中打开 (00:58:37)</a></p>
+  <p class="video-caption">📷 Agent 反思与重试：事件注入失败后改用鼠标点击<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=3517" target="_blank" rel="noopener">在 B 站中打开 (00:58:37)</a></p>
 </div>
 
 <p>关键的教学点在这里：你看到 agent 的过程——它会不断反思自己做得合不合理，然后找到应该怎么办。看起来翻车了，其实它在尝试；尝试之后，它找到了正确的方式——<strong>直接注入事件不行，但模拟鼠标点击可以</strong>。最终它发现了一条可行路径，开始"填写 AI Slop"：完全可以不用亲手操作，让它随便填。</p>
@@ -697,12 +698,12 @@
 </ol>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_06_44.png" alt="统分流水线：头顶摄像头对准试卷固定位置" loading="lazy">
-  <p class="video-caption">📷 统分流水线：头顶摄像头对准试卷固定位置<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=4004" target="_blank" rel="noopener">在 B 站中打开 (01:06:44)</a></p>
+  <p class="video-caption">📷 统分流水线：头顶摄像头对准试卷固定位置<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=4004" target="_blank" rel="noopener">在 B 站中打开 (01:06:44)</a></p>
 </div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_01_07_30.png" alt="阶段二：语音播报小分，人工核对" loading="lazy">
-  <p class="video-caption">📷 阶段二：语音播报小分，人工核对<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=4050" target="_blank" rel="noopener">在 B 站中打开 (01:07:30)</a></p>
+  <p class="video-caption">📷 阶段二：语音播报小分，人工核对<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=4050" target="_blank" rel="noopener">在 B 站中打开 (01:07:30)</a></p>
 </div>
 
 <blockquote>
@@ -723,7 +724,7 @@
 <p>他做的"程序"是这样的：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_10_49.png" alt="二维码动画程序：文件内容实时编码成二维码" loading="lazy">
-  <p class="video-caption">📷 二维码动画程序：文件内容实时编码成二维码<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=4249" target="_blank" rel="noopener">在 B 站中打开 (01:10:49)</a></p>
+  <p class="video-caption">📷 二维码动画程序：文件内容实时编码成二维码<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=4249" target="_blank" rel="noopener">在 B 站中打开 (01:10:49)</a></p>
 </div>
 
 <ul>
@@ -734,13 +735,13 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_11_52.png" alt="二维码动画逐帧刷新" loading="lazy">
-  <p class="video-caption">📷 二维码动画逐帧刷新<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=4312" target="_blank" rel="noopener">在 B 站中打开 (01:11:52)</a></p>
+  <p class="video-caption">📷 二维码动画逐帧刷新<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=4312" target="_blank" rel="noopener">在 B 站中打开 (01:11:52)</a></p>
 </div>
 
 <p>注意他的"合规性"设计：<strong>全程只用 Excel</strong>——Excel 是合法的；用的全是 Excel 公式，而且都是 <strong>2019 之前版本就兼容的公式</strong>。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_12_11.png" alt="全部用 Excel 公式实现" loading="lazy">
-  <p class="video-caption">📷 全部用 Excel 公式实现<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=4331" target="_blank" rel="noopener">在 B 站中打开 (01:12:11)</a></p>
+  <p class="video-caption">📷 全部用 Excel 公式实现<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=4331" target="_blank" rel="noopener">在 B 站中打开 (01:12:11)</a></p>
 </div>
 
 <h3 id="123">12.3 举一反三：更多隐蔽信道</h3>
@@ -794,7 +795,7 @@
 <h3 id="134">13.4 经典梗图与"模型在猜"</h3>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_28_11.png" alt="软件工程的经典梗图：客户、项目经理、程序员各自理解不同" loading="lazy">
-  <p class="video-caption">📷 软件工程的经典梗图：客户、项目经理、程序员各自理解不同<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=5291" target="_blank" rel="noopener">在 B 站中打开 (01:28:11)</a></p>
+  <p class="video-caption">📷 软件工程的经典梗图：客户、项目经理、程序员各自理解不同<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=5291" target="_blank" rel="noopener">在 B 站中打开 (01:28:11)</a></p>
 </div>
 
 <p>主讲人展示了一张软件工程很早期的梗图：程序员所想的、产品经理所想的、客户所想的完全不一样——客户是这样解释需求的，project leader 是这样理解的，分析的人又是这样想的，宣传的人又是这样宣传的……最后客户实际要的是这个，而造出来的是那个。<strong>造成这一切的根本原因，就是这些 space 之间的 gap。</strong></p>
@@ -837,7 +838,7 @@
 <p>结果是：GLM-5.3 在 200K 上下文里就完成了第一个正确的版本。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_23_05.png" alt="AI Slop 与正确实现的代码对比" loading="lazy">
-  <p class="video-caption">📷 AI Slop 与正确实现的代码对比<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=4985" target="_blank" rel="noopener">在 B 站中打开 (01:23:05)</a></p>
+  <p class="video-caption">📷 AI Slop 与正确实现的代码对比<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=4985" target="_blank" rel="noopener">在 B 站中打开 (01:23:05)</a></p>
 </div>
 
 <p>对比一下两边：AI Slop 版本是无穷多的硬编码——让它把工作区从一个位置移到另一个位置，都得修两个小时，不停地错，因为所有东西都是硬编码，改错一点点地方，验证就通不过，又得像 agent 一样反复修。它确实可能修得完——<strong>但这是软件工程</strong>。</p>
@@ -861,7 +862,7 @@
 <p>而生成式软件工程把它们变成了 AI——<strong>你管的是一堆不会和你抬杠、只会说 "You're absolutely right" 的"人"。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_33_24.png" alt="软件工程研究领域的广度" loading="lazy">
-  <p class="video-caption">📷 软件工程研究领域的广度<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=5604" target="_blank" rel="noopener">在 B 站中打开 (01:33:24)</a></p>
+  <p class="video-caption">📷 软件工程研究领域的广度<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=5604" target="_blank" rel="noopener">在 B 站中打开 (01:33:24)</a></p>
 </div>
 
 <p>看软件工程的研究领域，非常广：<strong>AI for SE、SE for AI</strong>，架构、设计、可靠性、演化（这个软件能不能长期生存下去）、human and social aspects、需求……其中<strong>需求特别重要</strong>：越早的阶段，gap 的杠杆越大——你在上游微微变一点，下游会产生巨大的变化。大型软件系统一般都是在需求这个点上出错、没有做好，导致整体崩盘。</p>
@@ -887,7 +888,7 @@
 <p>最后一页幻灯片，主讲人给出这门课的开场结论：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_38_48.png" alt="最后一页幻灯片：古法编程已死" loading="lazy">
-  <p class="video-caption">📷 最后一页幻灯片：古法编程已死<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f/?t=5928" target="_blank" rel="noopener">在 B 站中打开 (01:38:48)</a></p>
+  <p class="video-caption">📷 最后一页幻灯片：古法编程已死<br><a href="https://www.bilibili.com/video/BV1pb8o6yE8f?t=5928" target="_blank" rel="noopener">在 B 站中打开 (01:38:48)</a></p>
 </div>
 
 <ul>
@@ -920,7 +921,7 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+            mermaid.initialize({ startOnLoad: false, theme: 'default' });
             
             // 兼容普通代码块以及丢失 language-mermaid 类名的情况 (CodeHilite 干扰)
             const codeNodes = document.querySelectorAll('pre code, .highlight code');

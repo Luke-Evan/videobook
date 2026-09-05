@@ -11,19 +11,20 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg-primary: #0f0f11;
-            --bg-secondary: #1a1a1f;
-            --bg-card: #22222a;
-            --bg-code: #2a2a35;
-            --text-primary: #e8e6e3;
-            --text-secondary: #9a9a9f;
-            --text-muted: #6a6a6f;
-            --accent: #6c8cff;
-            --accent-glow: rgba(108, 140, 255, 0.15);
-            --border: #2e2e36;
-            --border-subtle: #252530;
+            color-scheme: light;
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --bg-card: #eef0f3;
+            --bg-code: #f2f3f5;
+            --text-primary: #1f2328;
+            --text-secondary: #57606a;
+            --text-muted: #6e7781;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --border: #d9dce1;
+            --border-subtle: #e7e9ec;
             --radius: 12px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
         }
 
         html {
@@ -51,7 +52,7 @@
             font-size: 2.2em;
             font-weight: 700;
             margin: 0 0 12px;
-            background: linear-gradient(135deg, #6c8cff 0%, #a78bfa 50%, #f472b6 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -81,7 +82,7 @@
         }
 
         strong {
-            color: #fff;
+            color: #0f172a;
             font-weight: 600;
         }
 
@@ -169,7 +170,7 @@
             padding: 2px 7px;
             border-radius: 5px;
             font-size: 0.88em;
-            color: #e0b0ff;
+            color: #6d28d9;
         }
 
         pre {
@@ -199,7 +200,7 @@
         }
         .video-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
         }
 
         .video-wrapper {
@@ -470,6 +471,9 @@
 <p>但这依然可能不是你想要的"CSGO"——你脑中的 CSGO 是你每天打开玩的那一个，而 AI 生成的是它自己补全的版本。<strong>模型没有办法补全你脑子里模糊的约束</strong>：</p>
 <ul>
 <li>如果你真的说出"复用真实地图和美术资产"，它可能会去 OpenStreetMap 下载开源地图——比如真的把南京大学仙林校区重建出来，让你在里面开车；</li>
+</ul>
+<p>==地图资源==</p>
+<ul>
 <li>如果你能找到仙林校区地图的文件格式，它就能把那个世界建模出来；</li>
 <li>美术资产（车辆、城市、树木）同样有大量公开可用的资源，不说明的话，模型会默认一切都要自产（self-contained）。</li>
 </ul>
@@ -503,6 +507,7 @@
 <li><strong>那是一个真正的终端</strong>：支持管道等真实终端行为，用 xterm.js 渲染；</li>
 <li><strong>刻意的不完美</strong>：渲染完成后做了一步后处理，让字符呈现出"真正打字机打出来"的轻微残缺感。</li>
 </ol>
+<p>==压缩合法解空间==</p>
 <p>一行代码都没有手写，但"AI 味"淡了——因为它不再是 AI 风格的默认收敛方向。<strong>指令给得越清楚，Agent 完成得越好</strong>：具体的风格（背景色、前景色、渲染后处理、排版细节）都能写进提示词，设计的掌控权始终在人手里。这也意味着想做好这件事，需要读前端与设计的书、大量观察优秀的网页——留意两个按钮之间不常规的间距、不常规的样式，思考"它好在哪里"。</p>
 <p><em>(参考时间: 29:49)</em></p>
 <p>讲者同时表达了一丝担忧：当所有设计都被 AI 生成的风格同化——校园里欢送毕业生的海报、短视频里永远是同一张脸的主角——多样性正在流失。所幸数字世界里仍保存着足够多前 AI 时代的多样样本。模型的品位在不加控制时是固定的、朝固定方向发散的，这正是为什么"明确你的意图、精确地说出来"如此重要。</p>
@@ -515,6 +520,9 @@
 <h2 id="_4">第四章 使模型遵循指令：从工作机制谈起</h2>
 <p><em>(参考时间: 33:07)</em></p>
 <p>要更好地让模型听话，先要理解"听指令"这件事到底是怎么完成的。</p>
+<ul>
+<li>[ ] Pr[token | context]</li>
+</ul>
 <h3 id="41">4.1 有限计算与图灵机的纸带</h3>
 <p><em>(参考时间: 33:29)</em></p>
 <p>模型是一个概率分布，根据当前上下文预测下一个 token（next token prediction）。这里有一个关键的 insight：<strong>模型每输出一个 token，都是一次固定规模的有限计算</strong>——哪怕模型参数有数 TB，单次推理也只是把其中被激活的一部分走一遍。</p>
@@ -654,6 +662,7 @@ background: #ffffff;
 
 <h3 id="63-grounding">6.3 解法：先对齐（Grounding），再推理</h3>
 <p><em>(参考时间: 60:04)</em></p>
+<p>==论文审稿==：应该这样：我们站在人类已知的知识边界上看这个问题。这不是一个完全老的问题一相关的东西是什么？解决到什么程度？这个工作试图解决椰些不一样增量的问题？</p>
 <p>讲者的个人经验：希望 <strong>AI 与"我"对齐</strong>——让它站在我的立场上理解这篇论文，而不是站在论文自己的立场上。具体做法分三步：</p>
 <pre class="highlight"><code class="language-mermaid">graph TD
     A[&quot;第 1 步: 建立共识 (Grounding)&quot;] --&gt; A1[&quot;告诉 AI 你的知识边界:&lt;br/&gt;课程学到什么程度 / 编程水平如何&quot;]
@@ -700,6 +709,15 @@ background: #ffffff;
 <p>你有无限的时间与可能性，可以<strong>把自己蒸馏成一个 skill</strong>——从一次次失败中，蒸馏出越来越成功的自己。</p>
 </blockquote>
 <p><em>(参考时间: 75:01)</em></p>
+<h4 id="confuserjson">==锚定效应==conf.user.json</h4>
+<p>faculty</p>
+<h4 id="2">2. "百年科学经典" = 《自然》百年科学经典（英汉对照版）</h4>
+<p>这是一套真实存在的书，和讲者的描述完全吻合：</p>
+<ul>
+<li><strong>《自然》百年科学经典</strong>（<em>Nature: the Living Record of Science</em>），外语教学与研究出版社联合麦克米伦、自然出版集团出版，共 <strong>10 卷</strong>，每卷都很厚</li>
+<li>内容正是讲者说的"把 Nature 杂志从<strong>1869 年创刊</strong>以来的特别好的 paper 都收集了"——物理、化学、生物、天文、地球科学各领域的经典论文精选，英汉对照，每篇带资深编辑的编者按</li>
+<li>字幕里的"从 <strong>171890</strong> 年开始"是转写乱码，实际是 <strong>1869 年</strong>（Nature 创刊年）</li>
+</ul>
 <hr />
 <h2 id="_6">第七章 更长程任务的建议</h2>
 <p><em>(参考时间: 75:30)</em></p>
@@ -770,13 +788,16 @@ background: #ffffff;
 <li><strong>盯着 session，跑偏立即纠正</strong>：只注入自己的领域知识，任务往往完成得更快；</li>
 <li><strong>放手不管，给更多 token 与时间</strong>：一般也能完成。</li>
 </ul>
-<p>纠正 AI 是一件"有多巴胺"的事——它给人一种"虽然 AI 很强，但我还是比 AI 有点用"的微妙心理安慰。但要警惕<strong>假努力</strong>：自我感动的努力没有用，在 AI 时代，假努力与真努力之间的差距会被拉得更大。把自己的时间留给收益最大的事：不知道的事情去弄懂（这几乎值得百分之百的学生时间）；已经知道怎么干好的事，放手让 AI 干。</p>
+<p>纠正 AI 是一件"有多巴胺"的事——它给人一种"虽然 AI 很强，但我还是比 AI 有点用"的微妙心理安慰。但要警惕<strong>假努力</strong>：自我感动的努力没有用，在 AI 时代，假努力与真努力之间的差距会被拉得更大。把自己的时间留给收益最大的事：不知道的事情去弄懂（==这几乎值得百分之百的学生时间==）；已经知道怎么干好的事，放手让 AI 干。</p>
 <h3 id="77">7.7 指令遵循的衰减规律</h3>
 <p><em>(参考时间: 91:32)</em></p>
+<p>==caveat==</p>
 <p>随着上下文增长，指令遵循能力确实会下降——但有一个很有用的特点：<strong>上下文中间的指令最容易被忽略，而最后的那条指令通常仍能遵循</strong>。这很符合工作场景：最后一个短窗口往往就是具体任务（"帮我把这个东西修了"），模型真的能把它做完。所以模型依然非常值得使用。</p>
 <h3 id="78">7.8 长程开放问题：用算力换智力</h3>
 <p><em>(参考时间: 92:11)</em></p>
+<p>long-horizon</p>
 <p>如果任务是真正长程、在不确定性中探索，思维链就无能为力了——它只能解决"有 Verifier、方向确定、一直往后推"的问题。问它"帮我考虑几种方案哪个最好"，它很可能给出一个并非最优的答案：模型被训练成"完成任务才有奖励"，只能做<strong>有限的搜索</strong>。</p>
+<p>==模型是舔狗，只能完成有verifier 的任务==</p>
 <p>这可以用 P vs. NP 来类比：<strong>验证一个解是容易的（P），找到一个满足条件的解是困难的（NP 完全）</strong>——给你一条路径，判断它是不是哈密顿路径很容易；找到一条却很难。验证容易、搜索困难，模型为完成任务只能有限搜索。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_32_40.png" alt="验证容易、搜索困难：用算力换智力" loading="lazy">
@@ -804,7 +825,7 @@ background: #ffffff;
 <p>缺点只有一个：<strong>烧 token</strong>。</p>
 <h3 id="79">7.9 结语：世界很大，人很小</h3>
 <p><em>(参考时间: 96:48)</em></p>
-<p>课程以一个开放的哲学问题收尾。人类的品味各不相同，因为每个人都带着巨大的偏见（bias）——不同的城市、教育背景、生活圈。有一个 "big world hypothesis"：我们学不完这个世界上所有的东西。但正因为人人带着不同的偏见，才有 1+1&gt;2 的群体智能。</p>
+<p>课程以一个开放的哲学问题收尾。人类的品味各不相同，因为每个人都带着巨大的偏见（bias）——不同的城市、教育背景、生活圈。有一个==richard sutton  "big world hypothesis"==：我们学不完这个世界上所有的东西。但正因为人人带着不同的偏见，才有 1+1&gt;2 的群体智能。</p>
 <p>然而，如果"真正有价值的问题都可以用算力换智力"，一个残酷的可能随之浮现：有一类人可以获得无限的计算资源，于是拥有无限的智力；他们可以砌一堵墙，墙里的人是有智力的朋友，墙外的人是普通人——假使 AI 产生智力的效率远超人类，墙外就成了动物园，无论如何也追不上墙内产生智力的速度。</p>
 <blockquote>
 <p>墙里是超人，墙外是动物世界。我们正站在 AI 关键的基点上——也许需要思考的是：怎么样防止这件事情到来。</p>
@@ -829,7 +850,7 @@ background: #ffffff;
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+            mermaid.initialize({ startOnLoad: false, theme: 'default' });
             
             // 兼容普通代码块以及丢失 language-mermaid 类名的情况 (CodeHilite 干扰)
             const codeNodes = document.querySelectorAll('pre code, .highlight code');
