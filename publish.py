@@ -86,14 +86,20 @@ def read_title(video_id):
 
 
 def build_index_html(manifest):
+    """落地页：浅色背景 + 卡片设计（参考 idealclover/homepage 的 daisyUI 语言）。"""
     rows = sorted(manifest.items(), key=lambda kv: kv[1].get("updated", ""), reverse=True)
-    items = []
-    for vid, meta in rows:
+    cards = []
+    for i, (vid, meta) in enumerate(rows):
         href = quote(meta["folder"]) + "/book.html"
-        items.append(
-            f'      <li><a href="{href}">{meta["title"] or vid}</a>'
-            f'<span>{meta.get("updated", "")[:10]}</span></li>')
-    body = "\n".join(items) or "      <li>暂无成品</li>"
+        cards.append(
+            f'      <a class="card" href="{href}">\n'
+            f'        <div class="badge b{i % 4}">{i + 1:02d}</div>\n'
+            f'        <h2>{meta["title"] or vid}</h2>\n'
+            f'        <p class="meta">{vid} · 更新于 {meta.get("updated", "")[:10]}</p>\n'
+            f'        <div class="grow"></div>\n'
+            f'        <div class="actions"><span class="btn">开始阅读 →</span></div>\n'
+            f'      </a>')
+    body = "\n".join(cards) or '      <p class="empty">暂无成品</p>'
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -101,28 +107,64 @@ def build_index_html(manifest):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VideoBook 成品书架</title>
 <style>
-  body {{ background:#14161a; color:#e8eaed; font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-         max-width:760px; margin:0 auto; padding:48px 20px; }}
-  h1 {{ font-size:1.5em; font-weight:600; }}
-  p.sub {{ color:#9aa0a6; font-size:.9em; }}
-  ul {{ list-style:none; padding:0; }}
-  li {{ display:flex; justify-content:space-between; gap:16px; padding:14px 4px;
-       border-bottom:1px solid #2a2d33; }}
-  a {{ color:#8ab4f8; text-decoration:none; }}
-  a:hover {{ text-decoration:underline; }}
-  span {{ color:#9aa0a6; font-size:.85em; white-space:nowrap; }}
+  :root {{ color-scheme: light; }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{
+    background: #f6f7f9; color: #1f2328;
+    font-family: "Inter", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.7;
+  }}
+  .wrap {{ max-width: 1080px; margin: 0 auto; padding: 64px 24px 48px; }}
+  header h1 {{ font-size: 1.9em; font-weight: 700; letter-spacing: -0.02em; }}
+  header p {{ color: #57606a; margin: 6px 0 36px; font-size: .95em; }}
+  .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }}
+  .card {{
+    display: flex; flex-direction: column; gap: 10px;
+    background: #ffffff; border-radius: 16px; padding: 24px 22px 18px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06);
+    text-decoration: none; color: inherit;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }}
+  .card:hover {{
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(15,23,42,.05), 0 14px 34px rgba(15,23,42,.10);
+  }}
+  .badge {{
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .95em;
+  }}
+  .b0 {{ background: linear-gradient(135deg,#dbeafe,#e0e7ff); color: #1d4ed8; }}
+  .b1 {{ background: linear-gradient(135deg,#ede9fe,#fce7f3); color: #6d28d9; }}
+  .b2 {{ background: linear-gradient(135deg,#dcfce7,#dbeafe); color: #15803d; }}
+  .b3 {{ background: linear-gradient(135deg,#fef3c7,#fce7f3); color: #b45309; }}
+  .card h2 {{ font-size: 1.06em; font-weight: 600; line-height: 1.5; }}
+  .meta {{ color: #6e7781; font-size: .82em; }}
+  .grow {{ flex: 1; }}
+  .actions {{ display: flex; justify-content: flex-end; }}
+  .btn {{
+    background: #f0f1f3; color: #1f2328; border-radius: 10px;
+    padding: 7px 14px; font-size: .82em; font-weight: 500;
+  }}
+  .card:hover .btn {{ background: #e4e6ea; }}
+  .empty {{ color: #6e7781; }}
+  footer {{ margin-top: 44px; color: #8b949e; font-size: .8em; text-align: center; }}
 </style>
 </head>
 <body>
-  <h1>VideoBook 成品书架</h1>
-  <p class="sub">视频课程 → 图文电子书。点击标题在线阅读（含截图放大与流程图交互）。</p>
-  <ul>
+  <div class="wrap">
+    <header>
+      <h1>VideoBook 成品书架</h1>
+      <p>视频课程 → 图文电子书 · 点击卡片在线阅读（含截图放大与流程图交互）</p>
+    </header>
+    <div class="grid">
 {body}
-  </ul>
+    </div>
+    <footer>由 VideoBook 流水线自动生成 · 内容衍生自 B 站公开课程视频</footer>
+  </div>
 </body>
 </html>
 """
-
 
 def main():
     ap = argparse.ArgumentParser(description="发布成品电子书到 pages 分支")
@@ -240,6 +282,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

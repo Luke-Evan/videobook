@@ -205,19 +205,20 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg-primary: #0f0f11;
-            --bg-secondary: #1a1a1f;
-            --bg-card: #22222a;
-            --bg-code: #2a2a35;
-            --text-primary: #e8e6e3;
-            --text-secondary: #9a9a9f;
-            --text-muted: #6a6a6f;
-            --accent: #6c8cff;
-            --accent-glow: rgba(108, 140, 255, 0.15);
-            --border: #2e2e36;
-            --border-subtle: #252530;
+            color-scheme: light;
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --bg-card: #eef0f3;
+            --bg-code: #f2f3f5;
+            --text-primary: #1f2328;
+            --text-secondary: #57606a;
+            --text-muted: #6e7781;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --border: #d9dce1;
+            --border-subtle: #e7e9ec;
             --radius: 12px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
         }
 
         html {
@@ -245,7 +246,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
             font-size: 2.2em;
             font-weight: 700;
             margin: 0 0 12px;
-            background: linear-gradient(135deg, #6c8cff 0%, #a78bfa 50%, #f472b6 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -275,7 +276,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         }
 
         strong {
-            color: #fff;
+            color: #0f172a;
             font-weight: 600;
         }
 
@@ -363,7 +364,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
             padding: 2px 7px;
             border-radius: 5px;
             font-size: 0.88em;
-            color: #e0b0ff;
+            color: #6d28d9;
         }
 
         pre {
@@ -393,7 +394,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         }
         .video-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
         }
 
         .video-wrapper {
@@ -490,7 +491,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+            mermaid.initialize({ startOnLoad: false, theme: 'default' });
             
             // 兼容普通代码块以及丢失 language-mermaid 类名的情况 (CodeHilite 干扰)
             const codeNodes = document.querySelectorAll('pre code, .highlight code');
@@ -545,3 +546,5 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
 
 if __name__ == "__main__":
     main()
+
+
