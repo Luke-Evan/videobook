@@ -65,4 +65,4 @@
 
 - **在线阅读（GitHub Pages）**：`https://luke-evan.github.io/videobook/` —— 落地页列出全部电子书，点击标题即可阅读（含截图放大、Mermaid 交互）。需在仓库 Settings → Pages 一次性选择分支 `pages` + `/ (root)`。
 - **分支布局**：`main` = 工具代码；`pages` = 成品（独立 orphan 分支，目录名 = 视频标题，如 `提示词工程 [02-Raw／26生成式软件工程／NJU]`）。
-- **发布方式**：`python publish.py <video_id>` 或 `python publish.py --all`，然后 `git push origin pages`。只发布 `book.html / book.md / images/` 三件套，字幕、transcript 等中间物不进公开仓库；`output/` 本地工作区不受任何 git 操作影响。
+- **发布方式**：`python publish.py <video_id>` 或 `python publish.py --all`，然后 `git push origin pages`。发布 `book.html / book.md / images/` 与（若存在）`transcript.corrected.txt`（AI 修正版字幕对照稿，落地页卡片附"字幕对照"链接）；原始字幕、transcript.json 等中间物不进公开仓库；`output/` 本地工作区不受任何 git 操作影响。

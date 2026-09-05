@@ -22,6 +22,7 @@ from urllib.parse import quote
 BASE = os.path.dirname(os.path.abspath(__file__))
 GD = os.path.join(BASE, ".git")
 PAGES = "pages"
+CORRECTED = "transcript.corrected.txt"
 
 
 def run(args, env=None, cwd=BASE, check=True):
@@ -47,6 +48,8 @@ def safe_folder(title, bvid):
 def _src_blob_map(src):
     """源目录三件套 -> blob sha（与 add 相同过滤标准）。"""
     rels = ["book.html", "book.md"]
+    if os.path.isfile(os.path.join(src, CORRECTED)):
+        rels.append(CORRECTED)
     img = os.path.join(src, "images")
     rels += ["images/" + f for f in sorted(os.listdir(img)) if f.lower().endswith(".png")]
     out = {}
@@ -91,13 +94,15 @@ def build_index_html(manifest):
     cards = []
     for i, (vid, meta) in enumerate(rows):
         href = quote(meta["folder"]) + "/book.html"
+        txt = (f'<a class="txt" href="{quote(meta["folder"])}/{CORRECTED}">字幕对照</a>'
+               if meta.get("corrected") else "")
         cards.append(
             f'      <a class="card" href="{href}">\n'
             f'        <div class="badge b{i % 4}">{i + 1:02d}</div>\n'
             f'        <h2>{meta["title"] or vid}</h2>\n'
             f'        <p class="meta">{vid} · 更新于 {meta.get("updated", "")[:10]}</p>\n'
             f'        <div class="grow"></div>\n'
-            f'        <div class="actions"><span class="btn">开始阅读 →</span></div>\n'
+            f'        <div class="actions">{txt}<span class="btn">开始阅读 →</span></div>\n'
             f'      </a>')
     body = "\n".join(cards) or '      <p class="empty">暂无成品</p>'
     return f"""<!DOCTYPE html>
@@ -141,7 +146,9 @@ def build_index_html(manifest):
   .card h2 {{ font-size: 1.06em; font-weight: 600; line-height: 1.5; }}
   .meta {{ color: #6e7781; font-size: .82em; }}
   .grow {{ flex: 1; }}
-  .actions {{ display: flex; justify-content: flex-end; }}
+  .actions {{ display: flex; justify-content: flex-end; align-items: center; }}
+  .txt {{ color: #2563eb; font-size: .82em; text-decoration: none; margin-right: auto; }}
+  .txt:hover {{ text-decoration: underline; }}
   .btn {{
     background: #f0f1f3; color: #1f2328; border-radius: 10px;
     padding: 7px 14px; font-size: .82em; font-weight: 500;
@@ -229,20 +236,24 @@ def main():
             # 4) 内容未变且目录未改名：保持原发布（含原 updated），保证幂等
             if old == folder and _pages_blob_map(old) == _src_blob_map(src):
                 manifest[vid] = {"folder": folder, "title": title,
-                                 "updated": manifest[vid].get("updated", now)}
+                                 "updated": manifest[vid].get("updated", now),
+                                 "corrected": os.path.isfile(os.path.join(src, CORRECTED))}
                 print(f">> {vid}: 内容无变化，保持原发布")
                 continue
 
             if old and old != folder:
                 shutil.rmtree(os.path.join(tmp, old), ignore_errors=True)
                 print(f">> {vid}: 目录改名 {old} -> {folder}")
-            manifest[vid] = {"folder": folder, "title": title, "updated": now}
+            manifest[vid] = {"folder": folder, "title": title, "updated": now,
+                             "corrected": os.path.isfile(os.path.join(src, CORRECTED))}
 
             # 5) 复制三件套到临时工作树
             shutil.rmtree(dst, ignore_errors=True)
             os.makedirs(os.path.join(dst, "images"))
             shutil.copyfile(os.path.join(src, "book.html"), os.path.join(dst, "book.html"))
             shutil.copyfile(os.path.join(src, "book.md"), os.path.join(dst, "book.md"))
+            if os.path.isfile(os.path.join(src, CORRECTED)):
+                shutil.copyfile(os.path.join(src, CORRECTED), os.path.join(dst, CORRECTED))
             n = 0
             for fn in sorted(os.listdir(os.path.join(src, "images"))):
                 if fn.lower().endswith(".png"):
@@ -282,6 +293,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
 

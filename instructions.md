@@ -38,8 +38,9 @@ python dump_transcript.py "<VIDEO_URL>"
 - 必须分章节组织，使用 Markdown 标题
 - 必须在关键界面/操作步骤处插入截图占位符：`![场景描述](SCREENSHOT:HH:MM:SS)`
 - 如果原始语言不是中文，必须翻译为中文
-- **对齐官方章节**：`chapters` 非空时，以其作为顶层分章骨架（与视频自身章节一致），章内再按内容细分；每个 `SCREENSHOT:` 时间戳应落在其所属章节的时间区间内。
+- **官方章节仅供参考**：`chapters` 字段往往较粗糙，只用于辅助定位内容与选择截图时间戳；顶层分章请按内容自身逻辑组织，**不要求**与官方章节一一对应；`SCREENSHOT:` 时间戳落在其所属内容的时间区间内即可。
 - **容忍 ASR 噪声**：AI 字幕含同音错词（如"深圳市软件工程"→生成式、"威尔法/WIFI"→verifier、"KIMIK3"→Kimi K3、"chain of salt"→chain of thought、"舔狗/做题家"等口语梗保留原意）。动笔前先结合标题与 chapters 建立术语表，改写时统一规范化。
+- **产出修正版字幕对照稿**：同时生成 `output/<video_id>/transcript.corrected.txt`——每行一个语句块 `[HH:MM:SS] 书面语文本`（按停顿/话题转换将连续 segments 约每 30–60 秒合并为一块）；要求修正 ASR 同音错词、去口癖、口语转书面，但**保持原始顺序与信息点完整**，不概括、不重构章节；该文件将随发布上传 pages 供人工对照视频。
 - **截图时间戳选择**：优先章节边界、新幻灯片出现时刻、演示画面时刻；结合前后字幕语义定位，格式 `HH:MM:SS`。
 
 ### 第三步：截帧并将截图占位符替换为图片
@@ -153,6 +154,6 @@ python publish.py <video_id>   # 或 python publish.py --all
 git push origin pages
 `
 
-- 将三件套（book.html / book.md / images/）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
+- 将 book.html / book.md / images/ 以及（若存在）transcript.corrected.txt（AI 修正版字幕对照稿）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；落地页卡片对含对照稿的书自动附"字幕对照"入口；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
 - 纯本地 git 操作，沙箱内可跑；push 需网络。
 - 首次推送后需在 GitHub 仓库 Settings → Pages 一次性启用（分支 `pages`、目录 `/ (root)`），之后每次 push 自动部署。
