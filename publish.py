@@ -97,13 +97,13 @@ def build_index_html(manifest):
         txt = (f'<a class="txt" href="{quote(meta["folder"])}/{CORRECTED}">字幕对照</a>'
                if meta.get("corrected") else "")
         cards.append(
-            f'      <a class="card" href="{href}">\n'
+            f'      <div class="card">\n'
             f'        <div class="badge b{i % 4}">{i + 1:02d}</div>\n'
-            f'        <h2>{meta["title"] or vid}</h2>\n'
+            f'        <a class="title" href="{href}"><h2>{meta["title"] or vid}</h2></a>\n'
             f'        <p class="meta">{vid} · 更新于 {meta.get("updated", "")[:10]}</p>\n'
             f'        <div class="grow"></div>\n'
-            f'        <div class="actions">{txt}<span class="btn">开始阅读 →</span></div>\n'
-            f'      </a>')
+            f'        <div class="actions">{txt}<a class="btn" href="{href}">开始阅读 →</a></div>\n'
+            f'      </div>')
     body = "\n".join(cards) or '      <p class="empty">暂无成品</p>'
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -146,12 +146,13 @@ def build_index_html(manifest):
   .card h2 {{ font-size: 1.06em; font-weight: 600; line-height: 1.5; }}
   .meta {{ color: #6e7781; font-size: .82em; }}
   .grow {{ flex: 1; }}
-  .actions {{ display: flex; justify-content: flex-end; align-items: center; }}
-  .txt {{ color: #2563eb; font-size: .82em; text-decoration: none; margin-right: auto; }}
+  .title {{ display: block; color: inherit; text-decoration: none; }}
+  .actions {{ display: flex; justify-content: flex-end; align-items: center; gap: 14px; }}
+  .txt {{ color: #2563eb; font-size: .82em; text-decoration: none; }}
   .txt:hover {{ text-decoration: underline; }}
   .btn {{
-    background: #f0f1f3; color: #1f2328; border-radius: 10px;
-    padding: 7px 14px; font-size: .82em; font-weight: 500;
+    display: inline-block; background: #f0f1f3; color: #1f2328; border-radius: 10px;
+    padding: 7px 14px; font-size: .82em; font-weight: 500; text-decoration: none;
   }}
   .card:hover .btn {{ background: #e4e6ea; }}
   .empty {{ color: #6e7781; }}
