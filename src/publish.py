@@ -116,7 +116,7 @@ def build_index_html(manifest):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VideoBook 成品书架</title>
+<title>生成式软件工程电子书架</title>
 <style>
   :root {{ color-scheme: light; }}
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -172,8 +172,7 @@ def build_index_html(manifest):
 <body>
   <div class="wrap">
     <header>
-      <h1>VideoBook 成品书架</h1>
-      <p>视频课程 → 图文电子书 · 点击卡片在线阅读（含截图放大与流程图交互）</p>
+      <h1>生成式软件工程电子书架</h1>
     </header>
     <div class="grid">
 {body}
