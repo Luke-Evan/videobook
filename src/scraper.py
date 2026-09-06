@@ -22,7 +22,7 @@ if hasattr(sys.stdout, "reconfigure"):
 try:
     from login_utils import export_cookies, DEFAULT_PROFILE_DIR, has_login_cookie
 except ImportError:  # 作为 skills 包被导入时兜底
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from login_utils import export_cookies, DEFAULT_PROFILE_DIR, has_login_cookie
 
 _UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
@@ -113,7 +113,7 @@ def _ffmpeg_location():
 
 def fetch_via_ytdlp(video_url: str, cookies_from: str = None, cookies_file: str = None) -> List[Dict[str, Any]]:
     """使用 yt-dlp 作为兜底方案获取字幕（支持 B 站等）"""
-    tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tmp_subs")
+    tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tmp_subs")
     if os.path.exists(tmp_dir):  # 防止残留旧字幕造成假阳性
         shutil.rmtree(tmp_dir, ignore_errors=True)
     os.makedirs(tmp_dir, exist_ok=True)

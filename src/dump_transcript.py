@@ -6,7 +6,7 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
 
-from skills.scraper import get_transcript
+from scraper import get_transcript
 from config import get_video_dir
 from login_utils import export_cookies
 
