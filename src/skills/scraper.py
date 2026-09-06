@@ -113,7 +113,7 @@ def _ffmpeg_location():
 
 def fetch_via_ytdlp(video_url: str, cookies_from: str = None, cookies_file: str = None) -> List[Dict[str, Any]]:
     """使用 yt-dlp 作为兜底方案获取字幕（支持 B 站等）"""
-    tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tmp_subs")
+    tmp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tmp_subs")
     if os.path.exists(tmp_dir):  # 防止残留旧字幕造成假阳性
         shutil.rmtree(tmp_dir, ignore_errors=True)
     os.makedirs(tmp_dir, exist_ok=True)

@@ -7,7 +7,7 @@ load_dotenv()
 # We can store any other configuration here later.
 # For now, we will just use it to prepare the output directories.
 
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "output")
 
 def get_video_dir(video_id: str) -> str:
     """Gets the output directory for a specific video."""

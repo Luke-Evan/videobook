@@ -12,7 +12,7 @@ import os
 import re
 import sys
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ASR 错词 -> 正确词（按长度降序应用，避免子串误伤）
 MAP = {

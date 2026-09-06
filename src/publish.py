@@ -19,7 +19,7 @@ import tempfile
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GD = os.path.join(BASE, ".git")
 PAGES = "pages"
 CORRECTED = "transcript.corrected.txt"
@@ -87,10 +87,15 @@ def read_title(video_id):
     except (OSError, json.JSONDecodeError):
         return ""
 
+def _seq(meta):
+    m = re.search(r"\[(\d+)[-－]", meta.get("title", ""))
+    return int(m.group(1)) if m else 10**9
+
+
 
 def build_index_html(manifest):
     """落地页：浅色背景 + 卡片设计（参考 idealclover/homepage 的 daisyUI 语言）。"""
-    rows = sorted(manifest.items(), key=lambda kv: kv[1].get("updated", ""), reverse=True)
+    rows = sorted(manifest.items(), key=lambda kv: (_seq(kv[1]), kv[1].get("updated", "")))
     cards = []
     for i, (vid, meta) in enumerate(rows):
         href = quote(meta["folder"]) + "/book.html"

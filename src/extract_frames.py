@@ -76,7 +76,7 @@ def materialize(book: str, tagged: str, imgdir: str) -> None:
 def main() -> None:
     video_id = sys.argv[1] if len(sys.argv) > 1 else "BV1pb8o6yE8f"
     video_url = sys.argv[2] if len(sys.argv) > 2 else None
-    base = os.path.dirname(os.path.abspath(__file__))
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     vdir = os.path.join(base, "output", video_id)
     book = os.path.join(vdir, "book.md")
     tagged = os.path.join(vdir, "book.tagged.md")

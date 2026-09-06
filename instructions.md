@@ -15,12 +15,12 @@
 在终端执行以下命令（将 `<VIDEO_URL>` 替换为用户提供的链接）：
 
 ```bash
-python dump_transcript.py "<VIDEO_URL>"
+python src/dump_transcript.py "<VIDEO_URL>"
 ```
 
 - 脚本会自动检测平台，抓取字幕并保存为 `output/<video_id>/transcript.json`。
 - **B 站登录态自动获取**：B 站视频在专用配置 `.capture-profile/` 存在登录态时，脚本会自动导出 cookies（系统临时目录、用完即删，不会落入仓库）。该过程启动无头 Chrome，**需沙箱外执行**（Codex 中申请 require_escalated）。
-- 若提示专用配置无登录态：请用户先运行 `python capture_frames.py --setup-profile` 登录一次（扫码即可），再重试。
+- 若提示专用配置无登录态：请用户先运行 `python src/capture_frames.py --setup-profile` 登录一次（扫码即可），再重试。
 - 可选参数：`--cookies-from-profile <dir>`（指定配置导出）、`--cookies-file <path>`（Netscape cookies 文件）、`--cookies-from <browser>`（旧方式；Windows 主 Chrome 因新版加密通常不可用，勿默认使用）。
 - **覆盖率自检**：成功时脚本打印"字幕覆盖率"（末段结束时间 / 视频时长）。覆盖率低于 50% 会以退出码 3 结束并打印修复提示——此时不得进入第二步，先按提示解决（通常是登录态问题）。
 - **transcript.json 结构**：除 `segments` 外，现含 `duration`（总时长秒）与 `chapters`（平台官方章节切分，可能为空数组）。第二步必须利用这两个字段。
@@ -40,7 +40,7 @@ python dump_transcript.py "<VIDEO_URL>"
 - 如果原始语言不是中文，必须翻译为中文
 - **官方章节仅供参考**：`chapters` 字段往往较粗糙，只用于辅助定位内容与选择截图时间戳；顶层分章请按内容自身逻辑组织，**不要求**与官方章节一一对应；`SCREENSHOT:` 时间戳落在其所属内容的时间区间内即可。
 - **容忍 ASR 噪声**：AI 字幕含同音错词（如"深圳市软件工程"→生成式、"威尔法/WIFI"→verifier、"KIMIK3"→Kimi K3、"chain of salt"→chain of thought、"舔狗/做题家"等口语梗保留原意）。动笔前先结合标题与 chapters 建立术语表，改写时统一规范化。
-- **产出修正版字幕对照稿**：运行 `python make_corrected.py <video_id>`（或 `--all`）生成 `output/<video_id>/transcript.corrected.txt`——与 transcript.txt 同格式（`[MM:SS] 原文`、逐段不合并），**保留讲师原始字词与顺序**，仅做两类修改：ASR 错词替换（脚本内 MAP，按视频扩充）与口癖清理（纯语气词段删除、句尾语气词剥离、单字口吃折叠）；不改写为书面语、不概括；随后由 AI 通读全文做一轮行级订正（仅修明显错词/截断词/不通顺处，保留逐段结构与讲师原词，可委派子代理产出 old->new 清单后脚本应用；订正原则：少识别字词类错误（如“车轱话”→“车轱辘话”）必修，讲师有意为之的强调式重复（如“工作工作工作工作”“点点点点点点点了十层”）原样保留、不得折叠）；生成后抽查若干行确认无过改；该文件随发布上传 pages 供人工对照视频。
+- **产出修正版字幕对照稿**：运行 `python src/make_corrected.py <video_id>`（或 `--all`）生成 `output/<video_id>/transcript.corrected.txt`——与 transcript.txt 同格式（`[MM:SS] 原文`、逐段不合并），**保留讲师原始字词与顺序**，仅做两类修改：ASR 错词替换（脚本内 MAP，按视频扩充）与口癖清理（纯语气词段删除、句尾语气词剥离、单字口吃折叠）；不改写为书面语、不概括；随后由 AI 通读全文做一轮行级订正（仅修明显错词/截断词/不通顺处，保留逐段结构与讲师原词，可委派子代理产出 old->new 清单后脚本应用；订正原则：少识别字词类错误（如“车轱话”→“车轱辘话”）必修，讲师有意为之的强调式重复（如“工作工作工作工作”“点点点点点点点了十层”）原样保留、不得折叠）；生成后抽查若干行确认无过改；该文件随发布上传 pages 供人工对照视频。
 - **截图时间戳选择**：优先章节边界、新幻灯片出现时刻、演示画面时刻；结合前后字幕语义定位，格式 `HH:MM:SS`。
 
 ### 第三步：截帧并将截图占位符替换为图片
@@ -55,7 +55,7 @@ python dump_transcript.py "<VIDEO_URL>"
   - B 站播放器地址：`https://player.bilibili.com/player.html?bvid=<video_id>&t=<秒>&autoplay=1&high_quality=1&danmaku=0`
   - YouTube 播放器地址：`https://www.youtube.com/embed/<video_id>?start=<秒>&autoplay=1&high_quality=1`
 - 特点：使用登录态画质、后台运行、不接管用户屏幕。
-- 全部时间戳截完后执行物化：`python capture_frames.py <video_id> --materialize-only`。
+- 全部时间戳截完后执行物化：`python src/capture_frames.py <video_id> --materialize-only`。
 - 扩展未连接、截图失败、或运行环境不是 Codex/ChatGPT 桌面应用时，进入优先级 1。
 
 #### 优先级 1：专用截帧配置（v2 管线，所有 Agent 环境通用）
@@ -65,7 +65,7 @@ Chrome 136+ 的安全策略禁止对**默认**用户数据目录做任何远程�
 **一次性初始化（登录一次，长期复用）：**
 
 ```bash
-python capture_frames.py --setup-profile
+python src/capture_frames.py --setup-profile
 ```
 
 - 脚本会用专用配置启动一个 Chrome 窗口：在其中登录你需要的平台（B 站 / YouTube），然后关闭窗口。Cookies 持久化在 `.capture-profile/`，此后截帧自动携带登录态画质。**登录账号的会员等级决定截图清晰度上限**（需要更高档位时用大会员账号登录）。
@@ -73,7 +73,7 @@ python capture_frames.py --setup-profile
 **日常截帧：**
 
 ```bash
-python capture_frames.py <video_id> "<VIDEO_URL>"
+python src/capture_frames.py <video_id> "<VIDEO_URL>"
 ```
 
 v2 管线自动完成以下事情，Agent 无需也不应手工干预：
@@ -95,7 +95,7 @@ v2 管线自动完成以下事情，Agent 无需也不应手工干预：
 仅当上述所有浏览器方式全部失败（`capture_frames.py` 以非零码退出并提示 "All browser capture methods failed"），或环境无浏览器/无界面时：
 
 ```bash
-python extract_frames.py <video_id> "<VIDEO_URL>"
+python src/extract_frames.py <video_id> "<VIDEO_URL>"
 ```
 
 - 若 `output/<video_id>/video_source.mp4` 不存在，脚本会自动用 yt-dlp 下载未登录可用的最高 avc1 档；注意这是未登录画质，仅作兜底。需要更高清晰度时，先自行下载（如带登录 cookies）同名文件，脚本会跳过下载。
@@ -119,7 +119,7 @@ python extract_frames.py <video_id> "<VIDEO_URL>"
 在终端依次执行以下命令（纯本地步骤，沙箱内即可）：
 
 ```bash
-python post_process.py "<VIDEO_URL>" output/<video_id>/book.md
+python src/post_process.py "<VIDEO_URL>" output/<video_id>/book.md
 python -m http.server 8080 --directory output/<video_id>
 ```
 
@@ -150,7 +150,7 @@ python -m http.server 8080 --directory output/<video_id>
 ### 第六步（可选）：发布成品到 pages 分支
 
 `ash
-python publish.py <video_id>   # 或 python publish.py --all
+python src/publish.py <video_id>   # 或 python src/publish.py --all
 git push origin pages
 `
 

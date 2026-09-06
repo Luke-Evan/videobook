@@ -47,7 +47,7 @@ import sys
 
 from extract_frames import materialize
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_PROFILE_DIR = os.path.join(BASE_DIR, ".capture-profile")
 
 # E 层：除 <video> 外全部隐藏（visibility 保留布局，通杀各遮挡层）

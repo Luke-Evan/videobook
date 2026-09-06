@@ -8,7 +8,7 @@ Windows 上因 Chrome 新版 App-Bound 加密（DPAPI v20）无法解密主 Chro
 import os
 import tempfile
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_PROFILE_DIR = os.path.join(BASE_DIR, ".capture-profile")
 
 _HOME = {

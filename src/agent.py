@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 import sys
 
@@ -13,7 +14,7 @@ def main():
     print(f"==========================================\n")
 
     print(f"[阶段 1] 抓取字幕文件...")
-    cmd = [sys.executable, "dump_transcript.py", args.url]
+    cmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "dump_transcript.py"), args.url]
     if args.cookies_from:
         cmd.extend(["--cookies-from", args.cookies_from])
     
