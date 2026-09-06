@@ -126,7 +126,7 @@ def build_index_html(manifest):
     -webkit-font-smoothing: antialiased; line-height: 1.7;
   }}
   .wrap {{ max-width: 1080px; margin: 0 auto; padding: 64px 24px 48px; }}
-  header h1 {{ font-size: 1.9em; font-weight: 700; letter-spacing: -0.02em; }}
+  header h1 {{ font-size: 1.9em; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 32px; }}
   header p {{ color: #57606a; margin: 6px 0 36px; font-size: .95em; }}
   .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }}
   .card {{
