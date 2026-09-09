@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软件仓库管理：从“作业 V1、V2”到 Git 的第一性原理</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ── 基础重置 ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            color-scheme: light;
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --bg-card: #eef0f3;
+            --bg-code: #f2f3f5;
+            --text-primary: #1f2328;
+            --text-secondary: #57606a;
+            --text-muted: #6e7781;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --border: #d9dce1;
+            --border-subtle: #e7e9ec;
+            --radius: 12px;
+            --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Serif SC', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── 文章容器 ── */
+        .book-content {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 60px 32px 120px;
+        }
+
+        /* ── 标题 ── */
+        h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin: 0 0 12px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 56px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 36px 0 12px;
+        }
+
+        /* ── 段落与文字 ── */
+        p {
+            margin: 0 0 16px;
+            color: var(--text-primary);
+        }
+
+        strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        em {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        a:hover {
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── 引用 ── */
+        blockquote {
+            margin: 24px 0;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-secondary);
+        }
+        blockquote p { margin: 0; }
+
+        /* ── 列表 ── */
+        ul, ol {
+            margin: 12px 0 20px 24px;
+            color: var(--text-primary);
+        }
+        li {
+            margin: 6px 0;
+        }
+
+        /* ── 分割线 ── */
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 48px 0;
+        }
+
+        /* ── 表格 ── */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        thead {
+            background: var(--bg-card);
+        }
+        th {
+            padding: 12px 16px;
+            font-weight: 600;
+            text-align: left;
+            color: var(--accent);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        tbody tr {
+            background: var(--bg-secondary);
+            transition: background 0.15s;
+        }
+        tbody tr:hover {
+            background: var(--bg-card);
+        }
+
+        /* ── 代码 ── */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-code);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.88em;
+            color: #6d28d9;
+        }
+
+        pre {
+            margin: 20px 0;
+            padding: 20px 24px;
+            background: var(--bg-code);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.9em;
+            color: var(--text-primary);
+        }
+
+        /* ── 视频嵌入卡片 ── */
+        .video-card {
+            margin: 32px 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .video-caption {
+            padding: 12px 16px;
+            font-size: 0.88em;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .video-caption a {
+            color: var(--accent);
+        }
+
+        .video-card.fallback {
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* ── Lightbox：截图点击放大 ── */
+        .screenshot-card img { cursor: zoom-in; transition: opacity 0.15s; }
+        .screenshot-card img:hover { opacity: 0.9; }
+        .lightbox {
+            position: fixed; inset: 0; z-index: 999;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(5, 5, 8, 0.92); backdrop-filter: blur(4px);
+            cursor: zoom-out; padding: 24px;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox img {
+            max-width: 96vw; max-height: 90vh;
+            border-radius: 8px; box-shadow: 0 12px 60px rgba(0,0,0,0.7);
+        }
+        .lightbox-caption {
+            position: absolute; bottom: 14px; left: 0; right: 0;
+            text-align: center; color: var(--text-secondary); font-size: 0.85em;
+        }
+
+        /* ── 顶部信息栏 ── */
+        .book-content > blockquote:first-of-type {
+            background: var(--accent-glow);
+            border-left-color: var(--accent);
+            border-radius: var(--radius);
+            margin-bottom: 32px;
+        }
+
+        /* ── 图表居中 ── */
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 32px 0;
+            overflow-x: auto;
+        }
+
+        /* ── 滚动条 ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ── 响应式 ── */
+        @media (max-width: 640px) {
+            .book-content { padding: 32px 16px 80px; }
+            h1 { font-size: 1.7em; }
+            h2 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <article class="book-content">
+        <h1 id="v1v2-git">软件仓库管理：从“作业 V1、V2”到 Git 的第一性原理</h1>
+<blockquote>
+<p><strong>原视频</strong>：<a href="https://www.bilibili.com/video/BV1kybV6DE47/">Bilibili · BV1kybV6DE47</a>（时长约 100 分钟）
+<strong>课程</strong>：南京大学《生成式软件工程》（2026）第 03 讲 · Raw 版
+<strong>整理说明</strong>：本书由视频语音经本地 ASR（faster-whisper large-v3）转录后，由 AI 重构而成，口语已转写为书面语，并修正了转录中的明显识别错误；关键时间点均标注 <em>(参考时间)</em>，点击截图卡片可跳转视频对应位置。</p>
+</blockquote>
+<hr />
+<h2 id="_1">目录</h2>
+<ol>
+<li><a href="#1-gpt-6">1. 开场：GPT-6 发布了，但品位还没学会</a></li>
+<li><a href="#2-ai">2. AI 时代还要不要学操作系统和数据库</a></li>
+<li><a href="#3">3. 一个软件工程项目从哪里开始</a></li>
+<li><a href="#4">4. 什么是软件：需求在信息世界的投影</a></li>
+<li><a href="#5-git-u">5. Git 之前：U 盘、压缩包与邮件</a></li>
+<li><a href="#6-github">6. 惊人的注意力：从 GitHub 上学会品位</a></li>
+<li><a href="#7-git">7. 从需求推导出版本控制：你也能发明 Git</a></li>
+<li><a href="#8-git-first-principle">8. Git 简史与它的 First Principle</a></li>
+<li><a href="#9-git-init-add-status-commit">9. Git 上手四件套：init / add / status / commit</a></li>
+<li><a href="#10-commit-message">10. Commit Message 是项目的历史轨迹</a></li>
+<li><a href="#11-tagfinalize">11. 空提交与 tag：finalize 一个版本</a></li>
+<li><a href="#12-git-add">12. <code>git add .</code> 的代价：什么不该进版本库</a></li>
+<li><a href="#13-ai">13. 让 AI 当代码审查员：从批评到重写历史</a></li>
+<li><a href="#14-distlogds_store-api-key">14. 高血压时刻：dist、log、.DS_Store 与活着的 API Key</a></li>
+<li><a href="#15-hook">15. Hook：把规范固化成自动检查</a></li>
+<li><a href="#16-git-blob-tree-commit">16. Git 的底层数据结构：blob / tree / commit</a></li>
+<li><a href="#17-vibe-coding-git">17. Vibe Coding 一个 Git 仓库可视化工具</a></li>
+<li><a href="#18">18. 可视化分支、冲突与合并</a></li>
+<li><a href="#19-python-ai">19. 把 Python 教给小学生：架构自己把关，其余外包给 AI</a></li>
+<li><a href="#20-conventional-commits">20. 工程细节：Conventional Commits 与中英文空格</a></li>
+<li><a href="#21-commit-often-perfect-later">21. Commit Often, Perfect Later：小步提交的工程理由</a></li>
+<li><a href="#22-git-atomic-change">22. 总结：Git 是用 Atomic Change 推进的快照</a></li>
+<li><a href="#23-agent">23. 附：讲者自己的多 Agent 工作流</a></li>
+<li><a href="#postscript">后记 Postscript：本书是如何生成的</a></li>
+</ol>
+<hr />
+<h2 id="1-gpt-6">1. 开场：GPT-6 发布了，但品位还没学会</h2>
+<p><em>(参考时间: 00:00)</em></p>
+<p>前几次课讲的是如何把 AI 整合进自己的生活流程。人在生活中会遇到无穷多不顺心的事情，而 AI 是一个足够强大的 assistant：你只需要把真实的意图告诉它，它就能把这些不顺心挡掉，你甚至还可以把这套流程蒸馏成 skills，让下一次更平顺。</p>
+<p>在这个过程里，模型本身也在不断进步。GPT-6 真的发布了，讲者用过之后的评价是“有惊喜，但编程上的提升有限”：</p>
+<ul>
+<li><strong>AI 学会的是完成任务，还没学会品位。</strong> 有经验的软件工程师身上最值钱的东西是品位（taste），品位能指导 AI 做出更好的东西；而现在的 AI 更多时候只是把任务做完。GPT-6 似乎还没学会这种品位，“所以我经常还要骂它，我觉得我可能还能再苟活几个月”。</li>
+<li><strong>但复杂任务上确实更快、更省 token。</strong> 讲者特意 measure 过，这一点是真的。</li>
+<li><strong>AI 写的代码，人类越来越难读了。</strong> 从 GPT-5 到 5.6 再到 6，思维链变得非常紧凑，写出来的代码也越来越紧凑，人已经没办法 review。曾经我们会用各种 prompt 要求 AI“写出符合人类工程规范的代码”，但现在大家的默认心态是：反正我们再也不会看 AI 写的代码，随它去吧，它能把代码弄对就行。</li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_02_32.png" alt="GPT-6 带来的最大惊喜：空间感知与理解能力" loading="lazy">
+  <p class="video-caption">📷 GPT-6 带来的最大惊喜：空间感知与理解能力<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=152" target="_blank" rel="noopener">在 B 站中打开 (00:02:32)</a></p>
+</div>
+
+<p>GPT-6 给讲者的最大惊喜是<strong>空间感知和理解能力</strong>。他借此讲了自己对 OpenAI 的 AGI 路线的理解：</p>
+<ol>
+<li><strong>AI 要先学会数学。</strong> 数学是人类世界里最难的语言，但它拥有全世界所有人都认同的推理系统——一个定理被证明出来，全球的人都会认可这个证明是对还是不对。</li>
+<li><strong>数学的方向和软件工程正好相反。</strong> 软件工程里存在 Intent / Spec / Implementation 之间的 Gap；而数学是全球共识，是一个非常好的可以 grounding 的东西。</li>
+<li><strong>数学的逻辑推理能解释人类生活中的行为。</strong> 比如“今天中午去几食堂吃饭”，看似是灵魂才能回答的问题，其实大脑一直在投票：讲者会选择在逸夫楼订饭，因为对他来说这是最快的选项——下午还要开会，如果时间来得及，中午还能小睡一会儿。这就是在各种因素之间投票，其中还包含“A imply B”这样的离散数学关系。</li>
+</ol>
+<h3 id="11">1.1 空间感知解锁了什么</h3>
+<p>有了空间感知能力，一些原本很难的事情突然变得可以做了：</p>
+<ul>
+<li><strong>3D 打印模型的对话式生成。</strong> 讲者的组已经做了小半年 3D 打印的工作。在 GPT-5.6 空间感知能力很差的情况下，只能靠反复对话才能生成一个像样、各方面都符合规范的 3D 打印模型。</li>
+<li><strong>光栅玩具。</strong> 他们有一个比较 killer 的应用：那种从左边看和右边看是两个不同图案的光栅玩具。以前需要很长的搜索才能做出来，而这次 GPT-6 <strong>one shot 直接搞定</strong>——“然后我们现在还在想，想怎么样解决这个问题”。</li>
+<li><strong>具身智能赛道。</strong> 有了空间感知能力又有数学能力之后，模型在具身赛道上明显可以做得很好。第二天小红书上就有很多人发：直接用 GPT-6 控制机械臂做抓取、叠衣服这样的复杂动作。</li>
+</ul>
+<p>值得注意的是，GPT-6 在这里<strong>只是一个语言模型</strong>：它虽然有视觉能力，但就是一帧一帧地问“下面要干什么”，提示词工程都还没有解锁，就已经达到了 state of the art 的能力范围。</p>
+<blockquote>
+<p><strong>所以模型一定会进步的。</strong> 讲者说，也许上到某一次课的时候，他突然就可以说“这个课不用上了”，这样也好，大家就可以去做产品了。</p>
+</blockquote>
+<h2 id="2-ai">2. AI 时代还要不要学操作系统和数据库</h2>
+<p><em>(参考时间: 06:47)</em></p>
+<p>有人问过讲者：在 AI 的时代，还要不要学数据库、学操作系统这些东西？他的答案其实并不特别确定，于是打了一个比方。</p>
+<p>回到一百多年前汽车刚发明的时候，汽车开一两公里就会出故障，所以每一个 driver 都必须对汽车的工作原理了解得非常清楚——车一旦出故障，你得知道它是怎么工作的。在那个时代，“你要开车，就需要掌握汽车基本原理”是理所应当的事；同样，你要学 computer science、要进软件工程的工厂，就要去学操作系统、学数据库，把这些技术知识做好。</p>
+<p>但今天我们怎么开车？在地下车库直接说“帮我开到什么地方”，自动驾驶汽车就出发了。作为一个人，你已经不可能理解整个系统之上是怎么工作的了——虽然最终动力还是传递到一个机械装置，和一百多年前的汽车还有点相似，但中间经历的所有东西你都不需要知道，就可以把车开起来。</p>
+<p>人工智能也可以想象成类似汽车的东西，当然它比汽车更强：它替代的不仅是人腿部向前走的能力。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_08_18.png" alt="AI 解锁的是你的执行力" loading="lazy">
+  <p class="video-caption">📷 AI 解锁的是你的执行力<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=498" target="_blank" rel="noopener">在 B 站中打开 (00:08:18)</a></p>
+</div>
+
+<p><strong>今天的答案仍然是“要学”</strong>，因为学了以后你可以更好地解锁 AI 的创造力——AI 解锁的是你的执行力。但“以后应该怎么学”，讲者坦言自己暂时还不知道，欢迎同学一起探讨。至少在当前阶段，学习是有好处的：你理解了正确的概念，就能从别的地方借鉴知识，来创造更好的东西。</p>
+<h2 id="3">3. 一个软件工程项目从哪里开始</h2>
+<p><em>(参考时间: 09:03)</em></p>
+<p>从这里开始进入真正的软件工程。如果要开始做软件工程、开始 vibe coding，你干的第一件事是什么？</p>
+<p>做作业的时候，你一定是从课程网站或老师要求的地方下载一个东西，然后从那里开始工作。但如果今天你真的想做一个项目，第一件事一定是<strong>先建一个目录</strong>，给它起个名字，可能就叫“我的最酷的 guild game”，然后开始 vibe coding。</p>
+<p>那么，面对一个空目录，你们还记得自己是怎么学会“应该放什么”的吗？</p>
+<ul>
+<li>你可能看到老师上课时打开了一个工程项目，里面有一些文件，你就在不经意间记住了这个项目该有的样子；</li>
+<li>老师或同学推荐“某某东西发布了，你可以去看看”，你拿到一个 GitHub 或 Gitee 的链接，打开是一个<strong>对人类非常 friendly 的网页</strong>，网页上有一些文件，于是你知道了“我的目录里面应该要有一个这样的文件”。</li>
+</ul>
+<p>所以当我们说要开始一个软件工程项目时，你会建一个目录，里面有一堆文件，这堆文件共同构成一个<strong>可以交付的东西</strong>——它最后会变成你的产品。这个目录可能直接在你本地运行：你神秘地跟 agent 说“请你帮我运行”，窗口或网页就弹出来了。</p>
+<blockquote>
+<p>一个著名的笑话：GPT-6 太牛了，我又做了多少个 killer 级的产品——它们是 <code>http://localhost:5173</code>，然后发一个 Twitter。</p>
+</blockquote>
+<p><strong>所以你还是需要知识的。</strong> 在你本机可以打开它，但世界上其他人打不开它，因为你不知道 localhost 是你的本机。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_10_30.png" alt="localhost 的幻觉：只有你自己能打开的产品" loading="lazy">
+  <p class="video-caption">📷 localhost 的幻觉：只有你自己能打开的产品<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=630" target="_blank" rel="noopener">在 B 站中打开 (00:10:30)</a></p>
+</div>
+
+<p>当然，你可以把 intent specification 说得更清楚一点：在文档里说明“我的这个东西要被全世界人看到”。如果你不说，GPT 可能会把你当成一个开发者——而开发者最正常的做法一定是先在本地调试、先起一个本地 development server，看到结果，直到你觉得 ready 了，才把这个东西送到远端去。</p>
+<p>这些都是知识。你们是 computer science 的学生，上各种各样课的时候反复学习这些知识：从最开始学编程时在 Visual Studio 里一键编译运行，到后面你会知道 build 目录里所有的东西都是由某些命令行工具创建出来的；大二开始用 GCC 这样的命令行工具，把一个 <code>hello.c</code> 变成 <code>hello</code> 的 binary——这就构成了一个软件工程的项目。</p>
+<h2 id="4">4. 什么是软件：需求在信息世界的投影</h2>
+<p><em>(参考时间: 12:08)</em></p>
+<p>“什么是软件”是一个很好的问题，以前老先生喜欢问。软件是如此基础、无处不在的东西：没有软件，你今天看到的这个屏幕是黑的；不光看不到投影，连这个台子也启动不了——这间教室还不错，有一个可以升降的桌子，如果没有软件，这个升降桌都升不起来降不下来。（讲者现场展示了桌边的高度显示：现在是 106 厘米。）</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_12_40.png" alt="教室里可升降的桌子与高度显示：软件无处不在" loading="lazy">
+  <p class="video-caption">📷 教室里可升降的桌子与高度显示：软件无处不在<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=760" target="_blank" rel="noopener">在 B 站中打开 (00:12:40)</a></p>
+</div>
+
+<p>软件到底是什么？有一个标准定义：<strong>代码、文档等等，一切和软件相关的东西的集合</strong>。但讲者一直说：</p>
+<blockquote>
+<p><strong>软件是人类世界的需求在信息世界的一个投影。</strong> 而这个投影今天看到就是一个目录，目录里面有各种各样的东西。</p>
+</blockquote>
+<p>你知道目录里面应该有什么：比如有个 <code>hello.c</code>，你可以编译出一个 <code>hello</code>，你就已经在做软件了。当然这可能不符合现代软件工程的 best practice，但古早时期——甚至十年以前——大家真的是这样的。</p>
+<h2 id="5-git-u">5. Git 之前：U 盘、压缩包与邮件</h2>
+<p><em>(参考时间: 13:12)</em></p>
+<p>讲者讲了他第一个 PhD student 的故事。这位学生 2012 年入学进入南大，大一的时候发现了一个非常好的学习方式：经常去机房。那时自己的笔记本屏幕小、也不舒服，不像现在——讲者建议大家都买一块屏幕，不贵，甚至淘一个二手的只要小几百块钱，就能在宿舍获得非常好的编程体验；但那个时候的标准答案是去机房。</p>
+<p>去机房就要来回拷贝代码，比较麻烦，所以他想出了一个妙招：<strong>把代码保存到 U 盘上</strong>。你们多多少少可能也干过这样的事，或者中学上电脑课时把作品保存在 U 盘上。</p>
+<p>结果到大二的时候，这个 U 盘坏了。代码全部都没有了，作业不见了，他珍藏的那些启蒙时候的作业也不见了——有一点伤心，但好像也没有太大的关系。</p>
+<p><strong>我们很长时间都是这样管理代码的。</strong> 讲者上学的时候交作业的方式是打一个压缩包发邮件；现在你们会在一个网页上上传。这都是管理项目的方式。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_14_30.png" alt="交作业的方式：从压缩包发邮件到网页上传" loading="lazy">
+  <p class="video-caption">📷 交作业的方式：从压缩包发邮件到网页上传<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=870" target="_blank" rel="noopener">在 B 站中打开 (00:14:30)</a></p>
+</div>
+
+<p>但是软件工程——当我们谈软件工程的时候——今天是有标准答案的：<strong>你应该去用 Git</strong>。</p>
+<p>Git 除了能够保存一个目录（项目就是一个目录，里面有 <code>hello.c</code>、有 hello 的 binary、还有文档等等），它还能<strong>保留、比较和恢复历史的版本</strong>。这是一个很重要的软件工程特性。</p>
+<p>有了 Git 以后，很多事情都变得很容易：</p>
+<ul>
+<li><strong>再也不需要发邮件了。</strong> 讲者说很难想象过去——今天是 agent 的时代，他有了十倍一百倍的生产力，只要让 agent 去写一个投诉信，就什么也不用管了。“如果我是用我的 Codex，我就真的选择信任它，我真的就不管了，这事就过去了，我甚至看都不会看，我让它结束以后把浏览器关掉。” 但过去，我们真的还在用邮件管理项目。</li>
+<li><strong><code>git clone</code> 从远端获取作业。</strong> 作业更新了，只需要在远端更新，不必给每个同学都发一份；上课时说一句“我的作业更新了，你们用 <code>git pull</code> 去下载”。</li>
+<li><strong><code>make submit</code> 自动打包上传。</strong> 一个脚本把包打好，上传到课程网站，非常方便——这有点像现在的 CI/CD 流程（CI/CD 会专门有一次课来讲）。</li>
+</ul>
+<h2 id="6-github">6. 惊人的注意力：从 GitHub 上学会品位</h2>
+<p><em>(参考时间: 16:13)</em></p>
+<p>这里引出了讲者几乎每节课都要讲的事情：<strong>当今天学习变得容易了以后，这门课上讲的知识都不重要，重要的其实是你们的学习意识。</strong></p>
+<p>你们都看过很多 Git 项目——哪怕只是打开课程作业，也会看到一个 GitHub 链接。那么你们有没有留意过不同项目之间细微的区别？有的项目有这个文件、有的项目没有那个文件；有的项目文档是这样写的、有的是那样写的。在这种信号不断进入的时候，你就能判断出“我们应该怎么用 Git”。</p>
+<h3 id="61-ai">6.1 别把自己强化学习成“只听老师话的 AI”</h3>
+<p>大家是不是总有一种感觉：老师说的事情实在太多了。这跟中学有关系——在中学，你必须听老师的话才能把所有事情做完；不听老师的话，你就不可能把事情做完。</p>
+<p>但到了现在，比如你去 GitHub 学习的时候，如果还带着这个心态：老师说你把作业拉下来，你就只做这一件事，绝对不多碰一点点，因为这是最省时间的——<strong>那你就有点像 AI，像新鲜干活的 AI，你被强化学习成了那个样子</strong>（AI 也被调成这样了）。</p>
+<p>如果你愿意多花一点点时间点进去看一下里面的各种东西，可能突然间就有一个灵光一现：“这个文档写得很好。”</p>
+<blockquote>
+<p>今天你看到满世界 GitHub 上的项目，全部都是巨长无比的 README，里面有各种 Unicode 字符组成的目录结构框图——就是这种 AI Slop 的感觉。而在你看过这么多 AI Slop 之后，突然发现一个十几年前开始维护的老项目，点进去，文档清新舒服，README 很短，但看完以后你想看的东西，三个链接就跳过去了。<strong>你不需要看那么长的 AI，你就学会了文档应该这样写。</strong></p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_18_14.png" alt="AI Slop 味的超长 README 与清新老项目文档的对比" loading="lazy">
+  <p class="video-caption">📷 AI Slop 味的超长 README 与清新老项目文档的对比<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=1094" target="_blank" rel="noopener">在 B 站中打开 (00:18:14)</a></p>
+</div>
+
+<h3 id="62-ui-lesson">6.2 路牌与 UI 设计：从对比中学到的 lesson</h3>
+<p>讲者不知道大家有没有机会去对比不同城市的路牌，他觉得这很有意思。为什么我们有时候觉得中国是一个 developing country、意味着提升空间很大？</p>
+<p>很多年前他在香港找路的时候特别 impressed：每当他有不确定性的时候，比如前面有三个路口，<strong>正前方一定有一个路牌告诉他三个口是什么</strong>，从来没有例外（当然它有一个非常复杂的地下系统）。而回到南京，你在地铁站里不知道下一步该走哪个口的时候，需要环顾四周去寻找，甚至要移动比较远的距离找到一张地图再去看。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_19_40.png" alt="路牌设计的对比：不确定时正前方一定有指示" loading="lazy">
+  <p class="video-caption">📷 路牌设计的对比：不确定时正前方一定有指示<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=1180" target="_blank" rel="noopener">在 B 站中打开 (00:19:40)</a></p>
+</div>
+
+<p>这其实是一个学习的过程：如果有一个范例比你做得好，你就学到了。讲者从这个对比中学到的 lesson 是——如果我要做一个 UI 设计，我就应该站在人的角度：人站在这个页面上的时候会想什么？不同的人要的 A、B、C 会指向不同的方向，我希望用最少的方式把 A、B、C 全部呈现出来。</p>
+<p>所以，就一个 README：你们都会用 AI 生成 slop README，但当你看过几个好的以后，你就会写 README。而且你有 AI 以后马上就可以问它：“这个 README 为什么比那个好？为什么我看到这个项目的 README 没有 AI Slop 的感觉？”它就会告诉你。</p>
+<h3 id="63">6.3 为什么“上课耽误学习”是真实存在的</h3>
+<p>这也是讲者理解的、为什么很多同学怨气很大觉得上课耽误学习：<strong>现在课外的信息量和信息密度，已经远远超过任何一个课堂可以做的事情了。</strong></p>
+<p>当你打开一个成熟的 GitHub 项目，它是工程师十几年的心血；甚至在某个时间点，这个项目崩溃过一次、做过一次大版本重构，他发现以前的 practice 不够好——你才呈现到你面前的是现在这个好好的东西。但我们传统的教学方法没有教过大家怎么把这些海量、信息密度巨大的东西用好，大家也没有准备好去拥抱这样的知识。</p>
+<p>讲者说，可能这也是他现在在做老师的原因：<strong>他有这种“惊人的注意力”</strong>，而大家要训练的也正是这种惊人的注意力。</p>
+<h3 id="64-virtual-implementation">6.4 Virtual Implementation：一种适用于任何课程的学习方法</h3>
+<p>如何训练？看到任何东西之前，先把看到的东西都忽略掉，问自己：<strong>如果我要自己来解决这个问题，我会怎么做？</strong> 然后立即比较“我看到的东西”和“我脑袋里所想的东西”谁更好：</p>
+<ul>
+<li>如果我做得更好，就认为这是一个 slop；</li>
+<li>如果我发现他做得比我好，就很惊喜：“哎，他为什么做得比我好？”</li>
+</ul>
+<p>养成这个习惯以后，这是一个非常恐怖的习惯——你在任何时候都在疯狂地从外面接收信息，能留意到生活里各种小细节，就不停地在提升。</p>
+<p>很早的时候大家就有推荐：如果要读一个 research paper，应该怎么读。有一个非常好的学习方法，其实也适用于学任何课程，包括高等数学、计算机系统基础，叫 <strong>Virtual Implementation</strong>：</p>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    A[遇到一个具体问题 / 具体需求] --&gt; B[先在脑袋里自己做一遍&lt;br/&gt;Virtual Implementation]
+    B --&gt; C{我的方法和作者的一致吗?}
+    C --&gt;|一致| D[很好: 说明你已经完全掌握这个知识了]
+    C --&gt;|不一致| E{谁的方案更好?}
+    E --&gt;|教科书 / 作者更好| F[想清楚为什么他能想到&lt;br/&gt;它就变成你知识的一部分]
+    E --&gt;|我的更好| G[惊喜中的惊喜: 一万次才有一次&lt;br/&gt;但正反馈极大, 你会想去做点好玩的东西]
+</code></pre>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_23_17.png" alt="Virtual Implementation：先自己想一遍，再和作者比较" loading="lazy">
+  <p class="video-caption">📷 Virtual Implementation：先自己想一遍，再和作者比较<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=1397" target="_blank" rel="noopener">在 B 站中打开 (00:23:17)</a></p>
+</div>
+
+<p>讲者早前还展示过 AI 是怎么被注意力机制带到作者的逻辑陷阱里去的。所以在 AI 时代，你们更可以对细节保持注意力：比如 Git，你看到各种各样的 repo、读别人的东西甚至 AI 生成的东西，都有感知细节的方式。</p>
+<h2 id="7-git">7. 从需求推导出版本控制：你也能发明 Git</h2>
+<p><em>(参考时间: 24:17)</em></p>
+<p>这只是开一个头，接下来讲 Git 的具体细节。首先，<strong>为什么要 Git</strong>？</p>
+<p>肯定有 GitHub 以后，分发代码变得前所未有的方便。这件事他们创立 GitHub 的时候可能就想到了，但他们没有意识到：这竟然成为了今天 AI 时代的一个底层技术设施——npm、你的各种 Neovim 配置，全部都在 GitHub 上。</p>
+<h3 id="71-git">7.1 推免面试里的三个 Git 问题</h3>
+<p>上周末讲者参加了推免面试（你们一两年以后也会来到这个场合），他问了大家三个问题：</p>
+<ol>
+<li><strong>什么是 Git？</strong> 大家多多少少都能说两句：从 GitHub 里下载分发代码；有的同学能讲到 Git 管理的是项目目录的快照——挺好的。当然也没必要把所有人都挂掉，能讲一些就可以，取决于你讲多少来给一个评估。</li>
+<li><strong>Git rebase 什么时候是 no-op？</strong> 这个也意料之内。</li>
+<li><strong>如果 Git merge 发生冲突以后，你会观察到什么？</strong> 这个比较意料之外。</li>
+</ol>
+<p>你们有观察到过吗？比如老师发布了一个作业更新，但你本地已经把这个东西改得面目全非了，这时候你还是会让 agent 说“来吧”，然后 agent 自动就啪啪啪啪啪给你修好了，跟你说“好了，测试都通过了”。我看一眼这个东西看起来 OK——就过去了。讲者说他自己现在也是这样：“反正 merge 出错了帮我修。”</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_27_18.png" alt="merge 冲突现场：等号、尖括号与 incoming / HEAD 标记" loading="lazy">
+  <p class="video-caption">📷 merge 冲突现场：等号、尖括号与 incoming / HEAD 标记<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=1638" target="_blank" rel="noopener">在 B 站中打开 (00:27:18)</a></p>
+</div>
+
+<p><strong>这个时候“惊人的注意力”就有用了。</strong> 如果你愿意在冲突的时候停下来——尤其大家作为学生的时候总是想“我再学一点，反正这一秒钟我学一下也没有坏处”——你会看到一个非常神奇的东西：有好多等号、有好多尖括号，有些地方有 incoming、有 HEAD 这样的标记。</p>
+<p>冲突不是立即就被 resolve 掉的，而是<strong>责任到了每一个开发者手上</strong>：如果开发者发现了冲突，他就有义务把冲突解决掉；那他要解决，就需要能看到这个冲突。</p>
+<p>站在 Git 设计者的角度想：一个文件原来是 <code>1111</code>，有一个人把第二行改成了 <code>2</code>，另一个人把第二行改成了 <code>3</code>——那到底是 2 还是 3 呢？Git 不能说“对不起，冲突了，我不能合并了”，然后躺在那里，那对人的负担非常大。所以它的需求是：<strong>至少把冲突的两部分代码同时显示在这里</strong>。</p>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    A[文件原始内容: 1111] --&gt; B[开发者 A 把第二行改成 2]
+    A --&gt; C[开发者 B 把第二行改成 3]
+    B --&gt; D{Git 能自动决定&lt;br/&gt;是 2 还是 3 吗?}
+    C --&gt; D
+    D --&gt;|不能, 也不该躺平报错| E[First Principle:&lt;br/&gt;在哪里发生, 就把解决它所需的全部信息放在哪里]
+    E --&gt; F[文本里同时出现&lt;br/&gt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt;&amp;lt; HEAD / ======= / &amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; incoming]
+    F --&gt; G[IDE 里多出按钮:&lt;br/&gt;Accept Incoming Change / Accept Current]
+    G --&gt; H[人来决定谁进谁出&lt;br/&gt;再做一个 commit 把它 resolve 掉]
+</code></pre>
+
+<p>如果你们用 IDE 的话，还可以看到上面会多出一些按钮，叫 <code>Accept Incoming Change</code>，你就可以在 IDE 里自己决定谁进谁出；完了以后再做一个 commit 把它 resolve 掉。</p>
+<p>你只需要一点注意力。其实只要有一两次，你就会有一个印象：至少能说出“两边冲突的代码都会显示在一起”。比较吃惊的是大家都答得不好，那肯定是：<strong>第一，没有用过</strong>（大家没有开发过；当然就算用 agent 开发你也很容易遇到 conflict，比如你让 agent 在不同分支开发）；<strong>第二，没有留意</strong>。所以比较重要的是：多用一用，以及试图拥有更好的注意力。</p>
+<h2 id="8-git-first-principle">8. Git 简史与它的 First Principle</h2>
+<p><em>(参考时间: 28:40)</em></p>
+<p>那我们就来讲一讲 Git 是怎么来的。在 U 盘上放一个目录的方式肯定是不行的——每次打一个包。但据讲者观察，他上学的时候同学们确实是这样（可能比较早了，那时 Git 还没有 get popular）：<strong>作业 V1、作业 V2、作业最终版</strong>，每次复制一个目录。</p>
+<p>没问题，这是一个非常直觉的体验，这个方式可以找回旧的文件：万一有一天手滑了、不小心改错了——尤其你们在新手阶段，误操作是非常正常的——你想要回到上一个版本看看“我上一版本是怎么写的”。</p>
+<p><strong>这不就是一个需求吗？</strong> 从这样一个需求出发，你自己就能发明一个像 Git 这样的东西。</p>
+<p>因为本质上所谓的版本管理：什么是项目呢？项目就是一堆东西——你的代码、文档、各种东西、测试用例，全部都搅在一起，没问题，就是一个目录。那你会想：如果我们能够把目录的版本管理起来呢？如果我不再叫作业一、作业二、作业三，而只有一个“作业”的目录，但是我可以提供一个命令行工具：</p>
+<ul>
+<li>我能不能 list 一下作业的版本有哪些？</li>
+<li>我能不能把当前的版本变成另外一个版本、回到过去的某一个版本？</li>
+</ul>
+<p>你不就发明了一个简化版的 Git？虽然你还没有使用任何分支、合并、冲突这些概念。而在你用的过程中，你会自然而然地去发明那些：比如你要跟室友同步了，就会出现你们俩一起改同一个文件的情况，你就坐下来想“一起改了同一个文件应该怎么办”——你就可以发明 Git。</p>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    A[需求: 万一改错了, 我想回到上一个版本] --&gt; B[土办法: 作业V1 / 作业V2 / 作业最终版&lt;br/&gt;每次复制一个目录]
+    B --&gt; C[抽象: 项目 = 一个目录&lt;br/&gt;代码 + 文档 + 测试用例]
+    C --&gt; D[命令行工具: list 版本 / 切回某个版本]
+    D --&gt; E[简化版 Git 已经诞生]
+    E --&gt; F[新需求: 和室友同步, 两人改同一个文件]
+    F --&gt; G[于是发明分支 / 合并 / 冲突]
+    G --&gt; H[完整的 Git]
+</code></pre>
+
+<h3 id="81-svn">8.1 SVN：一个高效却走错路的实现</h3>
+<p>当然，这体现了人类的局限性——在 Git 之前我们还用过一个你们可能听都没听过的东西，叫 <strong>SVN</strong>（check in / check out）。SVN 和 Git 的设计不一样：</p>
+<ul>
+<li><strong>SVN 存的是项目的变化。</strong> 假如你有一个最初的版本，每次文件改了一行，我就存一个 patch；再改一行，再存一个 patch。好像没有问题，而且这是一个<strong>非常高效的实现</strong>。</li>
+<li>但就是这个高效，随着项目的增长把大家拖入了泥潭：你想要回到过去的某一个版本，就得一个一个往回退。当然你可以用一些缓存之类的方法来优化它，但这就有种“确实是走错路了”的感觉。</li>
+<li><strong>Git 的模型要干净得多。</strong> 大家从 first principle 出发：我想要先回到过去的某一个版本，<strong>一秒钟就给我回去</strong>。如果你每次存的都是一个 delta，这就做不到。</li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_31_21.png" alt="SVN 存 delta 与 Git 存快照：两种设计哲学" loading="lazy">
+  <p class="video-caption">📷 SVN 存 delta 与 Git 存快照：两种设计哲学<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=1881" target="_blank" rel="noopener">在 B 站中打开 (00:31:21)</a></p>
+</div>
+
+<h3 id="82-linux-bitkeeper">8.2 Linux、邮件列表与 BitKeeper</h3>
+<p>Git 的作者是 Linux 的作者。Linux 是一个非常简单干净的模型，但他们在 1991 到 2002 年维护 Linux 的方式，用的恰恰就是“作业 V1、作业 V2”的方式：<strong>在邮件列表上发补丁</strong>。</p>
+<p>相当于我改了一个 <code>a.c</code>，我说我有一个 <code>a.c</code> 的新版本，往邮件列表一发，会有一个 maintainer 看到邮件，把它放进核心仓库里，再去 release 这个版本。直到后面他们还用过一些其他工具，比如 <strong>BitKeeper</strong>。</p>
+<p>直到 Linus 终于受不了了：他觉得我们就应该要一个<strong>绝对简单、但又非常好用、概念正确</strong>的版本控制工具。所以 <strong>2005 年做出了 Git</strong>——它比我们想象的年轻一点。</p>
+<p>有兴趣的同学可以去看 <strong>Pro Git</strong>（当然直接让 agent 看就可以了，不需要自己去读；讲者读书的时候是看过这些文档的）。</p>
+<p>我们需要项目级的时间回溯，我们都会犯错误，所以只要能从 Git 的历史里把它捞回来就可以了。你们可以试着用这种方式：从已有的经验，你知道什么、我想要什么，然后推出下一个概念它应该是什么样的——<strong>你会发现这就是数学的推理</strong>。</p>
+<p>讲者说自己上课这样讲下来的时候，每一句话和之前都是有逻辑关联的，而这个逻辑关联多多少少都有一些数学的联系。所以 OpenAI 认为要把数学先训好，训好以后所有的问题可能都能解决。“然后这件事情可能就真的要能成真了。我自己是觉得品位上可能也还是能解决的。”</p>
+<h2 id="9-git-init-add-status-commit">9. Git 上手四件套：init / add / status / commit</h2>
+<p><em>(参考时间: 34:23)</em></p>
+<p>什么是 Git？讲者建了一个空的 terminal。今天要开启一个项目，那就是：</p>
+<pre class="highlight"><code class="language-bash">git init
+</code></pre>
+
+<p>它会告诉你一些奇怪的信息。这时候你有两种选择：<strong>第一种是让 agent 来帮你做</strong>，帮你解决、帮你回答你不懂的问题；<strong>第二种就是把它忽略掉</strong>——那显然是更高效的学习方法。</p>
+<p>你得到了一个空的目录，以及一个 <code>.git</code> 目录（默认是隐藏的，所以你看不到它）。<strong>这就是全部了。</strong> 当你做完 <code>git init</code> 以后，你的项目就变成了一个被 Git 版本管理的仓库：你可以从远端下载代码，可以把代码推到远端。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_34_50.png" alt="git init 之后：一个空目录和一个隐藏的 .git" loading="lazy">
+  <p class="video-caption">📷 git init 之后：一个空目录和一个隐藏的 .git<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2090" target="_blank" rel="noopener">在 B 站中打开 (00:34:50)</a></p>
+</div>
+
+<p>然后是最基础的命令。假设你有一个 <code>hello.c</code>：</p>
+<pre class="highlight"><code class="language-bash">git add hello.c
+git status
+</code></pre>
+
+<p><code>git status</code> 可以看到我现在的工作区里面有一个 <code>hello.c</code>，这里还有一些提示。</p>
+<p><strong>最重要的是创建项目的快照，使得你可以在任意时间之间穿梭。</strong> 我们可以创建一个带消息的快照——这很重要，这体现了软件工程的智慧。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_35_50.png" alt="git add 与 git status：工作区里有什么" loading="lazy">
+  <p class="video-caption">📷 git add 与 git status：工作区里有什么<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2150" target="_blank" rel="noopener">在 B 站中打开 (00:35:50)</a></p>
+</div>
+
+<p>之前我们用复制粘贴的方式，命名为“项目版本 V1 / V2 / V3”、“作业 V1 / V2 / V3”。<strong>Git 的世界里面不是这样的。</strong> 讲者看到很多同学把 Git 当成“作业 V1、V2、V3”来用，但这不是 Git 推荐的 practice。在长期的软件工程实践经验中：</p>
+<blockquote>
+<p><strong>每一次你对这个项目做了任何的改动</strong>——比如改了一个文件，修了一个 bug，或者给它增加了一个功能，或者调整了某一个脚本、调整了某一个文档——<strong>你都应该立即做一次 <code>git commit</code>。</strong></p>
+</blockquote>
+<pre class="highlight"><code class="language-bash">git commit
+</code></pre>
+
+<p>“哎呀，这怎么是 nano？” 你可以有一个文本编辑器，写上我这是做了什么，保存，这个提交就成功了。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_37_00.png" alt="git commit 意外打开 nano 编辑器" loading="lazy">
+  <p class="video-caption">📷 git commit 意外打开 nano 编辑器<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2220" target="_blank" rel="noopener">在 B 站中打开 (00:37:00)</a></p>
+</div>
+
+<p>这些你们都可以在现有的项目里看到他们是怎么协作的：有些 commit 可能比较大，放了一个 feature；有些就比较小，只 fix 非常少的东西。<strong>所以当你面对一个新鲜工具的时候，你去理解它的 best practice 还是需要花时间的。</strong></p>
+<h2 id="10-commit-message">10. Commit Message 是项目的历史轨迹</h2>
+<p><em>(参考时间: 38:29)</em></p>
+<p>所以讲者还是觉得，你可能不能把所有的事情都交给 AI，你多多少少还会要知道：我们为什么要做这件事？什么时候应该做 <code>git add</code>、什么时候应该做 <code>git commit</code>？commit message 应该怎么写？</p>
+<p>你真正需要的是<strong>在任何时候学习</strong>。碰到新东西的时候追问一下：“你刚才做的是不是符合 best practice？” 比如“我刚才做了一个 <code>git commit</code>，这个符合 best practice 吗？”——加上问一句 AI，真的就是一秒钟的时间，但它会给你很多解释。</p>
+<p>Git 本质上虽然存储的是版本的快照，但我们的项目本质上还是从一个版本 V1，经过一次修改变到 V2。<strong>Git 鼓励的是：你需要在 message 里面描述出你改了什么。</strong></p>
+<blockquote>
+<p>相当于你如果一直看，你就知道项目是怎么发展、一直走到现在的：修了多少个 bug、加了什么需求、经历了什么样的重构。<strong>你可以在 message 里面看到这个项目的历史的轨迹。</strong></p>
+</blockquote>
+<p>这也是一个好的软件工程 practice，使得别人能够更容易地理解你的项目。</p>
+<p>反过来想：如果你有一万个提交，每一个的 commit message 都是 <code>I did some cool stuff</code>，那这个 commit message 就变成 slop 了。如果是这样，这个特性就不应该存在——你不要叫 commit message，你就从 V1 到 V2 就行了。</p>
+<h2 id="11-tagfinalize">11. 空提交与 tag：finalize 一个版本</h2>
+<p><em>(参考时间: 40:29)</em></p>
+<p>你会在各种时候用不同的 commit message。比如这个版本要收尾了，你可能会有一个 commit message 讲“我要 finalize 这个版本”。</p>
+<p>甚至 Git 还允许你在不改任何代码的时候——V1 和 V2 完全相同的时候——再做一个提交。这件事情可以吗？</p>
+<p><strong>它拒绝提交你的空的、没有修改的 commit，但是 agent 可以。</strong> 讲者让 agent 做一个提交，并要求它在不做修改的情况下提交——“你看它知道，它有知识。”</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_41_31.png" alt="Git 拒绝空提交，而 agent 知道如何绕过" loading="lazy">
+  <p class="video-caption">📷 Git 拒绝空提交，而 agent 知道如何绕过<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2491" target="_blank" rel="noopener">在 B 站中打开 (00:41:31)</a></p>
+</div>
+
+<p>所以你们需要的就是<strong>惊人的注意力</strong>，然后尝试问：“从理论上说应该可以的。” 比如我就要有一个提交说“我要发布一个版本了”。但这不是 best practice，所以尽量不要做。</p>
+<p>你确实看到了一个 empty commit，确实是空的。那它在什么时候有用？</p>
+<ul>
+<li><strong>可以在无改动时产生一次提交，触发 CI 或流水线。</strong></li>
+<li><strong>区分 bug fix 与 finalize。</strong> 比如上一次我修完了最后一个 bug，得到了一个可以 release 的版本。Git 是可以在这放一个 tag 的，比如 <code>v0.1</code>；但我也可以强行做一个提交说“我要 finalize”——这是一个没有改动的 finalize，就是为了 <code>v0.1</code> freeze 所有的东西。这样我就把 bug fix 的提交和 finalize 的提交分开了。</li>
+</ul>
+<p>这件事情在偶尔的情况下还是可以允许的，但你显然不能创建大量这样的空提交。</p>
+<p>所以你会看到：在 Git 里面，虽然它有模型——OK，你学了 <code>git push</code>、<code>git pull</code>，你就可以用 Git 了，都会用了——但<strong>其实真正水面下的冰山，是各种各样的 best practice，而这每一个 best practice 其实都是血和泪的教训</strong>。</p>
+<p>你反过来想“为什么 message 要这样写”，转手问 AI，可以跟更有智力的模型讨论一下“这样做有什么好处”。讲者说很多时候模型的表现比他好：这个知识他知道、内化在脑子里，如果给他两个小时去想，他可能也能写一个非常好的“为什么要做这件事”，但是——</p>
+<blockquote>
+<p><strong>我的智力是有限的，我的精力是有限的，我的注意力也是有限的。</strong> 比如说我现在在上课的时候，我为了专注地和大家上课，我大脑里面做思考的那部分就有点不够了，容量都有点不够了。所以我很多时候觉得我上课讲授一个概念的时候，我讲的是 suboptimal 的，不是最好的。</p>
+</blockquote>
+<p>如果你回头把这些问题（比如“为什么 commit message 要这样写”）拿去跟 ChatGPT 聊，就像他开头说的那个比喻：你求助一个你无法掌控的东西，但它知道这个世界上所有的东西，它能很好地把这些概念给你讲清楚，包括这些约定俗成的 best practice。</p>
+<h2 id="12-git-add">12. <code>git add .</code> 的代价：什么不该进版本库</h2>
+<p><em>(参考时间: 44:33)</em></p>
+<p>讲者故意来做一点不是 best practice 的事情。这是你们非常常见的事情：这应该是可以编译的代码，这时候你有一个 untracked 的 file，然后你在 tutorial 里看到一个很好的命令叫：</p>
+<pre class="highlight"><code class="language-bash">git add .
+</code></pre>
+
+<p>这样如果你改了三五个文件，你不需要 <code>git add a.c b.c c.c</code>，你就 <code>git add .</code>，然后把它提交上去。</p>
+<p><strong>Git 是不阻止你做这件事情的，这是完全合法的。</strong></p>
+<p>那就再问问 Git：“我这个提交有什么不符合 best practice 的吗？” AI 会看一看，<strong>按严重程度排序</strong>——“还是很聪明的”：</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_45_50.png" alt="AI 按严重程度排序地批评这个提交" loading="lazy">
+  <p class="video-caption">📷 AI 按严重程度排序地批评这个提交<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2750" target="_blank" rel="noopener">在 B 站中打开 (00:45:50)</a></p>
+</div>
+
+<ol>
+<li><strong>提交信息毫无信息量。</strong> “它已经开骂了：主观废话。” 它会告诉你应该怎么做：用祈使句、现在时描述变更动机，例如 <code>fix off-by-one in strlen check</code>。常用的约定 <strong>Conventional Commits</strong>（以前缀区分类型）也值得考虑——你可以在更多的项目里看到这样的 commit 方式。</li>
+<li><strong>提交粒度过大、内容混杂。</strong></li>
+<li><strong><code>hello</code> 是编译产物，根本不应该进版本库</strong>，应该加进 <code>.gitignore</code>，由构建系统产出。</li>
+</ol>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_46_40.png" alt="AI 指出 hello 是编译产物，应该进 .gitignore" loading="lazy">
+  <p class="video-caption">📷 AI 指出 hello 是编译产物，应该进 .gitignore<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2800" target="_blank" rel="noopener">在 B 站中打开 (00:46:40)</a></p>
+</div>
+
+<p>为什么 Git 的使用方式和“作业 V1、V2”不一样？因为你的作业 V1 里面那个 <code>.exe</code> 一定在里面，作业 V2 你的 <code>.exe</code> 也在里面。但 Git 要<strong>防止版本库的膨胀</strong>，尤其是当你的项目里有一万个文件、有一百个合作者的时候：</p>
+<ul>
+<li>每一个合作者的环境都是不一样的，他们 build 出来的东西也是不一样的；</li>
+<li>你们可能不知道，你们编译出来的那个文件可能带一个日期，甚至带 hash、带你本机的指纹，每一次的二进制文件可能都不一样；</li>
+<li>如果你把这个东西放进去了，下一次就会产生冲突：你这里有个 <code>hello</code>，对方有个 <code>hello</code>，哪怕是一样的源代码编译出来都可能不一样，更何况是不一样的源代码；</li>
+<li><strong>而二进制的冲突是很难合并的。</strong> 如果不是程序而是生成的图片呢？图片怎么合并呢？合并就是有重复的。</li>
+</ul>
+<p>所以这里面有很多很多的 best practice。</p>
+<p>不过<strong>也没有绝对的规则</strong>：不是所有的 generated file 都不应该提交。比如你可能有一个 <code>package-lock</code>；又比如你可能会 generate 一个 header——这个 header 确实是可以 generate 的，但你把它放进来就可以方便编译：别人在不需要下载很多依赖的情况下依然可以编译这个项目；你可能用另外一套工具链去生成了这个 header，但别人可以在一个没有这个工具链的地方去编译。</p>
+<blockquote>
+<p>我们看过很多软件——因为讲者自己是做软件工程研究的——一个非常标准的软件工程研究就是：去研究你的 Git 项目满不满足这些 best practice，在不满足的时候给你一个 warning。比如 <code>.DS_Store</code> 这种东西就需要一个规则，好多好多规则，最后做一个小工具，在 Git 提交之前告诉你 OK 不 OK。</p>
+<p><strong>但所有这些东西都被大模型杀死了</strong>——因为大模型可以如此耐心地给你检查，还给你一个 emoji 让你开心一下，缓和你的情绪。</p>
+</blockquote>
+<h2 id="13-ai">13. 让 AI 当代码审查员：从批评到重写历史</h2>
+<p><em>(参考时间: 47:40)</em></p>
+<p>讲者继续看 AI 会怎么处理，结果它“可能会出乎意料”（中间网络还断了一次，AI 花了比较长的时间思考）。</p>
+<p>它的方案是：<strong>丢弃空提交和编译产物两端的历史，新建 main 分支，重写为两个有意义的、单一职责的提交。</strong> 它还贴心地发现——<strong>历史没有 remote</strong>，也就是说这个仓库没有和另外一边同步，不会有别人持有它；如果别人也持有的话，那就是一个比较糟糕的事情了。既然没有别人，它就把整个项目的历史给改了。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_48_50.png" alt="AI 重写整个提交历史：丢弃空提交与编译产物" loading="lazy">
+  <p class="video-caption">📷 AI 重写整个提交历史：丢弃空提交与编译产物<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=2930" target="_blank" rel="noopener">在 B 站中打开 (00:48:50)</a></p>
+</div>
+
+<p>如果你的注意力注意到，你会发现它换了一套 commit 的方式：会有一个 headline 的 message，然后在 headline 的 message 后面还有一些内容。这里面还有好多好玩的：</p>
+<blockquote>
+<p>如果你在 message 里写一个 <code>fixes #3</code>，GitHub 会自动把你的这个 issue 给 close 了。</p>
+</blockquote>
+<p>这里面有很多很多好玩的东西，你只有反复地使用才能获得。<strong>这就是初学者和有一定经验的人的区别。</strong></p>
+<h3 id="131-agent-nativegit-status">13.1 Agent Native：git status 已经是古代手艺了</h3>
+<p>当然现在是 agent 时代，你们都是 agent native 的人，肯定也不会用古法。讲者觉得 <code>git status</code> 这种都已经成为了<strong>古代手艺</strong>：你们现在一定是用 agent，你不需要知道具体的命令是什么，但你只要有概念——我的 Git 能干什么——你就可以让它用符合 best practice 的方式去干。</p>
+<p>当然这带来一个问题：<strong>你其实根本就分不清，是你自己真的能干，还是你托付的 agent 就干不了。</strong> “但也许我觉得这也不重要。”</p>
+<h3 id="132">13.2 一次演示：提交一个编译不过的代码</h3>
+<p>为了增加大家的学习效率，其实可以这样：<strong>在做任何 Git 操作之前，都要逐个检查文件的变化。</strong></p>
+<p>讲者随便试了一个不能编译的代码，然后让 agent 做一个提交。“我也不知道模型会给我什么。你看它很聪明，它比你聪明。” 我们在改作业的时候都会有这种倾向：“改一个字不要紧的，就改了就提交吧。” 你一定会这样想，<strong>但是模型有工程经验，它见过很多好的工程项目，也读过很多软件工程的书</strong>，所以它知道当前不建议直接提交——它还给你修好了，还给你解释。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_51_20.png" alt="agent 拒绝提交编译不过的代码，并给出解释" loading="lazy">
+  <p class="video-caption">📷 agent 拒绝提交编译不过的代码，并给出解释<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=3080" target="_blank" rel="noopener">在 B 站中打开 (00:51:20)</a></p>
+</div>
+
+<blockquote>
+<p><strong>Git 提交应当是一个完整、自洽的快照；提交编译不过的代码，相当于让仓库处于坏状态。</strong></p>
+</blockquote>
+<p>（这里面可能还有几个 prompt 在起作用，比如讲者的 system prompt 里可能写了“说中文”或者“我在上课，所以你可能要讲得更详细一点”。）它给了很多很好的解释，有些是讲者自己都没想到的——“这就是我知道，但我在上课即兴的时候是想不到的。”</p>
+<p>它还提到了 <strong><code>git bisect</code></strong>，以及 Git 另一个很有意思的功能 <strong><code>git blame</code></strong>——讲者很喜欢这个功能：比如对 <code>hello.c</code> 执行 <code>git blame</code>，它会告诉你每一行代码都是在哪一次提交、哪一个地方改的。</p>
+<p>也就是说，哪怕是一个线性的历史，我都可以干很多有趣的事情。你看，AI agent 的一句话就把 Git 给打开了。</p>
+<h3 id="133-bisect">13.3 bisect：在提交历史上做二分查找</h3>
+<p>大家都知道二分查找吗？你们可能会在保研或者工作面试的时候手写一个二分查找：如果你有一个很长的数组……<strong>你也可以把 Git 提交的历史想象成一个很长的数组。</strong></p>
+<p>你在当前版本上发现一个 bug，但这个 bug 可能不是由我的代码引起的，可能是过去的某一个地方引起的。这时候你有一个测试用例，或者任何一个能够检查出这个 bug 的东西，你就可以对整个 Git 的历史记录做二分查找。</p>
+<p>因为本质上 Git 的历史是：有一些提交是 OK 的，有一些提交是不 OK 的；应该是在某一刻引入了一个 bug，从那个时刻开始这些提交就都不能通过了，而在这之前的每一个提交应该都是 OK 的。</p>
+<blockquote>
+<p><strong>这不就是在一个所有前缀都是 0、后缀都是 1 的数组里面找第一个 1 吗？</strong> 这就是二分查找能做的事情。</p>
+</blockquote>
+<pre class="highlight"><code class="language-mermaid">graph LR
+    A[&quot;commit 1&lt;br/&gt;0 通过&quot;] --&gt; B[&quot;commit 2&lt;br/&gt;0 通过&quot;]
+    B --&gt; C[&quot;commit 3&lt;br/&gt;0 通过&quot;]
+    C --&gt; D[&quot;commit 4&lt;br/&gt;1 失败 ← 引入 bug&quot;]
+    D --&gt; E[&quot;commit 5&lt;br/&gt;1 失败&quot;]
+    E --&gt; F[&quot;HEAD&lt;br/&gt;1 失败&quot;]
+    G[&quot;git bisect: 在 0...0 1...1 中二分找第一个 1&quot;] -.定位.-&gt; D
+    H[&quot;git blame: 这一行是谁、在哪次提交改的&quot;] -.追责.-&gt; D
+</code></pre>
+
+<p>所以：你可以做二分（bisect），你还可以 <code>git blame</code>——在你知道错了以后，可以知道是谁改了这一行代码、然后发生了什么。</p>
+<p>Git 有很多软件工程的实践。<strong>所以软件工程，我一直觉得可能不需要在课上讲那么多的东西，你要把时间留给你们自己在实践当中、由 agent 来告诉你：每次提交的代码应该能够通过构建和测试。</strong> 这其实是一个非常基础的要求，大家也会觉得“OK，应该是这样”，但你反复地强化、潜移默化以后就 OK 了。</p>
+<p>然后它又说 <code>AGENTS.md</code> 是可以提交的，这是符合 best practice 的——“所以我就不再做了。”</p>
+<h2 id="14-distlogds_store-api-key">14. 高血压时刻：dist、log、.DS_Store 与活着的 API Key</h2>
+<p><em>(参考时间: 53:49)</em></p>
+<p>好消息是：以前在 LLM 之前，一般来说有新同学进组，都会有一些<strong>高血压时刻</strong>——因为使用 Git 的 best practice 是要教的。</p>
+<p>有时候我们要做一个研究项目：“欢迎你加入这个研究项目，你去开一个 Git repo 吧。” 你大概第一周会有一个非常简单的任务：打一个架子，把一两个东西跑起来。然后一般来说，讲者在打开这个 Git 项目以后就会进入一个高血压环节：</p>
+<ul>
+<li><strong><code>dist/</code> 或者 <code>log/</code> 会被交上来。</strong> log 也是生成的文件，所以它不应该交。</li>
+<li><strong>个人的配置</strong>，比如 VSCode 你个人的设置；甚至 VSCode 里面会有你 C 盘下的某个硬编码路径——显然在任何一个其他地方都是没有办法复现的。</li>
+<li><strong>更高血压的是：审稿的时候能看到一些处于 active 状态的 API Key。</strong> “当我发现这个 API key 是 DeepSeek 的时候，我就知道这应该是一个中国兄弟。”</li>
+<li><strong>用 Mac 的同学不经意之间会提交上来 <code>.DS_Store</code>。</strong></li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_56_10.png" alt=".DS_Store：ls 里贴心的苹果图标，但你看不见它" loading="lazy">
+  <p class="video-caption">📷 .DS_Store：ls 里贴心的苹果图标，但你看不见它<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=3370" target="_blank" rel="noopener">在 B 站中打开 (00:56:10)</a></p>
+</div>
+
+<p><code>.DS_Store</code> 是这么来的：在苹果系统上，如果你用 Finder 去打开一个目录，它会自动留下一些索引——大概是你把哪些子目录展开了——放在一个叫 <code>.DS_Store</code> 的文件里。</p>
+<p>但这个文件因为是点开头的，所以默认是隐藏的。你看我的 <code>ls</code> 还很贴心地给它一个苹果的图标，但你是看不到的。你看不到的时候你就会 <code>git add .</code>，然后 <code>.DS_Store</code> 就被 Git 追踪了。</p>
+<p>当然这也是合理的，因为点文件有可能是一些约定俗成的东西，比如 <code>.config</code>、<code>.github/workflows</code>，所以默认带点的都会放进来。但这个临时文件就有一点糟糕，因为你可能会经常变，它就不应该被提交进来。</p>
+<h2 id="15-hook">15. Hook：把规范固化成自动检查</h2>
+<p><em>(参考时间: 58:56)</em></p>
+<p>“真的我觉得 AI 很强。” 讲者最近在一个更严肃的项目里、希望把每一个细节都做好的时候，面临一个选择。</p>
+<p>我们在 Git 提交之前有一个技术叫 <strong>Hook（钩子）</strong>。大家用过吗？你可以 hook 程序的一个函数调用，在这个函数调用结束的时候干一件事；你也可以在你的 agent 里面加入一个 hook，在某件事发生的时候干一件事。</p>
+<p>比如讲者有一个 hook：在 agent 完成、需要他输入的时候，它会播放一个声音，“叮”一声。你现在也可以直接让它说：“帮我配置一个全局的 hook，在 agent 需要输入的时候叮一声提醒我。” 完全没问题——你在任何一个 Claude Code、你的 Codex 上都支持这样的钩子。</p>
+<p>同样，我可以在 Git 的 <strong>pre-commit hook</strong> 上面做一些检查，因为这个项目的工程标准会更高一些。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_00_00.png" alt="让 agent 配置全局 hook：需要输入时“叮”一声" loading="lazy">
+  <p class="video-caption">📷 让 agent 配置全局 hook：需要输入时“叮”一声<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=3600" target="_blank" rel="noopener">在 B 站中打开 (01:00:00)</a></p>
+</div>
+
+<p>然后他就面临一个选择：我要给我的各种规则——可能我有几十个这样的 checking rules——命名，那我应该选大写还是小写呢？</p>
+<p>首先从使用的角度来看都没有问题，两个都是好的，只要这句话里没有 typo 就是 OK 的。但到底是大写还是小写？<strong>这是一个两难的问题。而你在学习和生活的过程中，又面临无穷多这样两难的问题——如果你的每一个问题都稍微问一句，你就会有很多很多的长进和知识。</strong></p>
+<p>他让 AI 配置好 hook 之后，检查了一下 typo：AI 说 <code>TypoCheck</code> 是一个固定规则的标识，还从 <strong>RFC</strong> 里给了一些引用，并分析了讲者的心理——为什么他会觉得全大写会更强一点。</p>
+<blockquote>
+<p><strong>如果你们能在学习的过程中，比如在学习 Git 的过程中多问几句，把每一个细节都做好，那你们一定会成为 an a lot better person。</strong></p>
+</blockquote>
+<h2 id="16-git-blob-tree-commit">16. Git 的底层数据结构：blob / tree / commit</h2>
+<p><em>(参考时间: 63:02)</em></p>
+<p>接下来你就要开始学习 Git 了。<code>AGENTS.md</code> 也有了，那么接下来就是想要学一学 Git 到底是怎么工作的、Git 的底层原理。</p>
+<p>讲者推荐大家去看他在计算机系统课上讲 Git 的那一段，这里就只讲一个头。这个头是什么呢？</p>
+<blockquote>
+<p><strong>Git 是一个持久化的数据结构。</strong> 所以它就是一个数据结构。那 Git 持久化的是什么呢？<strong>目录树。</strong></p>
+</blockquote>
+<p>因为我们说就是快照：不停地版本一、版本二、版本三、版本四。你就从这个最基础的想法出发：如果我要存一个目录树，比如有一个根 <code>/</code>，根下面有 <code>a.txt</code>、<code>b.txt</code>，还有一个目录叫 <code>d</code>，<code>d</code> 里面有无穷多个文件（这个太多了，doesn't matter）。</p>
+<p>现在我有一个非常大的项目树，今天这个已经快照了，比如说这就是一个 V1。<strong>我现在要创建 V2，我需要把所有的文件都复制一份吗？我不需要。</strong></p>
+<p>比如现在我改的是 <code>b.txt</code>，那我肯定需要创建一个 <code>b.txt</code> 的新版本。那如果我想要以最小的代价记下一整棵树，我应该怎么办？</p>
+<ul>
+<li>我要把<strong>它到根的路径</strong>复制一份；</li>
+<li>但根里面的 <code>a.txt</code> 我就可以用一个<strong>指针</strong>指过来；</li>
+<li>根下的 <code>d</code> 我不能指向旧的（因为指向旧的就意味着我要用旧的 <code>b.txt</code>），所以它到根的路径都要复制一份，然后我有一个指针指到这里；</li>
+<li><code>d</code> 我也可以有一个指针指向原来的位置。</li>
+</ul>
+<p>“虽然不太好看，但是这就是 V2。”</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_05_20.png" alt="Copy-on-write：只复制到根的路径，其余用指针" loading="lazy">
+  <p class="video-caption">📷 Copy-on-write：只复制到根的路径，其余用指针<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=3920" target="_blank" rel="noopener">在 B 站中打开 (01:05:20)</a></p>
+</div>
+
+<p>所以<strong>即便你的项目很大、里面有一百万个文件</strong>：首先目录本身就不可能很深——没有人会去想建一个一千层深的目录，你也没有必要去建一个巨大无比的目录。只要你每一级索引都是指数级地增加，你很快就能把所有的文件给分完。<strong>那么你只需要创建一个非常小的增量，你就得到了一个版本的快照。</strong></p>
+<p>所以在 Git 里面，底层大家看到 <code>.git</code>，在 <code>.git</code> 里面有各种各样的 <strong>objects</strong>。这些 object 就是一个普通的文件，你看是带 hash 索引的，就是这种节点：目录的节点、文件的节点，甚至有 commit 的节点。</p>
+<p>它一共有<strong>三大类型的对象</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>对象类型</th>
+<th>存的是什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>commit</code> object</td>
+<td>一次提交：指向一个 tree，带 author、message、parent</td>
+</tr>
+<tr>
+<td><code>tree</code> object</td>
+<td>一个目录：条目列表（mode + name + 指向下级对象的指针）</td>
+</tr>
+<tr>
+<td><code>blob</code> object</td>
+<td>一个文件的内容：blob 就是 binary，就是字节的序列</td>
+</tr>
+</tbody>
+</table>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_06_20.png" alt=".git/objects：带 hash 索引的三类对象" loading="lazy">
+  <p class="video-caption">📷 .git/objects：带 hash 索引的三类对象<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=3980" target="_blank" rel="noopener">在 B 站中打开 (01:06:20)</a></p>
+</div>
+
+<p>然后它就是一个数据结构，这个数据结构可以不断地向后生长。<strong>“向后生长”就把这个问题解决了。</strong></p>
+<blockquote>
+<p>所以你们如果从 first principle 出发，一个大学生想设计出这样的一个东西，是完全有可能的。</p>
+</blockquote>
+<p>好，下一个问题：这是纸面上的讲解，讲完以后你有没有觉得有点不踏实——<strong>我们的 Git 真的是这样实现的吗？</strong> 老师上课说 commit object、tree object、blob object，真的有这样吗？然后如果发生分叉呢？首先我可以这样创建快照，我也可以从 V1 版本创建另外一个 tree（比如 V1'），那我的世界就分叉了；分叉以后合并到底会发生什么？你就自然而然地想想象这些问题。</p>
+<p><strong>那么根据计算机科学定律：你想要的东西就一定有人做。</strong></p>
+<h2 id="17-vibe-coding-git">17. Vibe Coding 一个 Git 仓库可视化工具</h2>
+<p><em>(参考时间: 68:10)</em></p>
+<p>“所以我开一个浏览器。” 讲者以前上课的时候也会用这个网站——他相信这是<strong>古法编程的巅峰之作之一</strong>了：<code>learngitbranching.js.org</code>。它以可视化的方式展示了 Git 是怎么工作的，甚至模拟了各种各样的命令：</p>
+<ul>
+<li>你看 <code>git status</code>，它都有——现在有一个改了的；</li>
+<li><code>git commit</code>，看到右边的动画了吗？它就多出了一个版本；</li>
+<li><code>git checkout</code>，点这个版本的时候，可以看到版本的变化。</li>
+</ul>
+<p>它就是用这个方式来教你 Git 是怎么工作的。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_08_30.png" alt="learngitbranching.js.org：古法编程的巅峰之作" loading="lazy">
+  <p class="video-caption">📷 learngitbranching.js.org：古法编程的巅峰之作<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4110" target="_blank" rel="noopener">在 B 站中打开 (01:08:30)</a></p>
+</div>
+
+<p><strong>而到今天，我觉得就可以直接 vibe coding 这些东西了</strong>，虽然 vibe coding 的质量还并没有那么好。讲者直接 vibe coding 了一个可视化整个 Git repo 的工具，给的提示词是：</p>
+<pre class="highlight"><code class="language-text">实现一个 Git 可视化命令行工具，把一个真实的 Git repo（你可以使用 Git 命令）
+里面的主要概念彻底完整地可视化展示。
+任何对象都从文件系统里的真实文件、原始的 byte 出发，展示一步一步如何解析成了什么。
+并且要求它可视化、持续监听目录中 Git 的变化，
+发生变化后用动画效果来展示 repo 发生的变化。
+</code></pre>
+
+<blockquote>
+<p><strong>注意这是和刚才那个 <code>learngitbranching.js.org</code> 不一样的地方：它是模拟出来的</strong>，它建了一个 Git 的模型；但是今天你是有办法在真正的、live 的 Git repo 上面直接看到它发生什么。我从真实的文件、原始的 byte 出发，展示一步一步如何解析成了什么。</p>
+</blockquote>
+<p>GPT-6 虽然有视觉能力，但一遍直出还是产生了一些 slop。</p>
+<h3 id="171-blob-tree">17.1 现场演示：从真实字节读出 blob 与 tree</h3>
+<p>讲者先来把它删掉——直接删除，你看右边的文件没有了。然后我们来看这棵树，这是 main 分支，它就像我画的这个一样：</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_10_12.png" alt="vibe coding 直出的 Git 仓库可视化工具" loading="lazy">
+  <p class="video-caption">📷 vibe coding 直出的 Git 仓库可视化工具<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4212" target="_blank" rel="noopener">在 B 站中打开 (01:10:12)</a></p>
+</div>
+
+<ul>
+<li>最早的一次提交是一个 <code>I did some cool stuff</code>，里面有一个空的 <code>hello.c</code>；</li>
+<li>这个空的 <code>hello.c</code>，你看到它的文件是来自 <code>.git/objects</code> 下的一个 object——<strong>这真的是一个 blob object</strong>；</li>
+<li>你能看到它的字节序列，看到这个字节序列以后它会帮你解压缩。<strong>你会发现对于很小的文件来说，这个压缩反而是浪费：它 31 字节解压出了一个 23 字节的东西。但这不要紧，这是一个 blob。</strong></li>
+<li>你看 blob 大小是 15，内容是 <code>int main(void)</code>；</li>
+<li>除了这样的 blob 以外，还有 <code>hello</code> 的一个二进制文件：blob 158 字节，开头是 <code>7f</code>（ELF 可执行文件的头），你也能够看到它；</li>
+<li>它也有 <strong>tree object</strong>，tree object 同样可以看到它在磁盘上面的原始数据：52 字节解压出 43 字节。</li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_12_14.png" alt="blob object 的真实字节序列与解压结果" loading="lazy">
+  <p class="video-caption">📷 blob object 的真实字节序列与解压结果<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4334" target="_blank" rel="noopener">在 B 站中打开 (01:12:14)</a></p>
+</div>
+
+<p>然后你看这个 tree 是这样的：<code>644</code> 代表这个文件访问的权限，然后它有 <code>hello.c</code>，真的是以文本的形式——解压完了以后就以文本的形式存储了 <code>hello.c</code>。然后你看它的树的结构：blob object（<code>mode 644</code>, <code>name hello.c</code>）、tree object；这个 tree object 指向根 <code>/</code>，在这个版本里面的根就有两个文件，一个 <code>755</code>、一个 <code>644</code>：<code>755</code> 是 <code>hello</code>（可以执行的），<code>644</code> 是 <code>hello.c</code>。这个指针链接可以拖过来一点，指向这里、指向它。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_13_20.png" alt="tree object：644 的 hello.c 与 755 的 hello" loading="lazy">
+  <p class="video-caption">📷 tree object：644 的 hello.c 与 755 的 hello<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4400" target="_blank" rel="noopener">在 B 站中打开 (01:13:20)</a></p>
+</div>
+
+<p>“这个视觉效果不完美，是因为我没有调，就是 one shot 直出没有改。我可能第二个 prompt 让它去掉了一点东西，就这些，所有的问题都没有修好。”</p>
+<h2 id="18">18. 可视化分支、冲突与合并</h2>
+<p><em>(参考时间: 74:15)</em></p>
+<p>然后我们可以在这里探索 Git 的方方面面。比如你现在可以创建分支——讲者让它创建两个分支，然后你就直接看到动画效果了，<strong>左右是实时同步的</strong>。</p>
+<h3 id="181-head">18.1 分支就是指针，HEAD 是指向指针的指针</h3>
+<p>你看这里有一个东西叫 <code>refs/heads/A</code>：</p>
+<ul>
+<li><strong>分支就是一个文件，叫 refs，它就是指针。</strong> 所谓的分支，就是指向这些东西的指针；</li>
+<li><strong>HEAD 是指向指针的指针</strong>；</li>
+<li>它在磁盘上就是这些字节，而这个字节就指向了一个 tree object；</li>
+<li>我们来看 <code>a</code>：<code>a</code> 就是一棵树，树里面有一个根 <code>/</code>，根里面包括了新的 <code>hello.c</code>（<code>int main(void)</code>）；<code>b</code> 同样，指向了它改过的版本。</li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_15_30.png" alt="refs/heads 与 HEAD：磁盘上真实存在的指针字节" loading="lazy">
+  <p class="video-caption">📷 refs/heads 与 HEAD：磁盘上真实存在的指针字节<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4530" target="_blank" rel="noopener">在 B 站中打开 (01:15:30)</a></p>
+</div>
+
+<p>“带两个内容的视觉效果不是很好，但我相信我跟它对话几轮以后应该就能搞定了，就得到了一个近乎完美的 Git visualization。”</p>
+<h3 id="182-merge-conflict">18.2 merge conflict 的现场</h3>
+<p>讲者说：我可以让它给我展示 merge conflict 的状态。这时候你看就很正常了——</p>
+<p>假设两个开发者在开发的时候，一个人做了这个修改；你和你的团队成员每个人都对这个代码有想法，你们两个都提交了，那就会进入冲突状态：<strong>A 在这，B 在那</strong>。当你把那个 A 拉到本地的时候，你就会看到这个冲突状态。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_16_30.png" alt="可视化中的 merge conflict 状态" loading="lazy">
+  <p class="video-caption">📷 可视化中的 merge conflict 状态<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4590" target="_blank" rel="noopener">在 B 站中打开 (01:16:30)</a></p>
+</div>
+
+<p>你看冲突现场：<code>hello</code> 的内容是这样的；然后你可以看到现在未提交的区域——在 <strong>index</strong> 里面有好多东西。<code>hello.c</code> 这是你看不到的：<strong>Git 悄悄地在这里面留了三个版本，叫 <code>base</code>、<code>ours</code>、<code>theirs</code>。</strong> 而它给你看到的那个 <code>hello.c</code>，是这样的一个带冲突标记（尖括号）的。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_17_20.png" alt="index 里悄悄留下的三个版本：base / ours / theirs" loading="lazy">
+  <p class="video-caption">📷 index 里悄悄留下的三个版本：base / ours / theirs<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4640" target="_blank" rel="noopener">在 B 站中打开 (01:17:20)</a></p>
+</div>
+
+<p>然后你可以让它 resolve。你看那些临时文件没有了——这个 merge 创建了一个 <strong>commit object</strong>：它的 tree 是这个，<strong>它有两个 parent</strong>，然后它有 author；你看到这个指向的关系被正确地保留下来了，它的 tree object 选的是这个版本。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_17_50.png" alt="resolve 之后：一个带两个 parent 的 merge commit" loading="lazy">
+  <p class="video-caption">📷 resolve 之后：一个带两个 parent 的 merge commit<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4670" target="_blank" rel="noopener">在 B 站中打开 (01:17:50)</a></p>
+</div>
+
+<blockquote>
+<p>所以看到 vibe coding 很好用。我觉得你们这么大的年纪、尤其是你们有时间的时候，<strong>你们最大的乐趣就是 vibe code 一个这个，然后 vibe code 完了以后就各种调，跟着它学习，很快你的知识就爆炸式地增长。</strong></p>
+</blockquote>
+<h2 id="19-python-ai">19. 把 Python 教给小学生：架构自己把关，其余外包给 AI</h2>
+<p><em>(参考时间: 78:17)</em></p>
+<p>我再举一个例子。你们做 CS、上 SICP 的时候，有没有用过这个（应该是官方的）<code>code.cs61a.org</code>？</p>
+<p>这是一个 Python IDE——放大一点，这还是很好用的。<strong>这是一个如假包换的 Python IDE</strong>，你可以运行它（可能它在加载一个 Python 的 runtime 库到本地，但这个库在我这里访问出来并没有很快）。基本上是一个完整功能的 IDE，它可以完成作业。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_18_30.png" alt="code.cs61a.org：一个如假包换的网页 Python IDE" loading="lazy">
+  <p class="video-caption">📷 code.cs61a.org：一个如假包换的网页 Python IDE<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4710" target="_blank" rel="noopener">在 B 站中打开 (01:18:30)</a></p>
+</div>
+
+<p>最近因为有一个小项目，所以讲者也被迫 vibe code 了一个类似的东西。你已经看到这里面有 slop——这些 slop 都是直接让 AI 一句话去生成的；它可能也不是一个 IDE 级别的东西，但效果还是不错的。</p>
+<p><strong>在架构设计上他稍微做了一点自己的把控，把了关</strong>，所以这个系统的架构还算比较好：</p>
+<ul>
+<li>它既可以作为一个<strong>网页应用</strong>去教大家编程；</li>
+<li>也可以作为一个 <strong>Electron</strong> 的、像 VS Code 一样、一个 <code>.exe</code> 双击就能打开的应用；</li>
+<li>它可以<strong>可视化任何程序</strong>。</li>
+</ul>
+<p>因为要给三四年级的小朋友教 Python，这是一件很有挑战性的事情：<strong>第一节课如果你教他们 PyCharm 的话，就全完蛋了。</strong></p>
+<p>所以要做一个极简的界面。“整个都是外包的，就是都是 AI slop 了，我也不再管控它的代码质量，但我对它的架构其实有把控。”</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_19_30.png" alt="给小朋友的极简 Python 环境：外包给 AI，但架构自己把关" loading="lazy">
+  <p class="video-caption">📷 给小朋友的极简 Python 环境：外包给 AI，但架构自己把关<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4770" target="_blank" rel="noopener">在 B 站中打开 (01:19:30)</a></p>
+</div>
+
+<h3 id="191-python">19.1 第一节课：Python 很好玩</h3>
+<p>第一节课要给小朋友讲 Python，就要给他一个印象：<strong>Python 很好玩。</strong></p>
+<ul>
+<li>我可以把一个整数变成一个字符串（这是你们熟悉的）；你们没有想到的是，我把一个 Unicode 字符编码成一个整数，然后再把它 decode 回来；</li>
+<li>我还可以 <code>hello * 10</code>，就可以打印 10 份。</li>
+</ul>
+<p>这就是上的第一节课。</p>
+<p>如果你经常讲汉诺塔——<strong>我有 debugger</strong>：这是我的调试器，每次在递归之前我会告诉你它应该怎么移动，然后我可以往后播放，它就会真的移过去；我可以换一个多一点的，可以往前拖也可以往后拖，看起来就是一个不错的可视化。“这也是外包的，完全外包的，上课的负担就轻多了。”</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_21_30.png" alt="汉诺塔 debugger：往前拖、往后拖，看递归怎么移动" loading="lazy">
+  <p class="video-caption">📷 汉诺塔 debugger：往前拖、往后拖，看递归怎么移动<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4890" target="_blank" rel="noopener">在 B 站中打开 (01:21:30)</a></p>
+</div>
+
+<p>但这还不是我们真正觉得好玩的。你想，三四年级的小朋友能编什么程序呢？就这种玩——<strong>我给他一个 API、给他一个世界，然后他可以玩起来。</strong> 我也可以挑事。</p>
+<p>这是一个 flat、完全 flat 的程序：你可以看这个程序运行的过程，一个 X、Y、Z 的循环，你会看到这个方块从上往下掉，每一次都是真实的；我可以往前走、往后退。视觉效果稍微调了一下，所以看起来就不那么 slop 了，包括左边这个坐标轴也是正确的——“我还骂了一下 AI，第一版它实现的坐标轴不符合我的预期。” 最后还可以 play，动画是平滑的，左右拖的时候是平滑动画。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_22_30.png" alt="方块从上往下掉：一个 flat 程序的真实执行过程可视化" loading="lazy">
+  <p class="video-caption">📷 方块从上往下掉：一个 flat 程序的真实执行过程可视化<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=4950" target="_blank" rel="noopener">在 B 站中打开 (01:22:30)</a></p>
+</div>
+
+<blockquote>
+<p>你想我们的快乐来自于哪里？你们刚开始学编程的时候就一个二重循环，打一个星号打一个三角形，你不就很开心吗？我现在一样：你学 Python，然后你就可以 3D 打印了——这是一个 3D 打印的程序，你可以叠块、可以挖，人就创造了一整个世界。</p>
+</blockquote>
+<p>剩下所有东西都是直接 AI slop，管都没有管：比如 Fibonacci number 的递归、insertion sort——回到头上开始播放，插入排序是怎么样一个一个比较的，你看到就太容易了。</p>
+<p>当然讲者有一个 <strong>skill</strong> 可以把它编译：有一个编译的 skill，可以把任何一个你想要的东西编译成可执行文件。在模型的能力下，他还试了更便宜的国产模型的 Flash / Vision 版本，就可以出效果。“反正我觉得效果已经达到一个完全可用的状态，然后我就可以去挣钱了。”</p>
+<h3 id="192">19.2 今天真正有价值的品质</h3>
+<p><strong>在今天，你们真正有价值的品质，就是你们愿意去花一点时间学习。</strong></p>
+<p>然后你很快就会发现在求职的市场上面，“把细节做好”的这个 bar 不断地会提高——因为一旦有人学会了，招人的单位就会用这个标准来衡量你。</p>
+<p>你想，我在面对一个研究生的时候问他“Git merge 了以后会发生什么”，他没有任何的概念；和另一个人——他在学每一个专业课、每一个算法、每一个细节的时候，都在 AI 的指导下巩固了这个概念、真正消化了这个概念，可以从零开始构建这些概念——<strong>这两个人在 job market 上面的竞争力</strong>……</p>
+<p>当然我觉得可能还有一件事情会发生：反正 AI 太强了，所有的人都没有竞争力了，那也许这是最好的状态。否则你想一想你们的危机感：这个世界上有很多那样的人，你们如果不成为那样的人，你上了这个 job market 你就死了。</p>
+<blockquote>
+<p><strong>所以我说“上课耽误学习”是真实存在的。</strong> 因为你们的很多老师，真正好的东西打开都没有打开过——那些真正好的代码、真正好的项目、符合工程规范的项目——他就对着那个课本讲一遍。和今天你看到的这个 AI 直出的东西：刚才那个整个的框架，大概我就是两天的碎片时间就全部完成了，包括视觉效果的调整，就没有任何的成本。<strong>做这些事情已经没有任何的成本了。</strong> 所以我说我马上就淘汰了。我自己学习的时间是非常有限的，我很想学很多东西，但我不像你们有那么多时间。</p>
+</blockquote>
+<h2 id="20-conventional-commits">20. 工程细节：Conventional Commits 与中英文空格</h2>
+<p><em>(参考时间: 86:18)</em></p>
+<p>大概是这样。虽然我好像在讲 Git，其实我讲的是 <strong>best practice</strong>。这里面的 best practice 还有好多。</p>
+<p>刚才如果你有注意力，会注意到 AI 给了我们一些东西。其实 AI 还是挺 slop 的：你看前面的 commit message 都是英文，都是一行加上一个详细解释；然后你看这 AI 就开始自由发挥了，它开始混了英文和中文了。但还好，它还是遵循了这样一个格式：<strong>先有 scope、我干了什么，然后一个总结，再有 message body。</strong></p>
+<p>你们看了很多就知道这个东西存在，它实际上是有标准的。今天你已经可以找到 <strong>Conventional Commits</strong>，它告诉你——这个文档很短，这个 specification：<strong>commits must be prefixed by a type</strong>，包括 <code>feat</code>（我如果要引入一个 feature）、<code>fix</code>（我要 fix 一个 bug），一定要有一个冒号，一定要有一个空格。这些都是规范。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_27_00.png" alt="Conventional Commits 规范：type 前缀、冒号与空格" loading="lazy">
+  <p class="video-caption">📷 Conventional Commits 规范：type 前缀、冒号与空格<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=5220" target="_blank" rel="noopener">在 B 站中打开 (01:27:00)</a></p>
+</div>
+
+<p>有的时候，比如我和同学合作的时候，高血压时间还是比较多的。比如文档：<strong>一般来讲，Markdown 的文档，英文和中文之间要有一个空格。</strong> 这是不知道什么时候大家开始用的一个 convention，但好像大家都会用这个。比如“你好，这是 <code>hello.c</code>”，对我来说这是肌肉记忆。</p>
+<p><strong>但我最难受的是：一个文档里面有一些是这样、有一些是那样。</strong> 你们注意到了吗？当我看到这个时候，我就是浑身难受。你哪怕全部都不加空格，我都会认为好像你是在遵循某一种 convention，你是保持一致的；但是如果你不一致的话，我真的是有点头大。</p>
+<p>这里有很多，所以 AI 会把这些细节给做好。<strong>而这些工程细节其实都是为了工程师在面对更大项目的时候有一种一致性和规范</strong>：比如说你的代码要以同样的方式排版，很自然地你的文档也要以同样的方式排版，这样的东西人维护起来会更好。</p>
+<p>虽然我觉得在 AI 时代可能也不重要，AI 都会帮你——所以 AI 我还是很喜欢的：所有用 AI 的学生都不会生成那样的 slop，至少不会生成那样的 slop。</p>
+<h2 id="21-commit-often-perfect-later">21. Commit Often, Perfect Later：小步提交的工程理由</h2>
+<p><em>(参考时间: 89:24)</em></p>
+<p>Git 还有很多很多的 best practice。比如说你可以在网上找到各种 <strong>"Commit often, perfect later"</strong>。这里有很多，这些其实都是有工程实践经验的，你们回去读一下这些文档、让 AI 帮你，你就会学到更多。</p>
+<p><strong>比如说为什么要及时 commit？</strong> 因为在复杂的项目里面，随着你修改的东西越多，你错的东西就越可能多。</p>
+<ul>
+<li>你在小项目刚开始的时候其实不要紧，你一次提交个两三千行代码都 OK；</li>
+<li>但是一旦这个项目里面有错综复杂的关系以后，你的一个大的 commit 可能会 break 这个项目里面多处的东西，引入多个 bug，后面再要引入多个 fix 来 fix 它。</li>
+</ul>
+<p>这时候你有一个很大的 commit：比如你有一个一万行的提交，然后后面你修了一百个 bug，你都说“这是那一万行产生的”——这就很糟糕，甚至修不过来，你也不知道它修好没有。</p>
+<p>而如果你每一次的 commit 都是很小的、都只做一个修改，那<strong>冤有头债有主</strong>：这个 bug 就是你写的，我修完了也就修完了。<strong>这两个 commit 是可以配对的，它给了我们审计的能力。</strong></p>
+<p>它也给我们一些保障：比如说你改了很多，然后不小心你自己的电脑就损坏了、物理损坏了，而你还没有来得及推到远端——你做一个小的提交立即 push，那么你就可以得到一个互联网上的备份，你的电脑马上坏了也好。</p>
+<p>这个 AI 是很清楚的，它知道你可以 <code>revert</code>、可以 <code>bisect</code> 二分查找，然后还有一些我后面可能会讲，比如说 <strong>Hooks 和 CI</strong>。</p>
+<h3 id="211-gh-glabgit">21.1 gh 与 glab：Git 之外的那些东西</h3>
+<p>以及你们如果还有惊人的注意力，应该观察过：你们的项目可能托管在 GitHub 或者 GitLab 上，那么你会看到你的 AI agent 会试图调用一些 <code>gh</code> 或者 <code>glab</code> 的命令，然后你会看到一个 <code>command not found</code>，<strong>然后它就回退到古法编程，又开始写 git 的命令</strong>。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_31_40.png" alt="agent 调用 gh 失败，回退到古法 git 命令" loading="lazy">
+  <p class="video-caption">📷 agent 调用 gh 失败，回退到古法 git 命令<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=5500" target="_blank" rel="noopener">在 B 站中打开 (01:31:40)</a></p>
+</div>
+
+<p>是因为 GitHub 实在是太 popular 了、太好用了，那么就值得做一个命令行工具，把 <strong>non-Git 的部分</strong>管理好：</p>
+<ul>
+<li>好多代码的快照 Git 管了，但是 GitHub 上还有 <strong>issue</strong>——我今天可以发一个文本，我还可以对你的代码做 <strong>comments</strong>，而这些东西都是<strong>不随着 Git 的 tree 做 persistence 的</strong>；</li>
+<li>那么如果我们想要管理它，就做一个命令行工具：我可以去 fetch 一个 issue，可以找 assign 给我的 issue（你要登录），找到以后我还可以把这个 issue close 了。</li>
+</ul>
+<p>那这个命令行工具的 agent 就很好用：你装了 <code>gh</code> 以后，我就可以在 agent 里面设置一个 goal，说“给我完成一个什么”，可以设置一个很长的任务。我会要求它做<strong>小步的提交</strong>、做<strong>可以审计的提交</strong>，然后是分支的规则、线性的历史等等。</p>
+<p>你可以看到我的这个项目就有大量的这样的提交——从我开始撸代码开始，大量的这样的提交，然后我很多时候都不管他们。</p>
+<h2 id="22-git-atomic-change">22. 总结：Git 是用 Atomic Change 推进的快照</h2>
+<p><em>(参考时间: 93:26)</em></p>
+<p>讲了很多 Git，其实这门课讲的还是软件工程。所以最后这小段总结是今天更重要的：</p>
+<blockquote>
+<p><strong>Git 本质上是一个软件，它说：我们要把项目组织成用 Atomic Change 推进的快照。</strong></p>
+<p>这是你们今天要记住的事情，然后所有的一切都是从这句话里面推出来的。</p>
+</blockquote>
+<p>你组织一个软件的项目，你要管理很多的快照，这样就可以<strong>随时开启一个新的分支做一些尝试</strong>：如果失败了你就可以把它安全地扔掉，如果成功了你就可以把它合并进来；然后你甚至可以<strong>同时推进多个主线</strong>，而以合并的方式让它完成，而不会互相干扰。</p>
+<p>因为如果你们做大作业、自己古法做大作业，肯定有这个感受：你如果要改好几个地方的时候，改着改着很可能就改乱了，你这个部分和那个部分冲突。</p>
+<blockquote>
+<p><strong>所以项目管理的本质是：人类没有办法处理一团混沌</strong>——很多需求、很多代码，一次做一大波。</p>
+</blockquote>
+<p>所以很自然地，我们要把需求分解成<strong>可以理解、可以审计的小任务</strong>，一小步一小步地。这样：</p>
+<ul>
+<li>出了问题就可以 <code>bisect</code>、可以 <code>blame</code>；</li>
+<li>协作的时候可以 <code>blame</code>；</li>
+<li>发生冲突也容易解决：两个小任务发生冲突，即使我在一个公共的祖先上面做了好多事，如果每一个都很小，那么发生冲突时我可能能知道哪一个小的提交是冲突的，剩下的不冲突的部分合并起来可能会比较容易。</li>
+</ul>
+<h3 id="221-linear-history">22.1 Linear History：一个当下的选择</h3>
+<p>包括有些项目会要求 <strong>linear history</strong>。我们做可能更严肃的项目也会要求所有的 main……我们的合并可以是这样：我把这个提交合上来，就像刚才我们看到一样，我的一个 commit 可以有两个 parent；然后当然它可能又继续分叉、又合并，最后会变成一个很典型的 Git 的结构。</p>
+<pre class="highlight"><code class="language-mermaid">graph LR
+    subgraph DAG[&quot;典型的 Git 结构: 分叉与合并&quot;]
+        A1[&quot;main&quot;] --&gt; B1[&quot;feat A&quot;]
+        A1 --&gt; C1[&quot;feat B&quot;]
+        B1 --&gt; M1[&quot;merge commit&lt;br/&gt;(两个 parent)&quot;]
+        C1 --&gt; M1
+        M1 --&gt; D1[&quot;main&quot;]
+    end
+    subgraph LIN[&quot;Linear History: rebase 后强行线性&quot;]
+        A2[&quot;c1&quot;] --&gt; B2[&quot;c2&quot;]
+        B2 --&gt; C2[&quot;c3&quot;]
+        C2 --&gt; D2[&quot;c4&quot;]
+    end
+</code></pre>
+
+<p>但是现在好像大家更流行一个 <strong>Linear History</strong>：因为反正都是 AI，反正它 resolve、它 rebase 都很容易，我就强行要求我的整个 commit history 都是线性的，好像是线性的一样。</p>
+<p>当然这个也不完全是所有的都是好处，但至少对于现在我们维护项目来说：</p>
+<ul>
+<li>它会让<strong>历史更易于追溯</strong>；</li>
+<li>它对 <strong>cherry-pick</strong> 和 <strong>blame</strong> 也更友好。</li>
+</ul>
+<p><strong>在无限大能力的模型到来之前，这件事情都是好的</strong>：你把 Git 记录拆分得非常好，你很容易找到这次修改是由谁引入的，那么 AI 维护项目的效率也会高一点，也会省 token 一些，有些文件它就可以不用去读了。</p>
+<h2 id="23-agent">23. 附：讲者自己的多 Agent 工作流</h2>
+<p><em>(参考时间: 96:31)</em></p>
+<p>还有一些经验可以分享。虽然我们知道是要小步向前进，但<strong>我们怎么管理一个项目</strong>呢？</p>
+<p><strong>第一阶段：架构设计用单线程，用一个智力比较高的模型跟它讨论。</strong> 这个其实很重要，因为如果你的软件设计得不好，你后面就是无穷的迭代。</p>
+<p>第一次课的时候就给大家展示过这个例子：我会把组件库的接口定得非常好。为什么这么信任 AI 的代码呢？看起来这个项目里面有很多互相关联的组件：我们的程序会运行产生结果，然后我拖动这个进度条，它不仅要关联到我的程序的编辑器，还要关联到这个上面。</p>
+<p>但我做了这些约束：</p>
+<ul>
+<li><strong>绝大部分的接口都设置成 functional 的，就是 pure function</strong>，包括我的 trace 是程序的一个 pure function；</li>
+<li>我有一个标准的程序 <strong>derivation graph</strong>，要求按照这种方式来展开；</li>
+<li><strong>所有全局互相影响的状态都注册到一个全局的地方</strong>：比如光标的位置会怎么样影响这个可视化、包括菜单条——这是非常干净、非常小的状态。</li>
+</ul>
+<p>所以你看到的这样的一个 playground，基本上核心的共享状态也就只有十几行：十几行的共享状态，然后一个十几行的组装，<strong>剩下所有东西都是黑盒子</strong>。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_37_30.png" alt="核心共享状态只有十几行：pure function 与 derivation graph 架构" loading="lazy">
+  <p class="video-caption">📷 核心共享状态只有十几行：pure function 与 derivation graph 架构<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=5850" target="_blank" rel="noopener">在 B 站中打开 (01:37:30)</a></p>
+</div>
+
+<p>我还会直接要求 agent：在设计这些 visualization 的时候，<strong>禁止看任何库函数的实现，只看接口</strong>。所以它非常省 token——就几万个 token 就可以做一个这样的 playground。</p>
+<p><strong>第二阶段：架构完成以后，开三个（或几个）terminal 并行。</strong></p>
+<p><code>AGENTS.md</code> 里有一个明确的协作规则，比如：</p>
+<ul>
+<li>不需要调用视觉模型去检查（agent 很喜欢做这件事，然后花很多 token）；</li>
+<li>也不调用浏览器任务——我在边上另外一块屏上放一个浏览器，它是及时刷新的。</li>
+</ul>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    A[&quot;阶段一: 架构设计&lt;br/&gt;单线程 + 智力较高的模型&quot;] --&gt; B[&quot;定好组件库接口:&lt;br/&gt;pure function / derivation graph / 全局状态注册&quot;]
+    B --&gt; C[&quot;共享状态压到十几行&lt;br/&gt;其余全是黑盒子&quot;]
+    C --&gt; D[&quot;写进 AGENTS.md 的协作规则:&lt;br/&gt;禁用视觉模型自检 · 不跑浏览器任务&quot;]
+    D --&gt; E1[&quot;terminal 1&lt;br/&gt;agent A&quot;]
+    D --&gt; E2[&quot;terminal 2&lt;br/&gt;agent B&quot;]
+    D --&gt; E3[&quot;terminal 3&lt;br/&gt;agent C&quot;]
+    E1 --&gt; F[&quot;旁边一块屏放一个实时刷新的浏览器&lt;br/&gt;肉眼看着右边不停地变好&quot;]
+    E2 --&gt; F
+    E3 --&gt; F
+    F --&gt; G[&quot;哪里不满意就骂它&lt;br/&gt;最后问题就解决了&quot;]
+</code></pre>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_39_34.png" alt="三个 terminal 并行开 agent，旁边一块屏实时刷新浏览器" loading="lazy">
+  <p class="video-caption">📷 三个 terminal 并行开 agent，旁边一块屏实时刷新浏览器<br><a href="https://www.bilibili.com/video/BV1kybV6DE47?t=5974" target="_blank" rel="noopener">在 B 站中打开 (01:39:34)</a></p>
+</div>
+
+<p>然后我就开始开三个 agent，<strong>哪里不满意就骂它</strong>，然后你就可以肉眼看着右边那个东西不停地变好、变好、变好，最后问题就解决了。</p>
+<p>这是一个 agent 能力之内的项目。而讲者非常确信的是：<strong>Agent 能力会不断地增长，越来越多的项目能够被 Agent 以这样的方式完成——一个比较轻量的讨论，然后剩下全部完成。</strong></p>
+<blockquote>
+<p><strong>这是一个非常可怕的事情：如果 Agent 快了 1000 倍，我们还怎么样管理这个版本控制？我们可以下一节课再来讨论。</strong></p>
+<p>好，今天下课。</p>
+</blockquote>
+<hr />
+<h2 id="postscript">后记 Postscript：本书是如何生成的</h2>
+<p>这本书的生成过程和之前的几讲有一个重要区别：<strong>这个视频在平台上没有任何字幕。</strong></p>
+<p>上传当天抓取时，B 站的字幕接口返回的是空列表——既没有作者上传的 CC 字幕，AI 字幕也还没有生成（<code>--list-subs</code> 里只有弹幕）。所以这次走的是一条新的兜底路径：</p>
+<ol>
+<li><strong>只下载音频轨</strong>（<code>yt-dlp -f bestaudio</code>，约 90 MB 的 <code>audio.m4a</code>），不下载任何视频流；</li>
+<li><strong>本地 ASR 转写</strong>：faster-whisper <code>large-v3</code>，CUDA + <code>int8_float16</code>（RTX 3050 4GB），VAD 过滤，配合一段领域术语 prompt（Git / 版本控制 / Conventional Commits 等）来压制同音错词并让中文输出自带标点；</li>
+<li>100 分钟的音频约 21 分钟转写完，切成 <strong>2907 段</strong>、覆盖率 100%，写成与平台字幕同构的 <code>transcript.json</code>；</li>
+<li>AI 通读全文，建立术语表并重构为本书：口语转书面语、按内容逻辑分 23 章（另加一篇后记）、绘制 6 张 Mermaid 图、插入 38 个截图锚点；</li>
+<li>截帧管线在已登录的浏览器里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；</li>
+<li>渲染为带视频卡片、截图放大（lightbox）与 Mermaid 交互的暗色主题 HTML。</li>
+</ol>
+<p>本地 large-v3 的识别质量整体高于平台 AI 字幕，但仍有少量专有名词需要人工订正（例如 <code>GPT-6</code> 被识别成 <code>GP6</code>/<code>GP16</code>、<code>AGENTS.md</code> → <code>agency.md</code>、<code>int main(void)</code> → <code>interment</code>、<code>convention</code> → <code>考案神</code>、<code>外包</code> → <code>外部</code>、<code>Conventional Commits</code> → <code>confessional commits</code>）。与视频逐句对照的订正稿见 <code>transcript.corrected.txt</code>。</p>
+    </article>
+
+    <!-- Mermaid 图表引擎初始化 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({ startOnLoad: false, theme: 'default' });
+            
+            // 兼容普通代码块以及丢失 language-mermaid 类名的情况 (CodeHilite 干扰)
+            const codeNodes = document.querySelectorAll('pre code, .highlight code');
+            codeNodes.forEach(function(node) {
+                const text = node.textContent.trim();
+                // 匹配常见的 mermaid 图表前缀
+                if (text.startsWith('graph ') || text.startsWith('sequenceDiagram') || text.startsWith('gantt') || text.startsWith('pie') || text.startsWith('classDiagram') || text.startsWith('stateDiagram') || text.startsWith('mindmap')) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.className = 'mermaid';
+                    tempDiv.textContent = text;
+                    
+                    // 获取需要替换的最外层父节点 (比如 div.highlight 或者 pre)
+                    const wrapper = node.closest('.highlight') || node.parentNode;
+                    wrapper.replaceWith(tempDiv); 
+                }
+            });
+            
+            // 所有节点转换完成，统一进行图表动态绘制
+            mermaid.run();
+        });
+    </script>
+    <!-- Lightbox：截图点击放大 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const lightbox = document.createElement('div');
+            lightbox.className = 'lightbox';
+            lightbox.innerHTML = '<img alt=""><div class="lightbox-caption"></div>';
+            document.body.appendChild(lightbox);
+            const lbImg = lightbox.querySelector('img');
+            const lbCap = lightbox.querySelector('.lightbox-caption');
+            function openLightbox(src, alt) {
+                lbImg.src = src; lbImg.alt = alt || '';
+                lbCap.textContent = alt || '';
+                lightbox.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeLightbox() {
+                lightbox.classList.remove('open');
+                lbImg.src = '';
+                document.body.style.overflow = '';
+            }
+            document.querySelectorAll('.screenshot-card img').forEach(function(img) {
+                img.addEventListener('click', function() { openLightbox(img.src, img.alt); });
+            });
+            lightbox.addEventListener('click', closeLightbox);
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
+        });
+    </script>
+</body>
+</html>
