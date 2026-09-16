@@ -1,5 +1,11 @@
 # VideoBook Agent
 
+> 本地课程阅读版改进：遵循 `instructions.md`，平台字幕优先；最小、可审计 AI 字幕校订；保留讲师表达的书籍化；按需截图；外挂 review.md / questions.md；默认沿用上游 VideoBook 的原版渲染主题。不是摘要生成器，也不默认全片 Whisper。AI 负责校订和写作，脚本负责抓取、验证与渲染。
+
+最小校订：`python src/make_corrected.py <id>` 导出 raw 与模板，AI 按 `prompts/correction_system.md` 提议 edits，再以 `--edits <json> --force` 应用。原版全局 MAP 和口癖删除已停用。书稿规范见 `prompts/stitcher_system.md`，辅助材料规范见 `prompts/learning_aids.md`。
+
+渲染正文与已有辅助材料：`python src/post_process.py <url> output/<id>/book.md --learning-aids`。`--learning-aids` 只渲染已有稿件，不自动调用模型。回归测试：`python -m unittest discover -s tests`。
+
 提供一段 YouTube 或 Bilibili 的视频链接，AI 助手（如 Claude Code / Antigravity）将负责整理内容逻辑，并将视频中带有演示操作的时间锚点直接转为内嵌视频卡片，最终自动全产出生成高质量的技术图文电子书。
 
 ## 环境准备
@@ -34,7 +40,7 @@
    用 yt-dlp 只拉音频轨，再交给本地 faster-whisper（large-v3）转写，产出**与平台字幕完全同构**的 `transcript.json`，后续各步零改动。
 2. **重写 编排 (Stitching)**: AI 利用大模型能力将乱七八糟的字幕提取要义改写为 Markdown，并在关键讲解处插入 `![描述](SCREENSHOT:00:15:30)` 时间戳指令占位。
 3. **截帧 插图 (Capturing)**：在已登录浏览器中直接截取平台播放器画面（画质直接来自平台，不下载任何媒体文件）：Codex 桌面环境首选 Chrome 扩展（@Chrome）；通用脚本 `python src/capture_frames.py` 使用专用截帧配置（`.capture-profile/`，一次性登录、长期复用登录态；Chrome 136+ 禁止对默认配置远程调试，故不触碰主 Chrome），失败后才兜底 `python src/extract_frames.py`（下载视频源用 ffmpeg 抽帧，文件保留至流程结束并询问用户是否删除）。两者都会把 `book.md` 中的占位符物化为真实图片链接（原标签稿自动备份为 `book.tagged.md`）；HTML 中的截图支持点击放大浏览。
-4. **渲染 网页 (Rendering)**: 调用 `python src/post_process.py <url> <md>` 把所有占位的锚点改造成 YouTube/B站原生轻量级 `iframe` 代码，并且注入极简暗色主题，把枯燥的 `.md` 内容最终渲染为可直接在线看的富文本 `.html`。
+4. **渲染网页 (Rendering)**: 调用 `python src/post_process.py <url> <md>` 把所有占位的锚点改造成 YouTube/B站原生轻量级 `iframe` 代码，并沿用上游原版主题，把 `.md` 内容渲染为可直接在线看的富文本 `.html`；MathJax 和学习辅助链接作为附加功能保留。
 5. **发服 预览 (Serving)**: 通过 Python 挂起一个简易的本地 HTTP 服务器。
 
 

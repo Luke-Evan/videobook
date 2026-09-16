@@ -31,3 +31,7 @@ memory/
 # exported cookies (never commit login state)
 cookies.txt
 *.cookies.txt
+
+# MathJax npm staging artifacts (the tracked runtime is src/assets/mathjax/)
+src/assets/package/
+src/assets/*.tgz

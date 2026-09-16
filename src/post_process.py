@@ -50,12 +50,17 @@ def timestamp_to_seconds(ts: str) -> int:
 def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str, description: str, image_rel: str = None) -> str:
     """根据平台生成嵌入式视频播放器 HTML 卡片"""
     seconds = timestamp_to_seconds(timestamp)
+    parsed = urlparse.urlsplit(video_url)
+    query = urlparse.parse_qs(parsed.query)
+    query['t'] = [str(seconds)]
+    open_url = urlparse.urlunsplit(parsed._replace(query=urlparse.urlencode(query, doseq=True)))
+    page_number = query.get('p', ['1'])[0]
 
     # 若已提供页内截图，则渲染静态截图卡片（真·截图模式）
     if image_rel:
         return f'''<div class="video-card screenshot-card">
   <img src="{image_rel}" alt="{description}" loading="lazy">
-  <p class="video-caption">📷 {description}<br><a href="{video_url}?t={seconds}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
+  <p class="video-caption">{description}<br><a href="{open_url}" target="_blank" rel="noopener">回到原视频 ({timestamp})</a></p>
 </div>'''
 
     if platform == "youtube":
@@ -70,12 +75,12 @@ def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str
 </div>'''
 
     elif platform == "bilibili":
-        embed_url = f"https://player.bilibili.com/player.html?bvid={video_id}&t={seconds}&autoplay=0&high_quality=1"
+        embed_url = f"https://player.bilibili.com/player.html?bvid={video_id}&page={page_number}&t={seconds}&autoplay=0&high_quality=1"
         return f'''<div class="video-card">
   <div class="video-wrapper">
     <iframe src="{embed_url}" frameborder="0" allowfullscreen scrolling="no" loading="lazy"></iframe>
   </div>
-  <p class="video-caption">▶ {description}<br><a href="{video_url}?t={seconds}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
+  <p class="video-caption">{description}<br><a href="{open_url}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
 </div>'''
 
     # 未知平台，返回纯文本提示
@@ -124,14 +129,54 @@ def replace_screenshots_with_embeds(md_content: str, video_url: str, images_dir:
 
 def md_to_html(md_content: str, title: str) -> str:
     """将 Markdown 内容转为完整的 HTML 页面"""
+    # Python-Markdown treats backslashes as Markdown escapes, which would turn
+    # \(...\) into ordinary parentheses and \[...\] into ordinary brackets
+    # before MathJax can see them. Protect math spans while Markdown runs.
+    math_fragments = []
+
+    def stash_math(match):
+        math_fragments.append(match.group(0))
+        return f"VIDEOMATHTOKEN{len(math_fragments) - 1}END"
+
+    protected_md = re.sub(r'\\\[(.+?)\\\]', stash_math, md_content, flags=re.DOTALL)
+    protected_md = re.sub(r'\\\((.+?)\\\)', stash_math, protected_md, flags=re.DOTALL)
+
+    # Some older drafts were authored with plain parentheses because an
+    # earlier template accidentally stripped the inline delimiters. Recover
+    # only unmistakable short math expressions; ordinary prose parentheses
+    # such as (PPT) are left alone.
+    math_start = r'(?:j|J|w|x|y|b|k|d|dj|dw|epsilon|alpha|w_i|1/w|2w|3w|4w|6w|12w)'
+    def stash_plain_inline(match):
+        math_fragments.append(r'\(' + match.group(1) + r'\)')
+        return f"VIDEOMATHTOKEN{len(math_fragments) - 1}END"
+
+    def stash_nested_inline(match):
+        math_fragments.append(r'\(' + match.group(0)[1:-1] + r'\)')
+        return f"VIDEOMATHTOKEN{len(math_fragments) - 1}END"
+
+    # Handle the common nested form ``(j(w)=w^2)`` separately.
+    protected_md = re.sub(
+        r'\((?:j|J)\(w\)(?:=[^()\n]+)?\)',
+        stash_nested_inline,
+        protected_md,
+    )
+    protected_md = re.sub(
+        rf'(?<!\w)\(({math_start}[^()\n]{{0,35}})\)',
+        stash_plain_inline,
+        protected_md,
+    )
+
     # 先将 markdown 转为 HTML 片段
     body_html = markdown.markdown(
-        md_content,
+        protected_md,
         extensions=['tables', 'fenced_code', 'codehilite', 'toc'],
         extension_configs={
             'codehilite': {'css_class': 'highlight', 'guess_lang': False}
         }
     )
+
+    for index, fragment in enumerate(math_fragments):
+        body_html = body_html.replace(f"VIDEOMATHTOKEN{index}END", fragment)
 
     return HTML_TEMPLATE.replace("{title}", title).replace("{content}", body_html)
 
@@ -169,6 +214,15 @@ def process_markdown(video_url: str, md_file: str):
     # 2) 将 Markdown 转为精美的 HTML
     print(">> 正在生成 HTML 电子书...")
     html_output = md_to_html(content, title)
+    # Optional aids remain separate publications, never injected into the book body.
+    directory = os.path.dirname(os.path.abspath(md_file))
+    aid_links = []
+    for name, label in [('book', '课程正文'), ('review', '5–10 分钟复习'), ('questions', '章节自测')]:
+        if os.path.exists(os.path.join(directory, name + '.md')) and os.path.basename(md_file) != name + '.md':
+            aid_links.append(f'<a href="{name}.html">{label}</a>')
+    if aid_links:
+        html_output = html_output.replace('<div id="toc-links"></div>',
+            '<div id="toc-links"></div><div class="study-links">' + ''.join(aid_links) + '</div>')
 
     # 3) 保存 HTML 文件
     html_file = md_file.replace('.md', '.html')
@@ -183,9 +237,15 @@ def main():
     parser = argparse.ArgumentParser(description="将 book.md 转换为精美的 book.html 电子书")
     parser.add_argument("video_url", help="原始视频的 URL")
     parser.add_argument("md_file", help="待转换的 Markdown 文件路径")
+    parser.add_argument("--learning-aids", action="store_true", help="Also render existing review.md/questions.md; does not generate their content")
     args = parser.parse_args()
 
     process_markdown(args.video_url, args.md_file)
+    if args.learning_aids:
+        for name in ('review.md', 'questions.md'):
+            path = os.path.join(os.path.dirname(os.path.abspath(args.md_file)), name)
+            if os.path.exists(path) and os.path.abspath(path) != os.path.abspath(args.md_file):
+                process_markdown(args.video_url, path)
 
 
 # ─────────────────────────────────────────────
@@ -200,6 +260,18 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- MathJax renders \(...\) and \[...\] without converting formulas to images. -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['\\(', '\\)']],
+          displayMath: [['\\[', '\\]']],
+          processEscapes: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+      };
+    </script>
+    <script async src="assets/es5/tex-mml-chtml.js"></script>
     <style>
         /* ── 基础重置 ── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -250,6 +322,8 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: -0.02em;
+            line-height: 1.28;
             letter-spacing: -0.02em;
         }
 
@@ -449,7 +523,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         }
         .lightbox-caption {
             position: absolute; bottom: 14px; left: 0; right: 0;
-            text-align: center; color: var(--text-secondary); font-size: 0.85em;
+            text-align: center; color: #d3d9df; font-size: 0.85em;
         }
 
         /* ── 顶部信息栏 ── */
@@ -474,6 +548,29 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+        /* Low-presence navigation, separate from the reading column. */
+        .book-toc {
+            position: fixed; top: 64px; left: max(20px, calc((100vw - 1280px) / 2));
+            width: 190px; max-height: calc(100vh - 100px); overflow-y: auto;
+            padding-right: 16px; font-size: 12px; line-height: 1.7;
+        }
+
+        /* Long equations remain readable on narrow screens. */
+        mjx-container[display="true"] {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0.35em 0;
+        }
+        .book-toc .toc-label { color: var(--text-muted); letter-spacing: .12em; margin-bottom: 12px; }
+        .book-toc a { display: block; color: #606a76; padding: 5px 0; border: 0; }
+        .book-toc a:hover, .book-toc a.active { color: #1f2328; }
+        .book-toc a.sub { padding-left: 10px; }
+        .study-links { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+        h2, h3 { scroll-margin-top: 24px; }
+        @media (min-width: 1200px) { .book-content { transform: none; } }
+        @media (max-width: 1199px) { .book-toc { display: none; } }
+        @media print { .book-toc, .lightbox { display: none; } .book-content { transform: none; padding: 0; } }
         /* ── 响应式 ── */
         @media (max-width: 640px) {
             .book-content { padding: 32px 16px 80px; }
@@ -483,6 +580,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
     </style>
 </head>
 <body>
+    <nav class="book-toc" aria-label="课程目录"><div class="toc-label">CONTENTS</div><div id="toc-links"></div></nav>
     <article class="book-content">
         {content}
     </article>
@@ -491,7 +589,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            mermaid.initialize({ startOnLoad: false, theme: 'default' });
+            if (window.mermaid) mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
             
             // 兼容普通代码块以及丢失 language-mermaid 类名的情况 (CodeHilite 干扰)
             const codeNodes = document.querySelectorAll('pre code, .highlight code');
@@ -510,7 +608,20 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
             });
             
             // 所有节点转换完成，统一进行图表动态绘制
-            mermaid.run();
+            if (window.mermaid) mermaid.run();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const target = document.getElementById('toc-links');
+            const headings = document.querySelectorAll('.book-content h2, .book-content h3');
+            headings.forEach(function(h, i) {
+                if (!h.id) h.id = 'section-' + i;
+                const a = document.createElement('a');
+                a.href = '#' + h.id; a.textContent = h.textContent;
+                if (h.tagName === 'H3') a.className = 'sub';
+                target.appendChild(a);
+            });
         });
     </script>
     <!-- Lightbox：截图点击放大 -->

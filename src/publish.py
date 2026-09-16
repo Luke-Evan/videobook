@@ -1,6 +1,6 @@
 """将成品电子书发布到独立 orphan 分支 pages（目录名 = 视频标题）。
 
-只发布三件套：book.html / book.md / images/*.png；不发布 transcript、srt、
+发布阅读所需文件：book.html / book.md / images/*.png / assets/es5/*；不发布 transcript、srt、
 tagged 稿等中间物。全程使用 git plumbing + 临时 index/工作树，不切换分支、
 不触碰 main 工作区与 output/ 目录。脚本只写本地 ref，推送由执行者显式完成。
 
@@ -52,6 +52,12 @@ def _src_blob_map(src):
         rels.append(CORRECTED)
     img = os.path.join(src, "images")
     rels += ["images/" + f for f in sorted(os.listdir(img)) if f.lower().endswith(".png")]
+    mathjax = os.path.join(src, "assets", "es5")
+    if os.path.isdir(mathjax):
+        for root, _, files in os.walk(mathjax):
+            for fn in sorted(files):
+                full = os.path.join(root, fn)
+                rels.append(os.path.relpath(full, src).replace(os.sep, "/"))
     out = {}
     for rel in rels:
         r = run(["hash-object", "--", os.path.join(src, *rel.split("/"))])
@@ -274,6 +280,9 @@ def main():
                     shutil.copyfile(os.path.join(src, "images", fn),
                                     os.path.join(dst, "images", fn))
                     n += 1
+            mathjax = os.path.join(src, "assets", "es5")
+            if os.path.isdir(mathjax):
+                shutil.copytree(mathjax, os.path.join(dst, "assets", "es5"), dirs_exist_ok=True)
             print(f">> {vid}: {n} 张截图 -> {folder}/")
 
         # 5) 写 manifest 与落地页

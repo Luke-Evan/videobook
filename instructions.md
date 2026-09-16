@@ -1,177 +1,56 @@
-# VideoBook Agent 工作流指令
+# VideoBook：原味课程电子书工作流
 
-> 本文件是 AI 助手（Codex / Antigravity / Claude Code）的操作手册。
-> 当用户发来一个视频链接时，请严格按照以下步骤执行。
+目标：让读者基本不看原视频，也能获得接近原课的知识、论证、案例和老师个人表达；需确认时通过时间戳和截图回查。不是摘要流水线。所有命令在仓库根目录运行，用独立环境 `.venv/Scripts/python.exe`（Windows）或 `uv run python`。
 
-## 触发条件
+## 1. 平台字幕优先
 
-用户发来一条包含 YouTube (`youtube.com`, `youtu.be`) 或 B站 (`bilibili.com`) 视频链接的消息，
-并表示希望将其生成为电子书/教程/指南。
+`python src/dump_transcript.py <url>`。平台字幕可用时绝不重跑 Whisper。优先复用完整的已有平台字幕缓存，保持 transcript.json / transcript.txt 不被校订覆盖。
 
-## 完整工作流
+检查 duration、chapters、segments 的首尾和中间覆盖。原脚本低于 50% 报错只是异常探针，不是“超过 50% 就完整”的验收标准。结尾短暂无语音可合理解释；大段缺失、未知总时长、登录态不足必须先解决，不能直接写完整书稿。
 
-### 第一步：提取字幕
+需要登录时用 `--cookies-from-profile <dir>` / `--cookies-file <path>`；专用配置可用 `python src/capture_frames.py --setup-profile` 一次登录。浏览器登录只由用户完成，cookie 不输出、不提交。海外源按用户现有代理配置处理。
 
-在终端执行以下命令（将 `<VIDEO_URL>` 替换为用户提供的链接）：
+只有确认平台确实无可用字幕才用原版 `asr_transcript.py`。先 `python src/asr_transcript.py <id> --sample-start 900 --sample-dur 180` 抽样，确认术语质量和耗时；全片昂贵 ASR 在告知用户实际估计并获得同意后运行。试跑后全量使用 `--restart` 防止漏开头。ASR 支持进度与续跑，详见 README；不以全片 Whisper、全量 OCR 或机械关键帧作为默认路径。
 
-```bash
-python src/dump_transcript.py "<VIDEO_URL>"
-```
+## 2. 最小字幕校订与书籍化
 
-- 脚本会自动检测平台，抓取字幕并保存为 `output/<video_id>/transcript.json`。
-- **B 站登录态自动获取**：B 站视频在专用配置 `.capture-profile/` 存在登录态时，脚本会自动导出 cookies（系统临时目录、用完即删，不会落入仓库）。该过程启动无头 Chrome，**需沙箱外执行**（Codex 中申请 require_escalated）。
-- 若提示专用配置无登录态：请用户先运行 `python src/capture_frames.py --setup-profile` 登录一次（扫码即可），再重试。
-- 可选参数：`--cookies-from-profile <dir>`（指定配置导出）、`--cookies-file <path>`（Netscape cookies 文件）、`--cookies-from <browser>`（旧方式；Windows 主 Chrome 因新版加密通常不可用，勿默认使用）。
-- **覆盖率自检**：成功时脚本打印"字幕覆盖率"（末段结束时间 / 视频时长）。覆盖率低于 50% 会以退出码 3 结束并打印修复提示——此时不得进入第二步，先按提示解决（通常是登录态问题）。
-- **transcript.json 结构**：除 `segments` 外，现含 `duration`（总时长秒）与 `chapters`（平台官方章节切分，可能为空数组）。第二步必须利用这两个字段。
-- **区分两类失败**：
-  - *登录态 / 代理问题*（覆盖率过低、超时、地区限制）：按上面提示修复后重跑本步。
-  - *平台确实没有字幕*：`--list-subs` 只有 `danmaku`、播放器接口 `subtitle.subtitles` 为 `[]`（新上传视频常见，B 站 AI 字幕尚未生成）。此时**不要停止流程**，转入下面的本地 ASR 兜底。
-- 如果失败且无法兜底，请告知用户可能的原因（无字幕、需要代理、需要登录等），并停止流程。海外视频终端需走代理。
+读取 `prompts/correction_system.md` 与 `prompts/stitcher_system.md` 后行动。
 
-#### 兜底：本地 ASR 转写（平台无任何字幕时）
+1. `python src/make_corrected.py <id>`：保留 raw，生成未审阅副本和 corrections.template.json。
+2. 完整阅读字幕一次，在同一过程中建术语表、论证地图与 retention_checklist.md；清单规范见 `prompts/fidelity_check.md`，首次阅读前读完。AI 将确认修改写入 corrections.json，疑点写 correction_notes.md。不得仅从成品目录反向生成清单。
+3. `python src/make_corrected.py <id> --edits output/<id>/corrections.json --force`：校验并应用逐段最小修改，产生 corrected 与变更日志。不跨段、不删段、不用全局替换表。
+4. 按原课程节奏生成 book.md：保留措辞、类比、吐槽、铺垫、转折和重要案例；删除无意义卡顿与纯重复。不是标准教材化改写。按需插入 SCREENSHOT 时间戳。
 
-```bash
-python src/asr_transcript.py <video_id>
-```
+AI 校订和书籍化由当前助手执行，不强制另购模型 API。脚本是变更验证器，不是语义校订器。不多轮完整重读长字幕，必要位置定点回查。
 
-- 脚本自行完成：只下载音频轨（`output/<id>/audio.m4a`，不下载视频流）→ faster-whisper `large-v3` 转写 → 按标点/时长切成接近平台字幕粒度的短段 → 写出 `transcript.json`（字段与 `scraper.get_transcript` 完全同构：`video_url / title / video_id / duration / chapters / segments`）与 `transcript.txt`。因此第二步之后的所有步骤无需任何改动。
-- **先试跑再全量**：`--sample-start 900 --sample-dur 180` 转写 3 分钟抽样，确认质量与速度后再跑全量。
-- **领域术语提示**：在 `output/<id>/_asr_prompt.txt` 写入本讲主题与术语（一两百字即可，Whisper 的 prompt 上限约 224 token，过长会被截断）。它能显著压制同音错词，并让中文输出自带标点。**PowerShell 下不要用命令行传含中文引号的长 prompt**（弯引号会被当成字符串定界符），一律走文件。
-- **算力**：有 NVIDIA 显卡自动用 CUDA，显存 ≤4GB 用 `--compute-type int8_float16`；无卡自动退 CPU int8。Windows 报 `Library cublas64_12.dll is not found` 时装 `nvidia-cublas-cu12 nvidia-cudnn-cu12`，脚本已自动注册这些 DLL 目录。
-- **断点续跑**：进度实时写入 `output/<id>/_asr_progress.jsonl`，中断后重跑自动从末尾续接；`--restart` 强制从头（试跑后跑全量务必带上，否则会漏掉试跑区间之前的内容）。
-- **耗时预期**：100 分钟课程在 RTX 3050 (4GB) 上约 35 分钟；期间可并行准备第三步的截帧环境与术语表。
-- 转写完成后，仍要执行覆盖率自检（脚本已内置），低于 50% 说明没跑完，重跑续写。
+## 3. 按需截图（保留原版机制）
 
-### 第二步：阅读字幕 + 生成电子书
+按教学信息增益选十几张真正有用的图，不做 100+ 帧和全量 OCR。需要术语证据时允许提前定点回查。截图流程、精确 seek、画质探针、增量补帧和物化沿用原项目。
 
-1. 阅读生成的 `output/<video_id>/transcript.json` 文件。
-2. 阅读 `prompts/stitcher_system.md` 获取排版指令。
-3. 按照 Stitcher Prompt 的要求，将字幕重构为结构化的 Markdown 技术指南。
-4. 将生成的内容写入 `output/<video_id>/book.md`。
+- 桌面扩展可用时，优先 @Chrome 已登录播放器，截图保存 `images/shot_HH_MM_SS.png` 后 `python src/capture_frames.py <id> --materialize-only`。
+- 否则 `python src/capture_frames.py <id> <url>`：使用专用 `.capture-profile/`，不调试主 Chrome 默认目录；登录需用户完成。有头登录窗口只在确需交互时使用。
+- 浏览器方式失败/不可用时，`python src/extract_frames.py <id> <url>` 兜底；已有本地视频可复用，避免再次下载。
 
-**关键要求：**
-- 必须将口语化内容转为书面化技术语言
-- 必须分章节组织，使用 Markdown 标题
-- 必须在关键界面/操作步骤处插入截图占位符：`![场景描述](SCREENSHOT:HH:MM:SS)`
-- 如果原始语言不是中文，必须翻译为中文
-- **官方章节仅供参考**：`chapters` 字段往往较粗糙，只用于辅助定位内容与选择截图时间戳；顶层分章请按内容自身逻辑组织，**不要求**与官方章节一一对应；`SCREENSHOT:` 时间戳落在其所属内容的时间区间内即可。
-- **容忍 ASR 噪声**：AI 字幕含同音错词（如"深圳市软件工程"→生成式、"威尔法/WIFI"→verifier、"KIMIK3"→Kimi K3、"chain of salt"→chain of thought、"舔狗/做题家"等口语梗保留原意）。动笔前先结合标题与 chapters 建立术语表，改写时统一规范化。
-- **产出修正版字幕对照稿**：运行 `python src/make_corrected.py <video_id>`（或 `--all`）生成 `output/<video_id>/transcript.corrected.txt`——与 transcript.txt 同格式（`[MM:SS] 原文`、逐段不合并），**保留讲师原始字词与顺序**，仅做两类修改：ASR 错词替换（脚本内 MAP，按视频扩充）与口癖清理（纯语气词段删除、句尾语气词剥离、单字口吃折叠）；不改写为书面语、不概括；随后由 AI 通读全文做一轮行级订正（仅修明显错词/截断词/不通顺处，保留逐段结构与讲师原词，可委派子代理产出 old->new 清单后脚本应用；订正原则：少识别字词类错误（如“车轱话”→“车轱辘话”）必修，讲师有意为之的强调式重复（如“工作工作工作工作”“点点点点点点点了十层”）原样保留、不得折叠）；生成后抽查若干行确认无过改；该文件随发布上传 pages 供人工对照视频。
-- **截图时间戳选择**：优先章节边界、新幻灯片出现时刻、演示画面时刻；结合前后字幕语义定位，格式 `HH:MM:SS`。
+截完抽查 PPT/代码图和演示图，确认清晰、无遮挡、对应时间。book.md 不应残留未处理 SCREENSHOT；book.tagged.md 保留时间戳清单。
 
-### 第三步：截帧并将截图占位符替换为图片
+## 4. 轻量内容保真验收
 
-画面必须直接来自平台播放器、使用已登录账号的高画质；本步任何方式都不得下载视频/音频文件。按以下优先级执行，**上一级全部失败才进入下一级**。
+按 `prompts/fidelity_check.md` 将首次阅读的保留清单逐项映射到书稿；检查重要案例步骤、转折顺序、限定语与直接引语。高风险或缺项位置才定点回查，不新增一轮全片重读、ASR 或全量 OCR。确认的实质遗漏先局部修补并复核，未解决的疑点明确标记；产出 fidelity_check.md，写明实际核验范围与证据等级。未解决实质问题的成品标“待核验版”，不宣称验收通过。
 
-#### 优先级 0（桌面环境首选）：Chrome 扩展（@Chrome）
+三段标定只在首次使用、实质修改书籍化提示词或更换课程类型时执行，不每课固定重做。清单和抽样均不能单独证明全书忠实。
 
-仅当运行在 Codex/ChatGPT 桌面应用内、且 ChatGPT 浏览器扩展已安装并连接时使用（在 设置 > Computer Use 中确认）：
+## 5. 学习辅助与渲染
 
-- 通过扩展控制用户真实、已登录的 Chrome：逐个 `SCREENSHOT:` 时间戳（取自 `book.md` 或 `book.tagged.md`），在 Chrome 中打开对应平台播放器页面，等待视频画面渲染后对该标签页截图，保存为 `output/<video_id>/images/shot_HH_MM_SS.png`。
-  - B 站播放器地址：`https://player.bilibili.com/player.html?bvid=<video_id>&t=<秒>&autoplay=1&high_quality=1&danmaku=0`
-  - YouTube 播放器地址：`https://www.youtube.com/embed/<video_id>?start=<秒>&autoplay=1&high_quality=1`
-- 特点：使用登录态画质、后台运行、不接管用户屏幕。
-- 全部时间戳截完后执行物化：`python src/capture_frames.py <video_id> --materialize-only`。
-- 扩展未连接、截图失败、或运行环境不是 Codex/ChatGPT 桌面应用时，进入优先级 1。
+读取 `prompts/learning_aids.md`，从书稿生成 review.md（5–10 分钟复习）与 questions.md（章节自测和可折叠参考回答）。semantic_map.md 按需。不反向压缩主书稿。
 
-#### 优先级 1：专用截帧配置（v2 管线，所有 Agent 环境通用）
+`python src/post_process.py <url> output/<id>/book.md --learning-aids`，同时渲染已有 review.md / questions.md 并提供独立导航（不调用模型生成内容）。默认沿用上游 VideoBook 的原版渲染主题和排版；新增的 MathJax、截图放大、Bilibili 分 P 回链与学习辅助导航只作为功能增强，不改变原版视觉基调。
 
-Chrome 136+ 的安全策略禁止对**默认**用户数据目录做任何远程调试，因此脚本改用专用数据目录（默认仓库根目录下 `.capture-profile/`）：不与主 Chrome 冲突，也不受调试禁令限制。
+HTML 模板内置 MathJax 3（`src/assets/mathjax/es5`；每个独立课程目录的 `assets/es5` 是可直接预览的副本），支持 `\(...\)` 行内公式和 `\[...\]` 块级公式，不依赖 CDN 或外网。Markdown 转换前会保护数学分隔符，避免 Python-Markdown 吃掉反斜杠。
 
-**一次性初始化（登录一次，长期复用）：**
+需要预览时用 `python -m http.server 8080 --bind 127.0.0.1 --directory output/<id>`。告知实际地址、文件和停止方式；不要暴露到局域网。检查桌面/移动端长文、目录、图片放大、视频回链。浏览器不可验证时明确说明，不冒称视觉 QA 完成。
 
-```bash
-python src/capture_frames.py --setup-profile
-```
+## 6. 交付
 
-- 脚本会用专用配置启动一个 Chrome 窗口：在其中登录你需要的平台（B 站 / YouTube），然后关闭窗口。Cookies 持久化在 `.capture-profile/`，此后截帧自动携带登录态画质。**登录账号的会员等级决定截图清晰度上限**（需要更高档位时用大会员账号登录）。
+book.md / book.html 是主产品；corrected、review、questions 为辅助；retention_checklist.md / fidelity_check.md 是保真检查记录，不插入主书正文。交付说明保真检查的实际范围与未解决疑点。数分钟进入可学习状态是目标，不是未测量的承诺。
 
-**日常截帧：**
-
-```bash
-python src/capture_frames.py <video_id> "<VIDEO_URL>"
-```
-
-v2 管线自动完成以下事情，Agent 无需也不应手工干预：
-
-- **无头运行**：默认 headless 不弹窗打扰用户，失败自动回退有头模式；
-- **权益探针**：抓前查询该账号/该视频的顶档原生分辨率，viewport 按 1:1 设置（不放大、不糊；换账号/换视频自动适配）；
-- **流锁定**：路由拦截 playurl 响应，强制首帧即拉顶档最高码率流（根除"自动档从 360P 起播、暂停冻结升档"造成的糊图）；
-- **纯净帧**：visibility CSS 隐藏全部播放器 UI（顶栏/控制栏/引流条/暂停推荐层），仅对 `<video>` 元素截图，无黑边；嵌入播放器优先，失败自动降级主站观看页；
-- **精确帧**：`seek(目标秒) → 等 seeked → pause` 后截图，时间戳精确且为静止帧；
-- **QA 自检**：截图文件过小判为黑帧，自动偏移重试；**只截缺失帧**，全部存在时直接跳过；
-- **增量友好**：占位符清单始终读自 `book.tagged.md`（若存在），因此物化后重跑也能正确补帧。
-
-本步启动 Chrome，**需沙箱外执行**。更换配置目录：`--profile-dir <path>`。若截图变回未登录态（Cookie 过期），重新执行 `--setup-profile` 登录一次。
-
-**Agent QA 习惯**：截帧后抽查 1–2 张图（一张幻灯片帧、一张演示帧）确认清晰无遮挡。若整体发糊，通常是账号档位问题——请用户在专用配置里登录大会员账号后重跑本命令（管线会自动按新档位原生分辨率重截）。
-
-#### 兜底：下载视频源 + ffmpeg 抽帧
-
-仅当上述所有浏览器方式全部失败（`capture_frames.py` 以非零码退出并提示 "All browser capture methods failed"），或环境无浏览器/无界面时：
-
-```bash
-python src/extract_frames.py <video_id> "<VIDEO_URL>"
-```
-
-- 若 `output/<video_id>/video_source.mp4` 不存在，脚本会自动用 yt-dlp 下载未登录可用的最高 avc1 档；注意这是未登录画质，仅作兜底。需要更高清晰度时，先自行下载（如带登录 cookies）同名文件，脚本会跳过下载。
-- 兜底产生的 `video_source.mp4` 属于大媒体文件：流程中途可保留，流程结束时按第五步询问用户是否删除。
-
-#### 明确排除的方式（不要使用）
-
-- 内置浏览器（@Browser）：独立配置文件，默认没有平台登录态，不满足高画质要求。
-- Playwright 自带的干净 Chromium：无登录态。
-- 对主 Chrome 默认数据目录的任何远程调试（CDP 端口 / Playwright 管道）：Chrome 136+ 安全策略禁止，永不生效。
-- win32 屏幕截取：接管用户屏幕，已从脚本中移除。
-- `--cookies-from chrome` 读取主 Chrome：Windows 上 Chrome 新版 App-Bound 加密使 yt-dlp 无法解密，不要默认使用。
-
-#### 完成标志
-
-- `images/` 下每个时间戳都有对应的 `shot_HH_MM_SS.png`，`book.md` 中不再有 `SCREENSHOT:` 占位符。
-- 第四步生成的 HTML 中，截图卡片内置点击放大（lightbox）：点击图片查看大图，点击空白处或按 Esc 关闭。
-
-### 第四步：转换 HTML + 启动预览
-
-在终端依次执行以下命令（纯本地步骤，沙箱内即可）：
-
-```bash
-python src/post_process.py "<VIDEO_URL>" output/<video_id>/book.md
-python -m http.server 8080 --directory output/<video_id>
-```
-
-### 第五步：告知用户
-
-将以下信息回复给用户：
-
-1. ✅ 电子书 Markdown 文件位置：`output/<video_id>/book.md`
-2. ✅ HTML 电子书预览地址：**http://localhost:8080/book.html**
-3. 提醒用户：
-   - 如果是 YouTube 视频，请确保浏览器可以访问 YouTube（需要代理）
-   - 如果是 B 站视频，可以直接访问
-   - 关闭预览服务器：在终端按 `Ctrl+C`
-4. 若流程中产生过大媒体文件（如 `output/<video_id>/video_source.mp4`、`audio.m4a`），询问用户是否需要删除，得到确认后再删。
-5. 截图清晰度说明：截图为当前账号顶档的纯视频帧（非大会员通常为 720P）；如需更高清晰度，在专用配置窗口登录大会员账号后重跑 `capture_frames.py <video_id> <url>` 即可自动升级。
-
-## 注意事项
-
-- 工作目录始终为本仓库根目录（即本文件所在目录），所有相对路径（如 `output/<video_id>/...`）均相对于它解析
-- 所有 Python 命令使用 `python` 执行（不要用 `pip`，用 `python -m pip`）；本仓库若用 uv 管理则用 `.venv\Scripts\python.exe` 或 `uv run python`
-- **ASR 兜底稿同样是"原始字幕"**：`asr_transcript.py` 产出的 `transcript.json` 在后续步骤中与平台字幕完全等价，同样需要建立术语表、容忍同音错词、产出 `transcript.corrected.txt`。本地 large-v3 的错词率通常低于平台 AI 字幕，但仍需人工订正专有名词。
-- 所有外部工具（yt-dlp）通过 `sys.executable -m yt_dlp` 调用
-- 如果用户提供的是 YouTube 链接且终端无代理，字幕抓取可能会失败
-- **沙箱/提权**：启动 Chrome / 读取浏览器 cookie 库的命令必须沙箱外执行：`dump_transcript.py`（B 站）、`capture_frames.py`、`capture_frames.py --setup-profile`；`post_process.py`、`http.server` 沙箱内即可。在 Codex 中对应 require_escalated 审批。
-- **cookies 安全**：自动导出的 cookies 写入系统临时目录、用完即删；不要在仓库里手放 cookies.txt（已被 .gitignore 忽略，但仍应避免）。
-- **可重跑性**：流水线各步幂等。若 `output/<video_id>` 被意外清理：重跑第一步恢复字幕；只要 `book.tagged.md` 还在，重跑第三步即可恢复截图（占位符清单读自 tagged 稿）。
-- 在生成或修改 HTML 时，请确保文本颜色与背景颜色的对比度符合 WCAG AA 标准（对比度至少 4.5:1）。
-
-### 第六步（可选）：发布成品到 pages 分支
-
-`ash
-python src/publish.py <video_id>   # 或 python src/publish.py --all
-git push origin pages
-`
-
-- 将 book.html / book.md / images/ 以及（若存在）transcript.corrected.txt（AI 修正版字幕对照稿）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；落地页卡片对含对照稿的书自动附"字幕对照"入口；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
-- 纯本地 git 操作，沙箱内可跑；push 需网络。
-- 首次推送后需在 GitHub 仓库 Settings → Pages 一次性启用（分支 `pages`、目录 `/ (root)`），之后每次 push 自动部署。
+保留大媒体缓存；只有用户确认才删除。`publish.py` 与 pages 推送仅在用户明确要求公开发布时执行，不把本地电子书自动上传。
