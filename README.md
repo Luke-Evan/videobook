@@ -1,5 +1,7 @@
 # VideoBook Agent
 
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 提供一段 YouTube 或 Bilibili 的视频链接，AI 助手（如 Claude Code / Antigravity）将负责整理内容逻辑，并将视频中带有演示操作的时间锚点直接转为内嵌视频卡片，最终自动全产出生成高质量的技术图文电子书。
 
 ## 环境准备
@@ -79,3 +81,12 @@
 - **在线阅读（GitHub Pages）**：`https://luke-evan.github.io/videobook/` —— 落地页列出全部电子书，点击标题即可阅读（含截图放大、Mermaid 交互）。需在仓库 Settings → Pages 一次性选择分支 `pages` + `/ (root)`。
 - **分支布局**：`main` = 工具代码；`pages` = 成品（独立 orphan 分支，目录名 = 视频标题，如 `提示词工程 [02-Raw／26生成式软件工程／NJU]`）。
 - **发布方式**：`python src/publish.py <video_id>` 或 `python src/publish.py --all`，然后 `git push origin pages`。发布 `book.html / book.md / images/` 与（若存在）`transcript.corrected.txt`（AI 修正版字幕对照稿，落地页卡片附"字幕对照"链接）；原始字幕、transcript.json 等中间物不进公开仓库；`output/` 本地工作区不受任何 git 操作影响。
+
+---
+
+## 📄 开源许可
+
+本项目采用 **Apache License 2.0** 许可，完整条款见 [LICENSE](LICENSE)。
+
+你可以自由使用、修改、分发本项目（包括商用），但需保留版权声明与许可声明，并说明修改内容；如项目含 `NOTICE` 文件，分发时需一并保留。
+本项目所引用的第三方库、以及由本项目生成的电子书中包含的课程视频画面与字幕，其版权归各自权利人所有，不在本许可授予范围内。
