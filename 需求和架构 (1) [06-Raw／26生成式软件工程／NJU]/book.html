@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>需求和架构（1）：从教务系统的需求爆炸，到 event sourcing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ── 基础重置 ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            color-scheme: light;
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --bg-card: #eef0f3;
+            --bg-code: #f2f3f5;
+            --text-primary: #1f2328;
+            --text-secondary: #57606a;
+            --text-muted: #6e7781;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --border: #d9dce1;
+            --border-subtle: #e7e9ec;
+            --radius: 12px;
+            --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Serif SC', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── 文章容器 ── */
+        .book-content {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 60px 32px 120px;
+        }
+
+        /* ── 标题 ── */
+        h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin: 0 0 12px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 56px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 36px 0 12px;
+        }
+
+        /* ── 段落与文字 ── */
+        p {
+            margin: 0 0 16px;
+            color: var(--text-primary);
+        }
+
+        strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        em {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        a:hover {
+            border-bottom-color: var(--accent);
+        }
+
+        /* ── 引用 ── */
+        blockquote {
+            margin: 24px 0;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            color: var(--text-secondary);
+        }
+        blockquote p { margin: 0; }
+
+        /* ── 列表 ── */
+        ul, ol {
+            margin: 12px 0 20px 24px;
+            color: var(--text-primary);
+        }
+        li {
+            margin: 6px 0;
+        }
+
+        /* ── 分割线 ── */
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 48px 0;
+        }
+
+        /* ── 表格 ── */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        thead {
+            background: var(--bg-card);
+        }
+        th {
+            padding: 12px 16px;
+            font-weight: 600;
+            text-align: left;
+            color: var(--accent);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        tbody tr {
+            background: var(--bg-secondary);
+            transition: background 0.15s;
+        }
+        tbody tr:hover {
+            background: var(--bg-card);
+        }
+
+        /* ── 代码 ── */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-code);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.88em;
+            color: #6d28d9;
+        }
+
+        pre {
+            margin: 20px 0;
+            padding: 20px 24px;
+            background: var(--bg-code);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.9em;
+            color: var(--text-primary);
+        }
+
+        /* ── 视频嵌入卡片 ── */
+        .video-card {
+            margin: 32px 0;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .video-caption {
+            padding: 12px 16px;
+            font-size: 0.88em;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .video-caption a {
+            color: var(--accent);
+        }
+
+        .video-card.fallback {
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* ── Lightbox：截图点击放大 ── */
+        .screenshot-card img { cursor: zoom-in; transition: opacity 0.15s; }
+        .screenshot-card img:hover { opacity: 0.9; }
+        .lightbox {
+            position: fixed; inset: 0; z-index: 999;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(5, 5, 8, 0.92); backdrop-filter: blur(4px);
+            cursor: zoom-out; padding: 24px;
+        }
+        .lightbox.open { display: flex; }
+        .lightbox img {
+            max-width: 96vw; max-height: 90vh;
+            border-radius: 8px; box-shadow: 0 12px 60px rgba(0,0,0,0.7);
+        }
+        .lightbox-caption {
+            position: absolute; bottom: 14px; left: 0; right: 0;
+            text-align: center; color: var(--text-secondary); font-size: 0.85em;
+        }
+
+        /* ── 顶部信息栏 ── */
+        .book-content > blockquote:first-of-type {
+            background: var(--accent-glow);
+            border-left-color: var(--accent);
+            border-radius: var(--radius);
+            margin-bottom: 32px;
+        }
+
+        /* ── 图表居中 ── */
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 32px 0;
+            overflow-x: auto;
+        }
+
+        /* ── 滚动条 ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ── 响应式 ── */
+        @media (max-width: 640px) {
+            .book-content { padding: 32px 16px 80px; }
+            h1 { font-size: 1.7em; }
+            h2 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <article class="book-content">
+        <h1 id="1-event-sourcing">需求和架构（1）：从教务系统的需求爆炸，到 event sourcing</h1>
+<blockquote>
+<p><strong>原视频</strong>：<a href="https://www.bilibili.com/video/BV1Rch76WEfQ/">Bilibili · BV1Rch76WEfQ</a>（时长约 97 分钟）
+<strong>课程</strong>：南京大学《生成式软件工程》（2026）第 06 讲 · Raw 版
+<strong>整理说明</strong>：本书由视频 AI 字幕（<code>ai-zh</code>）经 AI 重构而成，口语已转写为书面语，并修正了转录中的明显识别错误（例如 <code>教务系统→java 系统 / 交互系统</code>、<code>架构→价格</code>、<code>技术债→技术站 / 技术宅</code>、<code>汉诺塔→淘宝号 / TPHONY</code> 等）；关键时间点均标注 <em>(参考时间)</em>，点击截图卡片可跳转视频对应位置。
+<strong>本讲说明</strong>：这是"需求与架构"两讲中的第一讲。讲者用一整节课的时间，把南京大学教务系统当成一个"史诗级需求爆炸"的活体标本现场解剖，然后用十行、两千行、五十万行三个尺度，说明<strong>架构不是玄学，而是跳出问题看问题</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="_1">目录</h2>
+<ol>
+<li><a href="#1-royce">回顾：软件危机、Royce，与那张错综复杂的依赖网络</a></li>
+<li><a href="#2-pre-ai-traceability-uml">pre-AI 时代留下的两个概念：traceability 与 UML</a></li>
+<li><a href="#3">软件其实一点都不"软"</a></li>
+<li><a href="#4-intent-spec">被迫从底层学起：今天讲 intent → spec 的那一段</a></li>
+<li><a href="#5">三段杠杆：需求、产品、架构</a></li>
+<li><a href="#6">需求工程：学生为什么见不到真正的客户</a></li>
+<li><a href="#7">教务系统现场巡礼：史诗级的需求爆炸</a></li>
+<li><a href="#8-gpt">让 GPT 爬出一份"真的"需求说明书</a></li>
+<li><a href="#9-traceabilitytedious">需求清单里的 traceability，与"tedious 到你不想干"</a></li>
+<li><a href="#10-ai">AI 的魅力时刻：一份需求文档 → 一个假的教务系统</a></li>
+<li><a href="#11">行业壁垒：做软件是被迫从零开始的</a></li>
+<li><a href="#12">定律：需求永远不可能说清楚，而且不是一成不变的</a></li>
+<li><a href="#13-500">一次真实的 500 事故：绕过前端校验</a></li>
+<li><a href="#14-there-is-no-silver-bullet">There is no silver bullet</a></li>
+<li><a href="#15">无处不在的架构：第一步要做的其实是架构</a></li>
+<li><a href="#16-getopt">getopt：命令行参数解析里的架构</a></li>
+<li><a href="#17">汉诺塔的四种表达：架构是一种品位</a></li>
+<li><a href="#18">架构能力从哪来：压缩就是智能</a></li>
+<li><a href="#19-2000-excel">2000 行的架构：在 Excel 里生成二维码</a></li>
+<li><a href="#20">跳出问题看问题：这其实是一个编译问题</a></li>
+<li><a href="#21-50-ai">50 万行的架构：AI 实现的教务系统长什么样</a></li>
+<li><a href="#22-crud">CRUD 的基本原理：世界是一台状态机</a></li>
+<li><a href="#23-crud">CRUD 为什么会死：丢掉的历史与无法解释的黑洞</a></li>
+<li><a href="#24">"南大没系了"：改名引发的数据库迁移两难</a></li>
+<li><a href="#25">手艺活：一家公司，和一个研究生院的屎山</a></li>
+<li><a href="#26-persistent-data-structure">如果重做架构：persistent data structure 与三种等价的视图</a></li>
+<li><a href="#27-event-sourcing">Event sourcing：先把干的所有事情都记下来</a></li>
+<li><a href="#postscript">后记 Postscript：本书是如何生成的</a></li>
+</ol>
+<hr />
+<h2 id="1-royce">1. 回顾：软件危机、Royce，与那张错综复杂的依赖网络</h2>
+<p><em>(参考时间: 00:00)</em></p>
+<p>上一节课讲了软件工程的来龙去脉：在什么时候碰到了<strong>软件危机</strong>，大家发现那个时候软件开发不下去了，我们需要一个<strong>工程化的方法</strong>来解决软件里面的问题；也读了 Royce 那篇老 paper。</p>
+<p>开场幻灯片把上一讲收成了<strong>三个关键词</strong>：<strong>Intent–Spec–Impl Gap</strong>、<strong>瀑布模型</strong>、<strong>Data-Dependency Graph</strong>；以及一句提醒：需求分析、系统设计、代码实现<strong>各有方法，也需要对齐</strong>——UML 试图“对齐”全世界。</p>
+<p>Royce 说，我们希望的大概是这样一个过程：先有一个 <strong>intent（意图）</strong>，然后能够走向 <strong>spec（规约）</strong>，最后走向 <strong>implementation（实现）</strong>，最终产出一个软件。当然有了 implementation 以后你还需要<strong>维护</strong>它——软件的生命周期没有结束。所以很自然地，这一路向下就有一个<strong>瀑布一样</strong>的过程。</p>
+<p>而在这个过程里，每一层都会产生制品（artifacts），它们之间织出一张网：</p>
+<ul>
+<li>在 intent / 需求阶段，你会得到你对这个软件的一些<strong>认识</strong>；</li>
+<li>这些认识逐渐进入 specification 的空间，形成<strong>依赖关系</strong>；</li>
+<li>到系统实现的时候，你又会有各种<strong>模块、函数、代码、测试</strong>等等软件里面的 artifacts；</li>
+<li>这些 artifacts 之间又有直接和间接的 <strong>data dependency</strong>。</li>
+</ul>
+<p>于是整个项目就形成了一个<strong>错综复杂的、交错的网络</strong>——这就是软件工程的一个起点。</p>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    I[&quot;intent&lt;br/&gt;意图 / 需求&quot;] --&gt; S[&quot;specification&lt;br/&gt;规约空间&quot;]
+    S --&gt; M[&quot;implementation&lt;br/&gt;模块 · 函数 · 代码 · 测试&quot;]
+    M --&gt; O[&quot;维护&lt;br/&gt;生命周期并未结束&quot;]
+    I -. 认识 .-&gt; A1[&quot;设计决策&quot;]
+    S -. 依赖 .-&gt; A2[&quot;接口 / 契约&quot;]
+    M -. data dependency .-&gt; A3[&quot;制品网络&quot;]
+    A1 --&gt; A2 --&gt; A3
+    A3 -. &quot;后期发现错误 → 回溯&quot; .-&gt; I
+    style I fill:#1f3a5f,stroke:#4a90d9,color:#e8f0fb
+    style A3 fill:#3d2f1f,stroke:#d9a44a,color:#fdf3e3
+</code></pre>
+
+<p>Royce 正是<strong>批判</strong>了这样的一个模式。他说：OK，如果你要按照这样开发的话，很可能你在后面……他的分析其实就来自于这个 <strong>data dependency</strong>：</p>
+<blockquote>
+<p>如果我在后面这个时候发现有一个东西错了，这个错一直会<strong>反推、回溯</strong>到前面的某一个东西错了。而前面的某一个东西，如果在事后被证明是错的——一个设计不合理、实现达不到预期、需求或者设计做错了——那它会导致后面一个很大的部分，它<strong>污染</strong>到的部分、<strong>TT（测试）到</strong>的部分都会失效，然后你可能会需要<strong>重做</strong>，会带来大量的成本。</p>
+</blockquote>
+<p>在这样的背景下，<strong>软件工程</strong>就诞生了。所以软件工程研究的是：在各个阶段——做需求分析、做系统设计、做系统实现的时候——我们有什么样的方法。不管是<strong>有人文关怀的方法</strong>（你需要用 checklist，产品经理应该怎么管人，这其实也是软件工程的一部分），到比如说你写代码的时候应该怎么写测试、我们有没有可能做自动化的测试、自动化的分析——展开了一整个软件工程里面的故事。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_00_55.png" alt="intent → spec → implementation：制品之间的依赖网络" loading="lazy">
+  <p class="video-caption">📷 intent → spec → implementation：制品之间的依赖网络<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=55" target="_blank" rel="noopener">在 B 站中打开 (00:00:55)</a></p>
+</div>
+
+<h2 id="2-pre-ai-traceability-uml">2. pre-AI 时代留下的两个概念：traceability 与 UML</h2>
+<p><em>(参考时间: 02:21)</em></p>
+<p>其中一个比较有趣的、在 pre-AI 时代的尝试，源于两个朴素的痛点：<strong>人和人很难对齐</strong>；而且<strong>如果我不写文档</strong>，很有可能只剩下一份代码——你甚至比如说出错了，都不知道应该去追溯到过去的什么时候。</p>
+<p>所以在那个时候，软件工程里面提出了很多重要的概念，比如说 <strong>traceability（可追踪性）</strong>：</p>
+<ul>
+<li>最理想的情况下，<strong>每一个测试用例、每一个代码片段</strong>，都能够关联到、可以 trace 到一个过去发生的事情、做过的设计上；</li>
+<li>这样整个系统里面到底发生了什么、<strong>我改它会影响谁</strong>、<strong>我改设计会影响哪些测试用例</strong>，都能维护起来。</li>
+</ul>
+<p>然后，如果我们有一个<strong>语言</strong>——一个结构化的、有语义的语言——来表示它呢？那显然是更好的。<strong>所以就有了 UML</strong>：它试图去对齐整个世界上面的软件工程的实践。这当然都是有智慧的。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_03_12.png" alt="traceability 与 UML：让每个片段都能追溯到过去的设计" loading="lazy">
+  <p class="video-caption">📷 traceability 与 UML：让每个片段都能追溯到过去的设计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=192" target="_blank" rel="noopener">在 B 站中打开 (00:03:12)</a></p>
+</div>
+
+<h2 id="3">3. 软件其实一点都不"软"</h2>
+<p><em>(参考时间: 03:24)</em></p>
+<p>回过头来再想一下这个过程：实际上软件工程它困难，还有一个<strong>本质的原因</strong>——<strong>软件它不软</strong>。</p>
+<p>我们觉得什么东西是软的呢？你们现在坐在教室里面的这个<strong>椅背</strong>，它就是软的。当我们说"软"的时候，它有一个性质：<strong>它有弹性</strong>。你对它施加一个力，比如说你把它摁下去、你一靠，它就瘪下去了；但是你坐起来以后，它又弹回来了，你下次坐的时候它还是好的。</p>
+<p>但软件和物理世界里面的这些东西（比如说你的椅背）很不一样：<strong>它是一个纯粹的逻辑制品，这个逻辑制品是容不下任何细微的差错的。</strong> 作为一个程序，它有<strong>形式语义</strong>。</p>
+<p>你可以想象：你们在写代码的时候，从来没有考虑过——如果你的程序里面的内存可能会发生一个 <strong>bit 的翻转</strong>，你的程序还对吗？肯定不对了。</p>
+<p>想一个具体的程序：从 stdin 输入一个 <code>N</code>，输入 <code>N = 1</code>，接下来循环就会从数字数组里面读一个元素。这个时候：</p>
+<ul>
+<li>如果你的软件是运行在<strong>卫星</strong>上的，然后有一个<strong>宇宙射线</strong>击中你的内存；</li>
+<li>那个 <code>1</code>——它的 unsigned integer 的<strong>最高位变成了一</strong>——它突然就变成了一个巨大无比的数；</li>
+<li>然后你整个程序就彻底地 <strong>collapse</strong> 了：它会无限制地去从输入里面读数，如果没有的话那可能会等；</li>
+<li>你的程序表现出来就是它<strong>挂了</strong>，也可能在读了一百、一千个数字以后产生一个 memory error。</li>
+</ul>
+<p>所以软件其实一点都不软。刚才我说的是一个比较极端的例子——它运行的环境可能是你不可预见的。但其实大家在 <strong>data center</strong> 里面会观察到：比如说你的处理器随着制程越来越先进，它在<strong>热噪声</strong>下，有些指令（那个密度特别大的指令）可能会产生这种 <strong>silent error</strong>——就是这条指令，你在这台机器上执行和在那台机器上执行，<strong>它结果就不一样</strong>；甚至是可能要这个服务器运行一段时间以后才会出现这样的缺陷，就是制造时候的缺陷。</p>
+<p>所以软件本身就是一个大家认为是<strong>集成了人类智慧</strong>的东西，然后同时它又要承载客户来的这些需求。就比如说教务系统——我今天会花时间来讲教务系统应该怎么样设计、应该怎么样<strong>防止它堆积成屎山</strong>。那就是软件工程。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_04_40.png" alt="软件不软：一次 bit 翻转就能让整个程序 collapse" loading="lazy">
+  <p class="video-caption">📷 软件不软：一次 bit 翻转就能让整个程序 collapse<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=280" target="_blank" rel="noopener">在 B 站中打开 (00:04:40)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_05_20.png" alt="data center 里的 silent error：同一条指令在两台机器上结果不同" loading="lazy">
+  <p class="video-caption">📷 data center 里的 silent error：同一条指令在两台机器上结果不同<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=320" target="_blank" rel="noopener">在 B 站中打开 (00:05:20)</a></p>
+</div>
+
+<h2 id="4-intent-spec">4. 被迫从底层学起：今天讲 intent → spec 的那一段</h2>
+<p><em>(参考时间: 06:02)</em></p>
+<p>在这个背景下我发现：也许你们学习——比如说可能有听课的是软件工程的同学，然后学计算机专业的同学肯定要上软件工程的课程——<strong>软件工程是一个关乎整个软件生命周期的学科，但是你们被迫只能从底下这个地方开始学。</strong></p>
+<p>因为如果你不理解代码是什么、如果你写不出代码、没有体会过码农开发软件的痛苦，那你是不可能做好一个产品经理的。你设想的"这个事情应该可以办到""这个事情花多少成本可能可以办到"——如果你没有一手的经验，你确实是做不到。</p>
+<p>所以你们上来以后就先学 <strong>C 语言</strong>：先学一个最基础的、老的、已经过时了、没有人用的（也还算有一些人用的）编程语言。然后在这个基础上你不断地产生新的知识：<strong>知道世界是怎么失败的</strong>，然后新的语言是怎么创造出来的、为什么要有它，然后一点一点去往上走。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_07_00.png" alt="被迫从底层学起：从 C 语言一路往上到需求、产品、架构" loading="lazy">
+  <p class="video-caption">📷 被迫从底层学起：从 C 语言一路往上到需求、产品、架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=420" target="_blank" rel="noopener">在 B 站中打开 (00:07:00)</a></p>
+</div>
+
+<p>然后你今天看到的是像<strong>需求、产品、架构</strong>——这是我今天要讲的主题：在软件的设计阶段，<strong>从 intent 到 spec 的阶段</strong>。这其实是决定了一个软件系统<strong>从零开始走向</strong>的最关键的部分。</p>
+<p>我们前面上课的时候先讲了<strong>版本管理</strong>。为什么先讲版本管理呢？因为你总是要从一个空的软件项目出发——你 <code>git init</code> 的时候总是从一个空的出发——那我们先讲一下如何从空的出发、这个软件怎么样往后走。然后接下来下一步，我们就要<strong>把控软件前进的方向</strong>：软件的走向，你的船到底是往东南西北哪个方向开。你一开始的方向选了以后，对后面的影响是非常大的。</p>
+<p>但是呢，像<strong>需求、产品、架构</strong>都很难做出量化的研究：教材只能要么给出一些定性的安排，要么给你刷一遍"需求要做 A/B/C，产品要满足什么什么"。</p>
+<blockquote>
+<p>然后最让你看到的是：我们的学校里面有很多做软件工程的人——我们号称南京大学软件工程世界第一（在 CSRankings 里面，如果你数那些 ICSE 的文章的话）。但其实他们大部分都集中在这个和<strong>编码</strong>相关、<strong>implementation</strong> 相关的东西。可能有些比如说做 NLP 的，他会说 traceability 在软件世界里面是非常重要的，那我们能不能训练一个神经网络模型直接从数据当中推导出这个？——但它就变成：OK，那可能也许用 GPT-6 就可以做到。</p>
+</blockquote>
+<p>但我今天还是要讲一讲。</p>
+<h2 id="5">5. 三段杠杆：需求、产品、架构</h2>
+<p><em>(参考时间: 08:52)</em></p>
+<p>我今天要讲一讲这里面最重要的、或者说我觉得<strong>尤其在 AI 时代</strong>最重要的东西。</p>
+<p>在 AI 时代，<strong>你生产一个目标明确的代码，已经变得非常便宜了。</strong> 而且现在比如说对我来说，我让 AI 生成代码，我只要把它的<strong>边界划定清楚</strong>，我其实真的已经不看它的实现了。一会儿我会给大家看到 GPT-6 昨天写的那个代码——那个（复杂程度）已经超越人类能够理解的范畴了，但是<strong>它是对的</strong>，我还能比较好地信任它。</p>
+<blockquote>
+<p>如果我把它边界划定得清楚，并且我能够知道它怎么样做一个好的 <strong>validation</strong>，那么我可以把 agent 的 slop 铺开去帮我实现，还是有一定质量保证的软件。</p>
+</blockquote>
+<p>那剩下的，其实我觉得我们做软件系统的压力、或者说能够决定这个软件系统最后能走多远的，就是<strong>需求、产品、架构</strong>这三段。</p>
+<h3 id="51-mvp">5.1 MVP：先做最重要的功能，不要研究即将扔掉的东西</h3>
+<p>我们说总是做一个 <strong>MVP（minimum viable product）</strong>，这个没有问题：因为做 MVP 可以让你快速地找到一个<strong>从 intent 到 specification 到 implementation 的切片</strong>，然后在这个切片上你可以走完整个软件完整的流程——但它不完备。</p>
+<p>那你在做这个 MVP 的时候，你一定想的是<strong>先做最重要的功能</strong>。你并不会想着在做 MVP 的时候就去想"那个按钮的样式应该长什么样"，因为这也是 <strong>depend 的</strong>：你的按钮的样式 depend 于你整个界面的设计，而整个界面的设计又 depend 于你所有功能的实现。</p>
+<blockquote>
+<p>如果它不确定的话，那你叫我炸（怎么做）。如果你现在就去调那个按钮的样式，当上面的设计发生改变以后，你觉得这个按钮的样式很有可能就不可用了。</p>
+</blockquote>
+<p>所以你会做一个（判断）、你会有一个倾向：<strong>你不要做无用功，不要去研究一个你即将会扔掉的东西。</strong> 每个人都有这个本能。那如果你确实有这个本能，那么你就应该知道：在做 MVP 的时候选哪些最重要的功能，你会得到一个可以运行的版本。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_09_55.png" alt="MVP：找到一个从 intent 到 implementation 的切片" loading="lazy">
+  <p class="video-caption">📷 MVP：找到一个从 intent 到 implementation 的切片<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=595" target="_blank" rel="noopener">在 B 站中打开 (00:09:55)</a></p>
+</div>
+
+<h3 id="52-prompt-mvp">5.2 几个字的 prompt，会长出完全不同的 MVP</h3>
+<p>好，没问题，AI 会给你一个（MVP）。但是 AI 就在今天——至少今天的 AI——<strong>它没有去从需求、产品设计、架构的角度（思考）</strong>，除非你去显式地用 prompt 告诉它，甚至哪怕可能是<strong>几个字</strong>告诉它。</p>
+<p>在你从一个零开始的项目（<code>git init</code>）的时候，如果你要让它用比如说 <strong>client-server 的架构</strong>，或者你就是让它做一个 <strong>CLI 的架构</strong>：同样的一个 MVP 需求，需求定下来，它加上几个字的 prompt，<strong>你都会得到完全不同的 MVP</strong>。它们可能功能上都差不多，看起来就是都实现了你的（需求）——比如说我要做一个 coding agent，或者做一个你 Lab 1 的那个学生的 agent。</p>
+<p>但是你这几个字的 prompt 都会形成一个带有（方向的）膨胀：</p>
+<ul>
+<li>如果你要 <strong>CLI</strong>，那你这里面可能就有个 <code>cli.py</code>，或者是 depend 一个 JavaScript 里面的、像 Claude Code 用的这种命令行的库；</li>
+<li>如果你先要求这个 <strong>client-server</strong>，那它可能就会先设计这个数据的存储，然后它会给你选一个数据库。</li>
+</ul>
+<p>好，它就……只要一旦这个东西——比如说 <code>db.ts</code>——<strong>这个文件写了，它就会进入 agent 的上下文</strong>；然后每当你继续想要做下一个需求的时候，都会带上之前的所有的历史。</p>
+<p>而这在软件工程里面也有一个术语，叫做<strong>技术债（technical debt）</strong>：你在做任何决定的时候，你就背上了这个债务。因为这个决定你在做 MVP 的时候（并不知道后果）——你的决定其实来自于<strong>需求</strong>。</p>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    R[&quot;同一份 MVP 需求&quot;] --&gt; P{&quot;几个字的 prompt&quot;}
+    P --&gt;|&quot;做一个 CLI&quot;| C[&quot;cli.py / 命令行库&lt;br/&gt;无持久层&quot;]
+    P --&gt;|&quot;用 client-server&quot;| S[&quot;先设计数据存储&lt;br/&gt;选中一个数据库, 写出 db.ts&quot;]
+    C --&gt; CTX[&quot;进入 agent 上下文&quot;]
+    S --&gt; CTX
+    CTX --&gt; NEXT[&quot;下一个需求&lt;br/&gt;自动带上全部历史&quot;]
+    NEXT --&gt; DEBT[&quot;技术债 technical debt&lt;br/&gt;决定一旦做出就被背上&quot;]
+    style S fill:#3d2f1f,stroke:#d9a44a,color:#fdf3e3
+    style DEBT fill:#4a2020,stroke:#d96a6a,color:#fbe8e8
+</code></pre>
+
+<h3 id="53">5.3 产品设计：你的产品只有你自己用</h3>
+<p>然后再加上你的<strong>产品的设计</strong>。我直面一下你最终的产品：<strong>这个产品是只有你自己用的。</strong> 比如我自己有很多自己用的、用得非常顺手的（工具），但是我想给另外一个人用，他就用得不那么舒服了——因为我有些我自己的知识、还有自己的偏好，这些偏好对别人来说可能是不习惯、受不了的。比如说（我）喜欢的命令（行）——内行的工具，普通人肯定不要。</p>
+<p>除此之外还有个隐藏的东西，是<strong>架构</strong>：就是这个软件会变成什么样。</p>
+<blockquote>
+<p><strong>而这三段会成为撬动软件生产力真正的杠杆。</strong> 也就是说你可能是极端的（几个字）档次，但是会对你的 AI 生成的 slop 的走向、技术债的累积带来一个非常大的影响。</p>
+</blockquote>
+<p>所以我会花两节课的时间来讲这个<strong>需求和架构</strong>。</p>
+<h3 id="54-ai">5.4 插曲：现场翻车，以及 AI 从不主动写的日志</h3>
+<p><em>(参考时间: 14:06)</em></p>
+<p>（录制现场讲者的机器翻了一次车。）那我可以让它诊断一下……我刚才翻车了嘛：</p>
+<ul>
+<li>我的系统 UI 还在正常工作；</li>
+<li>我的 OBS 还在正常的推流；</li>
+<li>但是我不知道发生什么，因为我<strong>所有的设备都不能用了</strong>——我鼠标键盘都没用了，我插上一个新的鼠标也没有用。</li>
+</ul>
+<p>所以（这也是）一个软件工程实践：<strong>出了问题你要去看日志。</strong> 这 imply 你在写软件的时候<strong>需要输出足够多的日志</strong>。</p>
+<blockquote>
+<p>这个好像 AI——如果你不告诉 AI 的话，AI 也不会主动做，它会生成一个<strong>没有任何日志</strong>的软件系统。它都会留下这样的技术债。</p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_14_30.png" alt="现场翻车：UI 还在、OBS 还在推流，但所有输入设备都死了" loading="lazy">
+  <p class="video-caption">📷 现场翻车：UI 还在、OBS 还在推流，但所有输入设备都死了<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=870" target="_blank" rel="noopener">在 B 站中打开 (00:14:30)</a></p>
+</div>
+
+<h2 id="6">6. 需求工程：学生为什么见不到真正的客户</h2>
+<p><em>(参考时间: 15:03)</em></p>
+<p>回到今天。我们要讲的内容是<strong>需求工程</strong>。</p>
+<p>我们说曾经需求工程很难讲，因为<strong>学生不会去见这个真正的客户</strong>，也做不了需求级的软件系统。你们从最刚开始的时候学编程语言，到你毕业的时候，<strong>你的能力的增长不足以让你去面对一个真正的软件客户。</strong></p>
+<p>当然现在这个事情有点变了。你看在 AI 之前，我们有很少量的<strong>精英独立开发者</strong>：你们经历了几年的开源社区的洗礼以后，终于觉得自己可以独立做开发者了，然后会有一些付费用户。</p>
+<blockquote>
+<p>然后现在变了：现在这个独立开发者就<strong>爆炸</strong>了，然后付费用户<strong>瑟瑟发抖</strong>。</p>
+</blockquote>
+<h2 id="7">7. 教务系统现场巡礼：史诗级的需求爆炸</h2>
+<p><em>(参考时间: 15:48)</em></p>
+<p>我们今天要讲的软件系统的例子，是我比较喜欢的这个<strong>教务系统</strong>。我可以称它是<strong>史诗级的需求爆炸</strong>。</p>
+<p>我昨天就趁机看了一下。（登录态还在吗？）好，我的登录不在了，让我扫码登录一下……好，我发现教务系统这几年一直都在进步啊。这是我的界面，我稍微放大一点点。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_16_30.png" alt="南京大学本科教学服务平台：教师端首页" loading="lazy">
+  <p class="video-caption">📷 南京大学本科教学服务平台：教师端首页<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=990" target="_blank" rel="noopener">在 B 站中打开 (00:16:30)</a></p>
+</div>
+
+<h3 id="71">7.1 史诗级的更新：可以直接问它</h3>
+<p>我最近发现史诗级的更新——<strong>我可以问</strong>。</p>
+<ul>
+<li>我问："<strong>仙林教学楼的灯一直没有解决，我应该打电话给谁？</strong>" 它说"我正在理解您的问题"……我不知道诶，它（回答）就基建处嘛。<strong>基建处。</strong> 但是我在那个平台上面提了，然后基建处就把我打回来了，说这个事情不归我们管。回头再给他打电话。</li>
+<li>我又问："<strong>我现在在上什么课？</strong>" 我不确定它有没有载入我的上下文——我猜是可以的，因为我登录了。诶，它还是（给了）教师课表（本科）。这是我的课表。</li>
+</ul>
+<p>还是一个（能用的东西）对吧。这是一个史诗级的更新，你们竟然……相信大家应该不知道突然有这个功能了，我不知道什么时候加上的，曾经肯定是没有的。因为我不会去搜索——我总是在那个快捷搜索栏里，直接等到它下一个界面弹出的时候，我就点它。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_17_05.png" alt="教务系统里的 AI 问答：仙林教学楼的灯该找谁" loading="lazy">
+  <p class="video-caption">📷 教务系统里的 AI 问答：仙林教学楼的灯该找谁<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1025" target="_blank" rel="noopener">在 B 站中打开 (00:17:05)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_17_40.png" alt="“我现在在上什么课”：带登录上下文的教师课表" loading="lazy">
+  <p class="video-caption">📷 “我现在在上什么课”：带登录上下文的教师课表<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1060" target="_blank" rel="noopener">在 B 站中打开 (00:17:40)</a></p>
+</div>
+
+<p>所以这是一个非常典型的<strong>需求爆炸</strong>的系统。这个系统肯定是花了很多钱的。然后这个钱我觉得某种程度上，<strong>还不如变成 token 的补贴给大家</strong>：因为它要购买算力、它要购买开发；不如我刚才如果用 PyAgent 去找一下的话，可能就一毛钱两毛钱。</p>
+<blockquote>
+<p>所以把 token 送给大家、然后不要实现任何的功能，可能是更便宜的。</p>
+</blockquote>
+<h3 id="72">7.2 一个非常典型的业务系统</h3>
+<p>需求——我是讲需求——那这样的一个系统就是一个非常典型的<strong>业务系统</strong>。</p>
+<p>比如说我除了找到我的课表以外，我应该还可以找……对，我收藏了，比如说我的<strong>教学任务</strong>。你在这里可以看到大家的信息，我就不点了，因为点开以后好像会显示<strong>电话号码</strong>还是什么的。</p>
+<blockquote>
+<p><strong>这显然是一个比较糟糕的 feature</strong>：在学生名单里面可以看到电话号码。</p>
+</blockquote>
+<p>然后在这里，上一次给大家演示过：直接用 AI、用 slop 来填满<strong>教学周记</strong>。你看，没有人管我，我没有任何人来审计我填的任何内容——至少还没有。（我觉得他们更应该把这个教室的灯给修好。）</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_19_05.png" alt="教学任务与学生名单：能直接看到电话号码的糟糕 feature" loading="lazy">
+  <p class="video-caption">📷 教学任务与学生名单：能直接看到电话号码的糟糕 feature<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1145" target="_blank" rel="noopener">在 B 站中打开 (00:19:05)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_19_20.png" alt="用 AI slop 填满的教学周记，没有任何人审计" loading="lazy">
+  <p class="video-caption">📷 用 AI slop 填满的教学周记，没有任何人审计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1160" target="_blank" rel="noopener">在 B 站中打开 (00:19:20)</a></p>
+</div>
+
+<p>然后你就看到在这个界面里面有<strong>无穷多的功能</strong>。你看比如说有"编辑联系方式"，然后我在这里有"当前教学学期""最新排课学期""历史授课信息"。然后在这个历史授课信息里面，我要选择学年学期——诶，选择学年学期不太好用。你的感觉是不太好用、又还蛮好用的：<strong>它还是做了需求分析的。</strong></p>
+<h3 id="73-bug">7.3 一个个功能点：条件弹窗、bug、与非功能性需求</h3>
+<ul>
+<li><strong>期末考试签到表。</strong> 这也是一个需求功能点：它在期末考试期间允许你点击这个按钮；在没有到期末考试发布的时候，你要弹出一个窗口告诉你"无法打印"。</li>
+<li><strong>编辑教材。</strong> 编辑教材进入了另外一个页面，有一个弹出窗口……再试一次啊，编辑教材——嘶，曾经好像是可以的。<strong>好，我们已经成功发现了一个 bug。</strong></li>
+<li><strong>查看大纲。</strong> 大纲说的是教学安排，仅展示最新一个教学班。哦，它等了很久才把这个页面刷新出来——<strong>这个可能不满足它的非功能性需求</strong>（要求状态正常）。</li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_20_10.png" alt="期末考试签到表：一个带条件弹窗的功能点" loading="lazy">
+  <p class="video-caption">📷 期末考试签到表：一个带条件弹窗的功能点<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1210" target="_blank" rel="noopener">在 B 站中打开 (00:20:10)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_20_42.png" alt="查看大纲：等了很久才刷新出来，不满足非功能性需求" loading="lazy">
+  <p class="video-caption">📷 查看大纲：等了很久才刷新出来，不满足非功能性需求<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1242" target="_blank" rel="noopener">在 B 站中打开 (00:20:42)</a></p>
+</div>
+
+<p>（看有没有还有没有别的可以点的。我就不用 AI（键）的点，我还是用古法方式来点。）</p>
+<h3 id="74-bug">7.4 助教与慕课：需求叠加出来的史诗级 bug</h3>
+<p>没问题，这是我的教学任务。然后和本科生相关的还有很多功能，比如<strong>助教</strong>。我的助教——我这门课好像没有助教。我能搜我的名字吗？不对，这是学号。这是我班上的助教：<strong>"找不到课内教学班没有助教"</strong>。诶，这是什么？让我瞧一瞧……在这里我看到了一些 JX……太厉害了，教学班名称，<strong>堪比 agent</strong>。</p>
+<p>搜索——哎，就看到这个<strong>需求是不断叠加的</strong>：</p>
+<pre class="highlight"><code class="language-mermaid">graph LR
+    A[&quot;曾经: 没有慕课功能&quot;] --&gt; B[&quot;疫情时: 领导说&lt;br/&gt;我们需要为老师添加慕课&quot;]
+    B --&gt; C[&quot;添加完慕课以后&lt;br/&gt;需要慕课的助教&quot;]
+    C --&gt; D[&quot;慕课的助教不要当成&lt;br/&gt;普通教学班的助教&quot;]
+    D --&gt; E[&quot;史诗级 bug&lt;br/&gt;找不到课内教学班 / 没有助教&quot;]
+    style E fill:#4a2020,stroke:#d96a6a,color:#fbe8e8
+</code></pre>
+
+<p>毫无疑问，在比如说疫情之前是没有慕课这样的功能的。然后在疫情的时候，领导说我们需要为老师添加慕课；然后添加完慕课以后需要慕课的助教；然后慕课的助教不要把它当成普通教学班的助教，要把它当成慕课的助教——然后就有了这个……啧，<strong>史诗级的 bug</strong>。我不知道为什么，但是这是一个史诗级的。</p>
+<p>然后我点删除可以吗？好。点新增可以吗？——<strong>"请在可维护时段内操作"</strong>。课内教学班可以吗？新增，请在可维护（时段内操作）啊——现在不能、已经不能申请助教了。anyway，这就是你看到的教务系统。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_21_50.png" alt="慕课助教 vs 课内教学班助教：需求叠加出来的史诗级 bug" loading="lazy">
+  <p class="video-caption">📷 慕课助教 vs 课内教学班助教：需求叠加出来的史诗级 bug<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1310" target="_blank" rel="noopener">在 B 站中打开 (00:21:50)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_22_28.png" alt="“请在可维护时段内操作”" loading="lazy">
+  <p class="video-caption">📷 “请在可维护时段内操作”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1348" target="_blank" rel="noopener">在 B 站中打开 (00:22:28)</a></p>
+</div>
+
+<h3 id="75-agent">7.5 你们不敢，agent 敢</h3>
+<p>所以你就理解上（一）页我说的：<strong>曾经很难讲——你们不会去见真正的客户的。</strong></p>
+<p>你们可能也不敢拍胸脯说："这个给我 20 万，我找几个同学，我们把这个南大的教务系统给包了。"<strong>你承担不了这个责任。</strong> 到时候跟你签一个合同，然后你说——你如果<strong>逾期交付</strong>的时候、<strong>达不到功能要求</strong>的时候、<strong>达不到非功能要求</strong>的时候怎么办的时候，你就傻眼了。</p>
+<p>当然你们作为一个成年人，你们是可以去成立自己公司、然后去和学校签订这样的协议。但是你们不敢。</p>
+<blockquote>
+<p><strong>你们不敢不要紧，agent 它敢就行。</strong> 所以我干了这样的一件事。</p>
+</blockquote>
+<h2 id="8-gpt">8. 让 GPT 爬出一份"真的"需求说明书</h2>
+<p><em>(参考时间: 23:19)</em></p>
+<p>我让 GPT 帮我——就用 PyAgent 说："我去爬一下，去帮我生成一个（像）校服信箱的投稿一样"——我让 GPT 去<strong>探索一下这个教务系统里面和教师相关（注意只是教师相关）的功能，然后得到一个需求说明书。</strong></p>
+<p>好，我们来看一看。这个需求说明书还是很不错的：<strong>《南京大学本科教学服务平台需求说明书》</strong>。</p>
+<blockquote>
+<p>这就是一个<strong>真实的</strong>需求报告的案例。你们可以在软件工程的课上看到这样的案例，然后软件工程课上也可能会给你们看一些来自比如说真实企业的需求说明书的一部分——<strong>但这个就是真的。</strong></p>
+</blockquote>
+<p>所以 AI 真的是很好用：你要学东西的时候，我就想如果要教需求工程的话，我当然可以找一个经典的案例，那我也可以<strong>把身边的案例直接变成需求说明书</strong>。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_23_52.png" alt="GPT 爬出来的《南京大学本科教学服务平台需求说明书》" loading="lazy">
+  <p class="video-caption">📷 GPT 爬出来的《南京大学本科教学服务平台需求说明书》<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1432" target="_blank" rel="noopener">在 B 站中打开 (00:23:52)</a></p>
+</div>
+
+<p>你马上就发现这个目录里面有这么多项：从<strong>调研方法、证据边界</strong>到<strong>业务目标、成功标准</strong>，到各种各样的<strong>详细用例规约、功能需求目录</strong>，最后还有<strong>术语文档与配套文件</strong>。</p>
+<p>所以你看，<strong>GPT 是懂软件工程的。</strong> 它为什么要写这么多？这在我们看来——这已经是一个做好的系统——这就完全是 slop，就突然间写了好多好多的东西。但它懂得：如果你要做一个真正的工程，<strong>当你面对的是客户的时候，一个术语（表）就很重要</strong>——在他看不懂的时候，他可以去查一下术语，他就对齐了。虽然你不是 UML、（还）在一个早期的意图沟通的阶段，但是这些东西显然是有一定用处的。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_24_25.png" alt="需求说明书目录：调研方法、证据边界、业务目标、成功标准……" loading="lazy">
+  <p class="video-caption">📷 需求说明书目录：调研方法、证据边界、业务目标、成功标准……<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1465" target="_blank" rel="noopener">在 B 站中打开 (00:24:25)</a></p>
+</div>
+
+<h2 id="9-traceabilitytedious">9. 需求清单里的 traceability，与"tedious 到你不想干"</h2>
+<p><em>(参考时间: 25:06)</em></p>
+<h3 id="91-id-traceability">9.1 有编号的 ID 就是 traceability</h3>
+<p>需求功能的目录——你看它是<strong>有 traceability 的</strong>。每一个……它遵循了一个比较好的软件工程的规范：里面的每一个需求，比如说需求点和比如说前面是不是有叫<strong>角色</strong>——角色、参与者，或者<strong>业务目标</strong>——它都有一个语义上的、有一个<strong>形式语义</strong>（的编号）。然后这个形式语义可以帮你建立 traceability。</p>
+<p>而不是说我这个教学班是和学生管理是有关的——你自然语言肯定是说了这样的一句话的——但是<strong>它用有编号、一个 ID、有形式意义的 ID，它就在一定程度上帮助你做了 traceability。</strong></p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_25_15.png" alt="功能需求目录：带编号 ID 的 traceability" loading="lazy">
+  <p class="video-caption">📷 功能需求目录：带编号 ID 的 traceability<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1515" target="_blank" rel="noopener">在 B 站中打开 (00:25:15)</a></p>
+</div>
+
+<h3 id="92">9.2 当你真正做软件的时候，复杂就来了</h3>
+<p>我们来看一看功能需求：</p>
+<blockquote>
+<p><strong>门户与身份</strong>：提供分类服务、检索和应用入口；当一个服务支持多种已分配身份时，提供身份选择并显示当前身份。</p>
+</blockquote>
+<p>你看，当你真正做软件的时候，<strong>这复杂的就来了</strong>。你可以不说这些——这些你都不说——但是<strong>到底有还是没有呢？</strong></p>
+<p>我们看一下：它应该是观察到了<strong>身份选择</strong>。诶，我就不登录了——刚才在那个本科生（界面）、在我选择教师课表还是哪一个界面的时候，确实看到了它让我选（反正我选了底下那个"本科生教师"）。</p>
+<p>再比如：<strong>服务页面明确当前学期、学年（或）业务批次，允许在授权范围内切换。</strong> 这也是一个——在<strong>意图阶段</strong>的设计。你的领导想要（这个），或者说不光是领导的、还是一线的教师说："我打开这个页面以后，什么样的界面对我来说是比较舒适的？"</p>
+<p>所以刚才你看到，交互系统还是有一定的设计（感）的：它会想你做这件事情的时候会想要做什么，然后它会留一个 <strong>combobox</strong> 在那边，你可以选那个 combobox，然后选一个学期或者选一个什么东西。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_26_05.png" alt="门户与身份：多身份选择与当前身份显示" loading="lazy">
+  <p class="video-caption">📷 门户与身份：多身份选择与当前身份显示<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1565" target="_blank" rel="noopener">在 B 站中打开 (00:26:05)</a></p>
+</div>
+
+<h3 id="93-tedious">9.3 tedious 到你根本就不想干</h3>
+<p>教学周记、课程与大纲、教材选用——好，这你就知道了：<strong>这就是一个非常 tedious 的事情，然后这个事情 tedious 到你根本就不想干。</strong></p>
+<p>因为你做这些事情对你获得学分、获得学分绩、获得长进，看起来没有什么本质的好处。你还不如去做一个你之前没有想过的算法题——这样可以使你解决算法问题的能力高一点，使得你在最后<strong>保研机试</strong>的时候可以比别人多拿一点分数。而你在这里面一个一个条目往后写，是非常 nonsense 的，你自己不会想去写。</p>
+<p><strong>但是就是量变引起质变。</strong> 如果这个需求文档——比如说你的课程的作业也给你一个需求文档：你的数字逻辑电路课的作业、<strong>计算机系统基础</strong>课的作业——你们写那个 NEMU 的时候，哎，挺好玩的，<strong>这是一个你们见到的第一个比较长的需求文档。</strong></p>
+<p>我们在设计这门课的时候（就想到了）：在那之前 <strong>OJ 都是一个非常短的需求文档</strong>——明确给你输入接口是什么、输出接口是什么，而且那个输入输出的接口都很简单，一般（是）读入一个整数、还是空格分隔的整数，你只要用 <code>cin</code> 就可以（读）输入了。</p>
+<p>而你们在计算机系统基础课上，<strong>第一次见到一个比较长的 specification 的 guide</strong>：</p>
+<ul>
+<li>我们首先需求的要求是，你要实现一个 <strong>NEMU</strong>；</li>
+<li>你的第一个 lab 可能是实现一个<strong>调试器</strong>——这个调试器你不需要事先解释指令；</li>
+<li>第二个实验你需要实现<strong>指令的解释</strong>。好，这也是一句话——<strong>但是到底什么是指令呢？指令的行为写在文档里。</strong> 你就得到了另外的一个更大的需求文档。</li>
+</ul>
+<p>所以其实，当系统走到大到一定程度的时候，<strong>你们做的训练都是相通的</strong>：你在学计算机系统基础这门课的时候，其实一定程度上学了软件工程。</p>
+<h2 id="10-ai">10. AI 的魅力时刻：一份需求文档 → 一个假的教务系统</h2>
+<p><em>(参考时间: 29:24)</em></p>
+<p>然后就是 AI 的魅力时刻了，我就不展开了。这是需求工程里面——你为了挣钱——你看这是<strong>验收场景</strong>，还有验收的场景，然后还有<strong>需求清单</strong>：一个非常好的、结构化的需求清单。</p>
+<p>这个 checklist 最终你就可以把它分成：前 20 个需求分给这个团队，后 20 个需求分给那个团队，然后就可以 <strong>track 每一个人的进度</strong>——你就知道哪一个团队落后于实现需求、落后于进度了。<strong>这个 traceability 有了以后，你作为一个管理者，你就可以把团队管起来了。</strong>（当然这是我们本科上课的时候不怎么学的。）</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_29_35.png" alt="验收场景与结构化需求清单：可以直接按条切给团队" loading="lazy">
+  <p class="video-caption">📷 验收场景与结构化需求清单：可以直接按条切给团队<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1775" target="_blank" rel="noopener">在 B 站中打开 (00:29:35)</a></p>
+</div>
+
+<p>AI 的魅力时刻就在于——我又干了这样的一件事：<strong>我让 GPT 起一个 sub agent，然后这个 sub agent 不要看任何其他的教务系统，只根据这个需求说明书来实现一个假的教务系统。</strong></p>
+<p>然后就得到了一个……哎，我觉得<strong>突然你又有信心了</strong>：觉得好像我也可以跟学校谈一个 20 万的合同了。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_30_55.png" alt="只根据需求说明书实现的“假教务系统”" loading="lazy">
+  <p class="video-caption">📷 只根据需求说明书实现的“假教务系统”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1855" target="_blank" rel="noopener">在 B 站中打开 (00:30:55)</a></p>
+</div>
+
+<p>哎，真的还就是跟我刚才看的那个挺像的嘞：返回到全部教学任务、我的教学任务、本科教材管理（《软件工程：实践者的研究方法》）、编辑记录……我看这能不能编辑啊，演示书目一，保存记录——<strong>记录已保存</strong>，这个成功地保存了。</p>
+<p><strong>学生名单</strong>——诶，这是 GPT 起名字的偏好，就它认为在我的教务系统里面这些（名字）……这些名字其实挺文雅的。然后你又觉得它有自己的这个偏执在里面。</p>
+<p>诶，这是什么？"一次记录，缺课一次"——哎，它不给我输入一？那就保存记录……哇，这个还是——<strong>那它没有阻止我。</strong> 我记录一个这个（超过总课次的数字）其实也不合理，因为这个数字已经超过了所有的这个学期上课次数的总和。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_31_50.png" alt="缺课次数：一个超过学期总课次也没被拦下的输入" loading="lazy">
+  <p class="video-caption">📷 缺课次数：一个超过学期总课次也没被拦下的输入<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1910" target="_blank" rel="noopener">在 B 站中打开 (00:31:50)</a></p>
+</div>
+
+<blockquote>
+<p>但你可以看到的是，<strong>软件工程的魅力时刻</strong>：当你的需求是清楚的时候、当你的需求文档已经写到那个程度的时候，那么<strong>编码的事情、traceability 的事情、测试的事情，其实 AI 都能帮你搞定了——你只需要一份需求就行了。</strong></p>
+</blockquote>
+<h3 id="101">10.1 需求无非就是把客户想要什么想清楚</h3>
+<p>这是需求工程。我们一会还会再回到这里。先给大家看一下这个：一个<strong>从入学到毕业</strong>的（流程），它包括了<strong>权限规则、版本、数据同步、操作留痕</strong>各种各样的这样的功能。你就知道了：</p>
+<blockquote>
+<p><strong>需求无非就是通过无尽的和客户的沟通，把客户想要什么给想清楚。</strong></p>
+</blockquote>
+<p>小到包括你要在界面上面要不要放一个当前学期和学年、要不要在哪一个地方有一个修改的按钮——这些都要跟用户对齐，因为<strong>你的用户不是你自己</strong>。</p>
+<p>在你设计——尤其是做需求的时候——这个是普遍的、我们 computer science 同学缺乏的那种<strong>软技能</strong>：<strong>你要有同理心</strong>。你不是说"我是一个 geek，我就假设所有人都会写程序"。你要考虑的是那个<strong>教务员</strong>：那个教务员可能是本科学历，然后今年已经 53 岁、还有两年就要退休了，一个优雅的女士。她在上大学的时候可能甚至都没有操作过电脑。</p>
+<p>然后我们要设计一个教务系统：<strong>要为她设计，也要同样为我设计、为年轻人设计。</strong> 诶，这个时候怎么得到那一张表——这是完全是另外的一个问题（当然这不是这门课的重点）。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_32_40.png" alt="从入学到毕业：权限规则、版本、数据同步、操作留痕" loading="lazy">
+  <p class="video-caption">📷 从入学到毕业：权限规则、版本、数据同步、操作留痕<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1960" target="_blank" rel="noopener">在 B 站中打开 (00:32:40)</a></p>
+</div>
+
+<h2 id="11">11. 行业壁垒：做软件是被迫从零开始的</h2>
+<p><em>(参考时间: 34:03)</em></p>
+<p>这门课的重点是说：<strong>当你的教务系统已经像刚才那样、用一个那么长的需求列表来做的话，其实就已经进入了泥潭。</strong></p>
+<p>应该这么说：<strong>如果你真的要做一个教务系统，那你就是被迫的——你被迫要从零开始。</strong> 当然这就是<strong>行业的壁垒和经验</strong>：</p>
+<ul>
+<li>如果我是一个有行业资质、或者说在这个行业已经摸爬滚打 20 年的公司，我有很多这个<strong>领域知识</strong>，我知道教务员想要什么；我对<strong>学位授予的流程</strong>比你清楚，我就知道这个流程应该怎么样变成这个需求的文档列表。</li>
+<li>你作为一个毛头小伙子、本科生，你不知道这个教务员到底想要什么，所以你设计出来的那个软件、你做的那个需求<strong>很有可能就是有偏差的</strong>。</li>
+</ul>
+<p>但某种程度上我做软件都是被迫的：在刚开始的时候、一个空项目的时候，<strong>没有任何东西是漂移的</strong>；但当你一旦写出了一个需求列表的时候，马上——不管是 AI 还是人类——就给你实现了一版，就像刚才我们看到的那个教务系统一样。</p>
+<blockquote>
+<p>那实现那一版以后，<strong>这个你就背上了技术债。</strong></p>
+</blockquote>
+<pre class="highlight"><code class="language-mermaid">graph LR
+    E[&quot;空项目&lt;br/&gt;没有任何东西是漂移的&quot;] --&gt; RL[&quot;写出需求列表&quot;]
+    RL --&gt; IM[&quot;AI / 人类&lt;br/&gt;马上实现一版&quot;]
+    IM --&gt; TD[&quot;背上技术债&quot;]
+    TD --&gt; DR[&quot;需求漂移&lt;br/&gt;（定律：需求永远说不清楚）&quot;]
+    DR --&gt; RL
+    style TD fill:#4a2020,stroke:#d96a6a,color:#fbe8e8
+</code></pre>
+
+<h2 id="12">12. 定律：需求永远不可能说清楚，而且不是一成不变的</h2>
+<p><em>(参考时间: 35:26)</em></p>
+<p>因为我们的<strong>定律</strong>是：</p>
+<ol>
+<li><strong>你永远不可能真的把用户的需求说清楚；</strong></li>
+<li><strong>其次，需求不是一成不变的。</strong></li>
+</ol>
+<h3 id="121-ai">12.1 离散数学拆课：一个 AI 虚构但真的会发生的案例</h3>
+<p>我这边（是）AI 帮我虚构的一个案例，我大概能体会这个案例实际可能会发生——这真的是可能在学校里发生的。</p>
+<p>比如说我们干了这样的一件事：<strong>我们把离散数学课拆开了</strong>（这是你们知道的）。我们觉得第一门课的离散数学没有教会大家那个<strong>数学的语言</strong>，所以我把它拆开了（从上学期一门课变成了上下学期两门课）。</p>
+<p>然后拆开以后就带来一个非常糟糕的后果：<strong>我们的准出结果变了，我们的保研要求也变了，然后新旧是衔接不上的。</strong></p>
+<p>因为以前的系统里面比如说定义：我们要求计算机系（或者计算机学院）的学生如果要毕业，那就必须要选修<strong>离散数学</strong>——合理。好，那这个离散数学现在从一门课变成了两门课，那怎么办呢？我是不是要在系统里面增加一个规则，说：</p>
+<blockquote>
+<p><strong>我允许毕业 = 选修了离散数学 OR 选修了离散数学一。</strong> 这就一个"或"的关系。</p>
+</blockquote>
+<p>然后最早的时候，第一版在沟通这个需求的时候，<strong>肯定没有想过这件事</strong>。系统里没有（这条规则）的时候，当它写这个需求的 checklist 的时候，它会说什么呢？</p>
+<blockquote>
+<p>好，我们要在一个界面上面有一个叫<strong>毕业要求</strong>（的东西）。然后在毕业要求上面，我们要给教务员（应该是教务员）一个<strong>下拉框</strong>、一个<strong>增加一条</strong>的按钮；然后这个增加一条的按钮可以<strong>选一个课程</strong>。</p>
+</blockquote>
+<p>这是一个——在那个时候、就在固定到刚开始做需求的那个时间点——<strong>当然是非常合理的需求</strong>。但是一旦这个需求固定下来，当我们的离散数学课拆成 2 份了——<strong>好，完蛋了，这个东西不能适应我们新加的需求。那就对不起，重构吧</strong>：我们再把这个需求的文档调出来，"这个地方不能这样了，我要在这里加一个或，下拉框里加一个或"。</p>
+<p><strong>然后每当你叠加一个这个东西的时候，这个屎山就开始累积了。</strong></p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_37_15.png" alt="毕业要求：下拉框 + 增加一条按钮的初版需求" loading="lazy">
+  <p class="video-caption">📷 毕业要求：下拉框 + 增加一条按钮的初版需求<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2235" target="_blank" rel="noopener">在 B 站中打开 (00:37:15)</a></p>
+</div>
+
+<h3 id="122">12.2 裂缝会传递到系统里的各个部分</h3>
+<p>你们写过软件的都懂这个：<strong>你不要紧，你让我做个东西好吧，改需求真的受不了。</strong> 因为改需求它会破坏（一致性）：</p>
+<blockquote>
+<p>你做了一个整体上一致的设计，但是一旦这个需求中间产生了一个<strong>裂缝</strong>以后，它会<strong>传递到系统里的各个部分</strong>。然后当你一个看似很小的需求要改、牵动了整个系统的各个部分的时候，你就一团乱麻。</p>
+</blockquote>
+<p>这里面举了更多的例子：什么<strong>重修</strong>，然后还可以<strong>交换</strong>、可以<strong>抵扣</strong>（也就有些课程可以抵扣）。这里面带来的（问题是）：如果有一个同学从别的院系转过来，然后别的院系又有一个离散数学课（软院好像还是一门的离散数学课），然后这时候这门课能不能抵扣计算机学院的离散数学呢？</p>
+<ul>
+<li>它应该抵扣计算机学院的离散数学一和二？</li>
+<li>还是我要求抵扣计算机学院的离散数学一、你还要再上一个离散数学二？</li>
+</ul>
+<p><strong>这就无穷多。你一旦面对这个开放的物理世界的时候，你就没办法了。</strong></p>
+<h3 id="123-override">12.3 最后的兜底：override 与打电话给工程师</h3>
+<p>而且（哪怕）一万个（规则都写完了），最后你的系统里没有的东西，<strong>还是可以暗箱操作的</strong>——就最终还是有个 <strong>override</strong> 的。</p>
+<p>因为比如说你今年 6 年了、拿不到本科学位了，就是因为离散数学这门课；然后刚好在这个时候碰到了我把离散数学课拆成两门。那怎么办呢？现在已经是春季学期了、马上要毕业了，你已经不可能再去修那个课了——<strong>它在春季学期开，它不开</strong>。怎么办呢？</p>
+<p>最后领导说、这个教学主任说："我认为这两门课之间是可以存在<strong>替代关系</strong>的。" 好，那这个系统里面最终怎么办呢？</p>
+<blockquote>
+<p>最终——好，<strong>打电话给工程师</strong>："这个数据库里面，这个同学的毕业条件，你把它改成满足。" 然后这个就过去了。</p>
+</blockquote>
+<p>这个还是<strong>档案可查</strong>的：层层的审批流程都在，最终是教学院长认为这个同学学了这个旧的离散数学、还是可以抵扣这个新的离散数学的——<strong>也合理嘛，就是在人类世界意义上有一个合理的解释。</strong></p>
+<p>所以这就是软件系统的复杂：<strong>你任何时候实现需求就做了；一旦你做了需求分析，你就背上了技术债。</strong></p>
+<h2 id="13-500">13. 一次真实的 500 事故：绕过前端校验</h2>
+<p><em>(参考时间: 40:51)</em></p>
+<p>我记得我开始上课的第一天——那应该是 <strong>2018 年</strong>的时候，好多年以前了——那个时候还是一个老版的教务系统，好像是和我上学的时候教务系统差不多。</p>
+<p>然后上课第一天我就发现：诶，这个系统我没有用过，因为我以前都是<strong>学生端</strong>，我第一次用<strong>老师端</strong>，然后发现很好玩：<strong>可以给同学设置缺课次数。</strong></p>
+<p>然后我不知道为什么要做这个需求。就是如果是我来做这个需求的话，我就不要把"缺课次数"这个 feature 放在我的教务系统里面：</p>
+<blockquote>
+<p>同学缺课就缺课吧。你不需要在系统里留证据——只要老师比如说有一个签到表、点名表留证据，然后扫描一下，我就可以把你开除了。你们学生手册里面有写的：无故缺课达到多少次就可以（予以）开除了。</p>
+</blockquote>
+<p>然后我就试着<strong>绕过了那个前端的校验</strong>。（刚才你看那个 GPT 实现，那个质量还是不错的，我相信它前端后端也都会做校验。）对，我要输入一个非常大的缺课次数——它直接拒绝我了。<strong>我把一位同学的缺课次数从零改成了一</strong>——这好像也不是什么有害的操作。</p>
+<p>然后但是，立马，我发现<strong>所有的、只要能够选出这位同学的选课记录的页面就全部 crash 了，直接 500</strong>。</p>
+<p>然后我就只好打电话给教务，说"哎呀这个教务系统崩溃了"。然后我不知道他怎么解决，反正第二天可能工程师登录到了那个数据库里面，然后把那个 <code>1</code> 的条目给修复了。</p>
+<p>然后我就知道——<strong>这就是软件系统，你们真实面临的软件系统的需求。</strong></p>
+<h3 id="131-lesson-ai">13.1 所以：需求只是一个 lesson，而 AI 给了你驾驭它的错觉</h3>
+<p>这意味着什么呢？这意味着<strong>需求只是一个 lesson</strong>：因为我其实没有办法在这门课上面讲需求和产品设计——这（产品设计）可能应该是另外一门产品课，我这门软件工程课不适合，可能就这样带过比较合适。</p>
+<p>就 AI 时代：</p>
+<ul>
+<li>你做 MVP <strong>没问题、正确，而且是前所未有的容易</strong>；你先优先实现那个最重要的功能；</li>
+<li>你看到一个产品，你马上就知道哪个地方"哎呀设计错了"，你这个时候<strong>返工的成本是比较低的</strong>。</li>
+</ul>
+<blockquote>
+<p>但是这也给你产生了一个<strong>驾驭 AI 的错觉</strong>：因为 AI 确实可以往后修——你迭代三个版本，AI 都是可以往后修的。但一旦你在一个<strong>真实的系统</strong>里面运行足够长的时间（比如说<strong>计算机系改成了计算机学院</strong>），当你一开始面对这些事、你原来的设计不起作用的时候——好，你就面临麻烦了。</p>
+</blockquote>
+<h2 id="14-there-is-no-silver-bullet">14. There is no silver bullet</h2>
+<p><em>(参考时间: 43:30)</em></p>
+<p>这也是<strong>所有的软件工程都面临的问题</strong>，叫 <strong>there is no silver bullet</strong>——没有银弹。</p>
+<p>所谓的银弹是：吸血鬼和狼人是没有办法（被）普通（武器）杀死的，但是要有一个 silver bullet。<strong>但是没有银弹。</strong></p>
+<p>在软件工程里，随着软件的增长，<strong>你在最早的时候、在第一个时刻制定下来的那些决策</strong>会不断地（发酵）——因为你的软件要<strong>生存</strong>、要<strong>挣钱</strong>。</p>
+<blockquote>
+<p>假设这个软件不是（课程作业）——你课程上面我随时可以把它清零、从零从头再做一遍。你这个软件一旦上线，它就开始和<strong>物理世界产生交火</strong>，那你就必须持续地背着这个 technical debt 维护下去。那它的成本就会因为你前面做得不够前瞻，不断地变得更糟糕。</p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_43_35.png" alt="There is no silver bullet" loading="lazy">
+  <p class="video-caption">📷 There is no silver bullet<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2615" target="_blank" rel="noopener">在 B 站中打开 (00:43:35)</a></p>
+</div>
+
+<h2 id="15">15. 无处不在的架构：第一步要做的其实是架构</h2>
+<p><em>(参考时间: 44:23)</em></p>
+<p>对，这是需求。<strong>那解决这个问题的方式是什么呢？——是架构。</strong></p>
+<p>其实刚才我已经有一点点透露了：我们怎么应对这个问题？当你刚开始的时候，你可能有一个需求，或者是在 MVP 的阶段你还没有试图把所有要做的事情都放进来——你可以想一想：</p>
+<blockquote>
+<p><strong>我们的软件第一步迈向哪里，是对这个软件的长期生存有最好的效果的？</strong> 而第一步你要做的，实际上是<strong>软件的架构</strong>，不仅仅是一个 MVP。</p>
+</blockquote>
+<p>MVP——就刚才我们看的那个 slop、那个 AI 生成的那个 MVP——<strong>那已经不能算 MVP 了，这已经算是一个小型的产品原型了，维护它会变得非常困难。</strong></p>
+<p>你想要驾驭这个软件系统的复杂性，你在一开始的时候要想：<strong>我怎么样做一个最小的软件，使得这个软件能够随着需求的膨胀和改变，它依然能够一定程度上有一点韧性。</strong></p>
+<blockquote>
+<p><strong>实际上哪怕是最小的代码，它都是有软件的架构的。</strong></p>
+</blockquote>
+<p>然后这里面说白了就一个：<strong>把耦合解开。</strong> 就是比如说一开始的话，我用一个数据库来存放所有的（数据）——如果你在一开始的时候就立即做这个决定，你可以快速得到一个能 work 的原型，AI 也能很快给你做出来；<strong>但是如果你不去仔细思考这个系统里面到底哪些概念是可以分开的，确实很容易进入软件维护的泥潭。</strong></p>
+<p>好，讲到<strong>架构</strong>，大家都觉得有玄学、好像很高大上，但其实不是的：</p>
+<blockquote>
+<p>从你第一次开始设计任何的代码、任何的系统的时候，<strong>无论它多小，它里面都有一种架构的思维</strong>。因为<strong>架构本质上就是怎么样去控制一个东西的复杂性</strong>。而当你的代码开始稍微哪怕有一点点的规模，你都可以去考虑这个复杂性应该怎么样去分解。</p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_45_40.png" alt="架构就是控制复杂性：哪怕最小的代码也有架构" loading="lazy">
+  <p class="video-caption">📷 架构就是控制复杂性：哪怕最小的代码也有架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2740" target="_blank" rel="noopener">在 B 站中打开 (00:45:40)</a></p>
+</div>
+
+<h2 id="16-getopt">16. getopt：命令行参数解析里的架构</h2>
+<p><em>(参考时间: 46:40)</em></p>
+<p>比如说，我不知道你们写 OJ 的时候会不会这样写：写一个 <code>main</code>，然后</p>
+<pre class="highlight"><code class="language-text">read input → parse input → process input → write output
+</code></pre>
+
+<p>你们会这样写吗？不知道。然后你们会看到，如果你要做一个<strong>命令行的程序</strong>，比如说你要写一个 <code>main</code>，然后这个 <code>main</code> 是有 <code>argc</code> 和 <code>argv</code> 的——这是<strong>操作系统和进程之间的约定</strong>，它会传一个 vector of arguments，把参数以字符串的形式传过来。</p>
+<p><strong>那你们怎么处理参数呢？一个 <code>strcmp</code> 吗？</strong></p>
+<p>你就想想：如果你今天在保研的那个机试的现场，那个题目要求你处理这个 <code>argv</code>，你会 <code>strcmp</code> 吗？然后你们就会回想起这个世界上有一个东西叫 <strong><code>getopt</code></strong>。</p>
+<p>你在课上看过这样的代码，你在做实验的时候写过这样的代码；然后你在别人的实际的项目里面——比如说你们感兴趣 <strong>Redis</strong> 是怎么实现的、<strong><code>ls</code></strong> 这些东西是怎么实现的——你会看到这样的一个代码。</p>
+<blockquote>
+<p><strong>它也是一个架构，它也是一个分解复杂性的方法。</strong> 因为有复杂性啊：这个 <code>argv</code> 本身就是一个非常复杂的东西。</p>
+</blockquote>
+<p>比如说（你看）npm 的 help——它本身就有很多（参数），然后有些还是支持这个长参数：有 <strong>UNIX 风格的长参数、短参数</strong>。然后在 C 的时代，你要写一个 parser 是很复杂的。</p>
+<p><strong>这里就有个架构</strong>：你可以在这里 <code>getopt</code>，然后它就把这个复杂性给隔开了。这个 <code>argv</code> 它有一组约定，实际上这个约定是<strong>有标准</strong>的，是有个叫 <strong>POSIX 标准</strong>的；然后在这个 POSIX 标准上，它就可以用 <code>getopt</code> 来处理，最后你只要写一个 <code>while</code> 循环 + 一个 <code>switch case</code>，你就可以解析这里的参数了。</p>
+<pre class="highlight"><code class="language-c">/* POSIX 约定下的经典 parsing 架构：把复杂度隔离在 getopt 里 */
+int opt;
+while ((opt = getopt(argc, argv, &quot;ab:c:&quot;)) != -1) {
+    switch (opt) {
+        case 'a': /* flag  a       */ break;
+        case 'b': /* 取值  b=...   */ break;
+        case 'c': /* 取值  c=...   */ break;
+        default:  /* usage() 退出  */ break;
+    }
+}
+/* 剩下的 argv[optind..] 才是位置参数 —— 从这里出发做业务 */
+</code></pre>
+
+<pre class="highlight"><code class="language-mermaid">graph LR
+    A[&quot;argv&lt;br/&gt;一串复杂、可任意变化的字符串&quot;] --&gt; G[&quot;getopt&lt;br/&gt;POSIX 约定的解析器&quot;]
+    G --&gt; P[&quot;parsing state&lt;br/&gt;结构化的选项 + optind&quot;]
+    P --&gt; S[&quot;switch / case&lt;br/&gt;业务分支&quot;]
+    S --&gt; B[&quot;业务逻辑&quot;]
+    style P fill:#1f3a5f,stroke:#4a90d9,color:#e8f0fb
+</code></pre>
+
+<p>你就学会了一种这样的 <strong>parser 的架构模式</strong>。然后当然这只是一个非常非常小的例子：</p>
+<blockquote>
+<p>你在看到任何一个<strong>好的、符合 best practice 的代码</strong>的时候，它背后都有<strong>架构的设计</strong>，然后背后都<strong>映射到需求</strong>。</p>
+</blockquote>
+<h3 id="161-intent-spec-implementation">16.1 随时随地都有 intent / spec / implementation</h3>
+<p>所以我说需求——刚才我讲那个教务系统有点过度了——<strong>你在做任何事的时候、做任何软件工程行为的时候，其实都有 intent、specification 和 implementation。</strong> 不是（只有）一个教务系统那种 monolithic 的（系统才谈需求）：<strong>随时随地，在一个模块里你都可以谈需求、都可以谈架构、都可以谈优雅。</strong></p>
+<p>所以我很讨厌那种"老登"的那种（照本宣科）的授课方式。曾经我和这个学院的老教师有比较大的分歧：比如说我们说我们要讲这个 <strong>C++</strong>，相对来说至少在 C++11、14、17 里面的一些（特性）——如果你要讲 C++ 的话，那可能是在这 pre-AI 时代了——这些特性以及它们应该怎么用。然后这个老登的回应是说"我讲了，我怎么没讲呢"。然后他讲什么呢？他讲：</p>
+<pre class="highlight"><code class="language-cpp">auto add = [](int a, int b) { return a + b; };   // “lambda，讲完了”
+</code></pre>
+
+<p><strong>然后这个讲了和没讲有什么区别呢？</strong></p>
+<p>其实你们在学习的时候，你看到的每一个东西——我说不管是你在 GitHub 上面找到一个好的项目的 README，还是你就看到一个 <code>getopt</code>——<strong>如果你再往后想一想："诶，这确实是一种模式"</strong>，这个 parsing 的模式：<strong>把一个复杂的字符串，最后变成一个简单的 parsing state。</strong></p>
+<blockquote>
+<p>它就是一种<strong>抵抗需求变化</strong>的方式：因为你的 <code>argc</code> 是可以变化的，<code>argv</code> 各种各样的变化，但是它用这个 parsing state 把这个问题给解决了。</p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_47_45.png" alt="getopt：把 argv 的复杂性隔开，只留下一个 parsing state" loading="lazy">
+  <p class="video-caption">📷 getopt：把 argv 的复杂性隔开，只留下一个 parsing state<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2865" target="_blank" rel="noopener">在 B 站中打开 (00:47:45)</a></p>
+</div>
+
+<h2 id="17">17. 汉诺塔的四种表达：架构是一种品位</h2>
+<p><em>(参考时间: 50:49)</em></p>
+<p>所以我们可以看几个比较典型的架构。我<strong>从最小的十行代码的架构</strong>来开始讲。</p>
+<p>为什么我们现在说大模型对架构掌控得还不是很好，或者说<strong>架构是一种品位</strong>？其实是因为<strong>架构和需求其实是连在一起的</strong>：你没有需求就不用谈架构了。当你谈需求和架构的时候，你的需求面对的是一个<strong>开放的</strong>（世界），就是<strong>为未来的需求做的一个架构</strong>。</p>
+<blockquote>
+<p>那你什么样的时候能设计出好的架构呢？<strong>就是你对需求掌握到什么程度。</strong></p>
+</blockquote>
+<p>举个例子，就是我最喜欢的 <strong>Tower of Hanoi</strong>——非递归的 Tower of Hanoi。我曾经也是在开始上课的时候，我先问我的研究生（保研的研究生）说："哎，让你写个非递归的 Tower of Hanoi，你能写出来吗？" 然后研究生摇头。所以最后就变成了我上课时候的一个例子。</p>
+<p>其实就这个<strong>十行的代码</strong>，它背后的架构联系到大家：<strong>为什么写不出来？为什么写一个非递归的汉诺塔那么困难？</strong></p>
+<h3 id="171-gpt-6">17.1 表达一：GPT-6 —— 一切都是数学规律</h3>
+<p>那我们来看一看现在的人和模型对这个架构（的处理）。比如说我要做一个非递归（的汉诺塔），我就给它一个 prompt，它说我要写 <code>hanoi</code>。<strong>你们来猜一猜 GPT 又写了什么？</strong></p>
+<p>（它的意思）即便说"我不做人类了"——<strong>你写不出来是因为你的数学不如我好。</strong> 然后它找到了这个 Tower of Hanoi 的这个<strong>数学性质</strong>。所以很明显，<strong>GPT-6 是在数学道路上狂奔</strong>，然后希望它在数学上面的能力能够拯救人类世界的一切。</p>
+<p>然后它就开始写这个：反正这是对的——它说</p>
+<blockquote>
+<p><strong>盘号 = 1 + 步号二进制末尾零的个数</strong>；每个盘子的移动方向……</p>
+</blockquote>
+<p>（幻灯片上是它的原代码，<code>uint64_t</code> 一路位运算，人类确实读不动：）</p>
+<pre class="highlight"><code class="language-c">/* GPT-6：盘号 = 1 + 步号二进制末尾 0 的个数；每个盘子的移动方向固定 */
+for (uint64_t step = 1; step &lt;= total; step++) {
+    int disk = 1;
+    for (uint64_t x = step; (x &amp; 1) == 0; x &gt;&gt;= 1) {
+        disk++;
+    }
+    int direction = (n - disk) % 2 == 0 ? -1 : 1;
+    int from = position[disk];
+    int to = (from + direction + 3) % 3;
+    printf(&quot;Move disk %d: %c -&gt; %c\n&quot;, disk, pegs[from], pegs[to]);
+    position[disk] = to;
+}
+</code></pre>
+
+<p>这还是一个移动方向固定吗？<strong>We don't know.</strong> 反正 anyway，它这个应该是对的——<strong>反正你看不明白，但是 highly optimized、极度最优。</strong>（当然我没有（验证），除非我叫它模拟栈。）</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_52_40.png" alt="GPT-6 的非递归汉诺塔：盘号 = 1 + 步号二进制末尾零的个数" loading="lazy">
+  <p class="video-caption">📷 GPT-6 的非递归汉诺塔：盘号 = 1 + 步号二进制末尾零的个数<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3160" target="_blank" rel="noopener">在 B 站中打开 (00:52:40)</a></p>
+</div>
+
+<h3 id="172-deepseek-v4-flash">17.2 表达二：DeepSeek V4 Flash —— 递归是栈</h3>
+<p>同样的 prompt，这个 <strong>DeepSeek V4 Flash 就更有人感</strong>：它写了个非常优雅的代码，就是<strong>标准答案</strong>。基本上如果你要写一个非递归的汉诺塔的话，这是一个非常干净的架构。</p>
+<p>因为它知道我们的 recursion 递归：<strong>当我说要把一些盘子移过去的时候，那我要把剩下的任务——就还要继续执行的任务——留在栈里，这样我总是执行栈顶的任务，往前。</strong> 所以非常优雅。</p>
+<p>（幻灯片的标题就叫 <strong>"DeepSeek：任务栈"</strong>，配文是"人类语料里似乎让我这么干"：）</p>
+<pre class="highlight"><code class="language-c">/* DeepSeek V4 Flash：显式任务栈，标准答案 */
+push(&amp;s, n, A, B, C);
+while (!isEmpty(&amp;s)) {
+    Task t = pop(&amp;s);
+    if (t.n == 1) {
+        printf(&quot;%c -&gt; %c\n&quot;, t.src, t.dst);
+    } else {
+        push(&amp;s, t.n - 1, t.aux, t.src, t.dst);
+        push(&amp;s, 1,       t.src, t.aux, t.dst);
+        push(&amp;s, t.n - 1, t.src, t.dst, t.aux);
+    }
+}
+</code></pre>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_53_10.png" alt="DeepSeek V4 Flash 的非递归汉诺塔：显式栈的标准答案" loading="lazy">
+  <p class="video-caption">📷 DeepSeek V4 Flash 的非递归汉诺塔：显式栈的标准答案<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3190" target="_blank" rel="noopener">在 B 站中打开 (00:53:10)</a></p>
+</div>
+
+<p>然后我特意试了一下<strong>豆包</strong>：豆包选了这个方案，但是写了一个有瑕疵的代码，跟这个基本上差不多，我就不展示了。（然后我就呵呵。）</p>
+<h3 id="173-c">17.3 表达三：我 —— 程序是一个状态机，所以我写一个 C 语言解释器</h3>
+<p>然后我就不一样。<strong>我作为一个架构师：架构关乎的是你对需求掌握到什么程度。</strong> 所以我要写一个非递归的 Tower of Hanoi，我想的是"<strong>为什么大家写不出来</strong>"——大家写不出来的时候，是因为<strong>你对递归这件事情理解得不够深</strong>。</p>
+<p>所以我故意地（用了一个 overkill 的方案）。上过我课的同学都见过这个代码，我故意说：</p>
+<blockquote>
+<p><strong>我们的程序实际上是一个状态机。</strong>（回头你们可以去看我操作系统讲的这个课。）</p>
+</blockquote>
+<p>任何一个——就是 <strong>C 语言是一个状态</strong>（我花了一整节课来讲这个），然后这个状态的一个 <strong>single step</strong> 是它的 <strong>operational semantics</strong>（叫操作语义），它的一个<strong>小步语义</strong>。比如说一个 <code>hanoi(n-1)</code>，它是一个 <strong>well-defined</strong> 的、在程序语言世界上是 well-defined 的一步操作。</p>
+<p><strong>所以我们只需要模拟这个：我可以写一个 C 语言的解释器。</strong> 当你理解了 C 语言的解释器的时候，你就很容易写出把任何代码（机械地跑起来）。我当时讲的其实是两个函数互相调用——F 调 G、G 调 F——你非常容易、没有任何难度，因为你就是把这个 C 语言的<strong>形式语义、小步语义翻译成一个状态机的表示</strong>。</p>
+<p>然后你可以把它翻译成它：<strong>如果你觉得这个代码不够优雅</strong>——对，对于 Tower of Hanoi 来说 <strong>overkill</strong> 了，因为我可以把任意的程序翻译（过来）——<strong>你还可以把它变成那个（显式栈的版本），它们俩是等价的：做一个 simplification、做个优化就可以从它变成它。</strong></p>
+<p>所以在我看来，作为架构师，<strong>这是理解 C 语言形式语义的好机会。</strong> 所以看到不同的人（的解法）——我现在还可以守住我的品位。我说这个 GPT 可能它其实懂，但是它可能不会往这个方向去想。所以我觉得我有比较强的信心：<strong>认为强化学习可以把这个 GPT 往这个方向去引导</strong>；它一旦学会，它也能在适当的时候做出这样的实现。</p>
+<h3 id="174-csdn">17.4 表达四：CSDN —— 训练还没有收敛</h3>
+<p>当然最后有个搞笑的：我在<strong>百度</strong>上搜索"非递归汉诺塔"，然后找到了第一个（结果）。而且百度很搞笑——百度第一个条目还是<strong>递归</strong>汉诺塔。然后我往下找到 <strong>CSDN</strong> 的第一个非递归汉诺塔，然后我看到了这样的一个代码：</p>
+<blockquote>
+<p>啧，这个……我甚至比 AI slop（还要糟糕）——<strong>它甚至比 AI slop 问题还要严重。</strong> 就这里有一个 <code>move</code>，但是 <code>std</code> 是有 <code>move</code> 的……哦对哈。</p>
+</blockquote>
+<p>然后（右边）我不知道是不是 AI（写的评论），也给你营造一种这个 CSDN 的博客质量很高的感觉。<strong>但如果你们在上学的时候被这种 slop 污染了</strong>——你还不如跟 AI 学，跟 DeepSeek 学都很好（GPT-6 已经不当人了）。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_55_55.png" alt="CSDN 上搜到的“非递归汉诺塔”：比 AI slop 还严重" loading="lazy">
+  <p class="video-caption">📷 CSDN 上搜到的“非递归汉诺塔”：比 AI slop 还严重<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3355" target="_blank" rel="noopener">在 B 站中打开 (00:55:55)</a></p>
+</div>
+
+<h3 id="175">17.5 跳出问题看问题</h3>
+<p>所以，<strong>同一个汉诺塔四种表达</strong>。我们说我们要控制的是<strong>复杂性</strong>；它是一个架构，也关乎<strong>抽象</strong>。然后我们<strong>站在不同的层面上考虑这个问题，叫跳出问题看问题</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>表达</th>
+<th>站着的层面</th>
+<th>讲者点评</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GPT-6</strong></td>
+<td>数学</td>
+<td>"GPT 也跳出问题看问题了：一切都是数学规律，我只要把程序世界里面的数学规律理解清楚，那没有任何问题是我解决不了的。<strong>我服。</strong>"</td>
+</tr>
+<tr>
+<td><strong>DeepSeek V4 Flash</strong></td>
+<td>人类语料中的共识</td>
+<td>"这是一个人类反复说'递归是栈、递归是栈'，它在语料里面学到了这一点，做了一个正确的事情。"</td>
+</tr>
+<tr>
+<td><strong>讲者本人</strong></td>
+<td>编程语言的形式语义</td>
+<td>"我往外走了一步：是你们对编程语言（和）世界的理解，投射成了递归和非递归的区别，然后再投射成这样的一份代码。"</td>
+</tr>
+<tr>
+<td><strong>CSDN 博客</strong></td>
+<td>——</td>
+<td>"这个不知道是什么，这就属于是<strong>训练还没有收敛</strong>。"</td>
+</tr>
+</tbody>
+</table>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_56_45.png" alt="同一个汉诺塔的四种表达" loading="lazy">
+  <p class="video-caption">📷 同一个汉诺塔的四种表达<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3405" target="_blank" rel="noopener">在 B 站中打开 (00:56:45)</a></p>
+</div>
+
+<p>这个很有意思吧：<strong>你在任何一个小的地方，都能看出架构水平的高低。</strong> 这是<strong>十行</strong>的架构。</p>
+<h2 id="18">18. 架构能力从哪来：压缩就是智能</h2>
+<p><em>(参考时间: 57:46)</em></p>
+<p>然后如果我们要再大一点，比如说 <strong>2000 行的架构</strong>，我们（要）展示<strong>跳出问题看问题</strong>：</p>
+<blockquote>
+<p>代码之外有<strong>客户</strong>的规律，客户之外有<strong>社会</strong>的规律，社会之外有<strong>宇宙</strong>的规律。</p>
+</blockquote>
+<p>你们肯定想问：<strong>架构的能力从哪来？从你学过的每一个东西上来</strong>——如果它是好的、它是优雅的、它促使了你对这个问题的思考。</p>
+<blockquote>
+<p><strong>压缩就是智能。</strong> 你把它压缩了，那你的那个 <strong>first principle</strong>——你总是从 first principle 去推导"应该怎么样"。</p>
+</blockquote>
+<p>所以其实这些能力就是你在学校里面学习、社会上面的积累，共同赋予你的。</p>
+<p>比如说你必须要和<strong>除了教科书、除了做题之外的人</strong>打交道，你才能知道：一个马上就要退休的、优雅的教务老师，他是怎么看待教务系统的。他的想法可能和你的想法不一样——<strong>你的想法总是"最好的数据库、最高的性能 whatsoever"，但对他来说他只是想要那个字大一点、他点鼠标的时候不要手滑到边上那个按钮上。</strong></p>
+<p><strong>共情别人的能力。</strong></p>
+<h2 id="19-2000-excel">19. 2000 行的架构：在 Excel 里生成二维码</h2>
+<p><em>(参考时间: 58:57)</em></p>
+<p>然后 2000 行——我讲一个我上课时候讲过的例子：<strong>QR code generator</strong>，就是二维码生成。我上课的时候讲了一个 <strong>Excel 生成二维码</strong>的例子。</p>
+<p>（我打开它看一下……应该是第一次课的时候。）对，就生成这样的一个可以扫描的二维码：它可以把任何一个长的字符串，编码成一个你能够直接扫描的二维码。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_00_59_30.png" alt="Excel 里生成二维码：输入单元格 → 01 序列" loading="lazy">
+  <p class="video-caption">📷 Excel 里生成二维码：输入单元格 → 01 序列<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3570" target="_blank" rel="noopener">在 B 站中打开 (00:59:30)</a></p>
+</div>
+
+<p>然后你回头再用软件工程的、就用我们今天讲过的概念去理解这个问题：</p>
+<blockquote>
+<p>这是一个和教务系统不太一样的例子——<strong>它的需求是非常明确的</strong>。需求就是 Excel 的一个单元格：我希望在这个 Excel 里面有一个<strong>生成 01 序列的单元格</strong>；它有一个输入的单元格、它有一些输出的单元格，非常 <strong>deterministic</strong> 的任务。</p>
+<p><strong>但是这里面是有架构的考虑的。</strong></p>
+</blockquote>
+<h3 id="191-agent">19.1 agent 知道自己不会做，于是它开始"做架构"</h3>
+<p>agent 对自己的能力到底到什么程度是<strong>有估计的</strong>：所以 agent 会——当这个任务足够困难的时候——它就会<strong>不做了</strong>。</p>
+<p>如果你让 agent，比如说你有两个 sheet：第二个工作表里面是我的学生的<strong>实验成绩</strong>，第一个工作表里面是我誊好了的学生的<strong>期末考试成绩</strong>；然后我说"诶，给我写个公式，把那个学号对应的那个实验成绩给我拉过来"——<strong>那这个是在它能力范围内，它就会一把梭。</strong></p>
+<p>然后这个事情显然超出它的能力范围，它还是会试图去<strong>分解</strong>这个问题——<strong>它也会做架构</strong>。但你看到，<strong>至少今天的模型在做架构这件事上稍稍是有一些落后的。</strong></p>
+<h3 id="192-lisp">19.2 直接写成一个公式的后果：一页 Lisp</h3>
+<p>然后这里你就面对一个问题：<strong>如果你直接把它写成一个公式，你就会得到一个……</strong></p>
+<blockquote>
+<p>笑话说我们偷了一个 <strong>Lisp</strong> 程序，然后看到最后一页是这个。</p>
+</blockquote>
+<p>就因为这个公式实在是太长了。因为 Excel 的计算（能力）比较有限——就好比是让你们用那种什么 <strong>Brainfuck</strong> 去实现一个 nontrivial 的程序、什么<strong>毁灭战士</strong>的游戏，那你写出来的程序就会是这样的。</p>
+<p><strong>那这个时候你就需要一个抽象。</strong></p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_01_30.png" alt="直接写成一个公式的后果：长得像一页 Lisp" loading="lazy">
+  <p class="video-caption">📷 直接写成一个公式的后果：长得像一页 Lisp<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3690" target="_blank" rel="noopener">在 B 站中打开 (01:01:30)</a></p>
+</div>
+
+<h3 id="193-excel">19.3 需求看起来明确，但其实有很多坑：Excel 是有版本的</h3>
+<p>而且我觉得 AI 之前我看到的那两个版本，它没有考虑到的是：<strong>这个需求看起来明确，但其实有很多坑。</strong></p>
+<p>比如说 <strong>Excel 是有版本的</strong>：我们知道 Excel 从 2019、2023，它不断地都在增加新的功能。比如说我刚才讲的那个需求叫"查找学号对应的成绩"，以前是一个叫 <strong>VLOOKUP</strong> 的函数——有没有同学知道吗？没有同学知道，说明你们都不是 Excel 的 power user。<strong>太好了，你们是 agent 时代的第一类人</strong>：你要干什么，只要跟 agent 说就行了，你永远永远不需要再学一个像吃屎一样的语言了。</p>
+<p>然后微软大概终于在某一年（2019 还是 2024）终于受不了了，然后说我们推出了一个新的叫 <strong>XLOOKUP</strong>（extended lookup），可以更方便地查找。</p>
+<blockquote>
+<p>就这个 Excel 是在<strong>演化</strong>的，那么马上这个需求就会变得<strong>模糊不清</strong>：我到底是应该兼容一个旧版本的标准，使得我在各种人身上都能打开——我发给那个教务老师，教务老师也能打开这个二维码；还是我要做一个"我自己用一用即抛的"，那我就可以用最新的语法实现最简单的公式？<strong>那到底是哪个呢？</strong></p>
+</blockquote>
+<p>然后你看到的是：<strong>如果需求变了，你的代码维护是极度痛苦的。</strong></p>
+<blockquote>
+<p>你想，如果 AI 给你 vibe code 了一个用 Excel 2023 公式的代码，你突然说"哎呀不行，2023 不行，要改成 2019、要改成 2003"——<strong>全完蛋。这是摧毁性的：你的设计和实现就会从头回到原点，然后重新再做一遍。</strong></p>
+</blockquote>
+<p>那对于一个 <strong>2000 行</strong>的项目来说，这个是 OK 的，你可以重做。但是如果这个 2000 行的项目已经嵌入到了一个<strong>巨大无比的需求</strong>、嵌入到教务系统的时候、它和其他的部分产生关联的时候——<strong>加钱对不对？</strong> 那你作为这个项目经理（只能说）："我要加人、我要加钱，我只能用这个方式来满足你的需求。" <strong>但这显然就是一个架构没有设计好。</strong></p>
+<p>这个还有很多：比如说我的需求，可能等我最后出来以后，我对它<strong>放的位置</strong>不满意，我要把它整体往右移一格——<strong>如果你所有的单元格都是硬编码的，直接立即崩溃。</strong> 你看到它对需求的变更<strong>抵抗是很糟糕的</strong>。</p>
+<h2 id="20">20. 跳出问题看问题：这其实是一个编译问题</h2>
+<p><em>(参考时间: 64:37)</em></p>
+<p>所以如果我们跳出问题看问题，<strong>其实这是一个编译的问题。</strong></p>
+<p>（我要开个 AI……正常是这样的。先把这个关掉。嘶。）"给我一个<strong>从字符串到二维码的伪代码</strong>。"</p>
+<p>这个问题本身是清楚的——它显然（不需要）去读文件（乱猜），<strong>二维码是完全有规范的</strong>。好，它给了一个你看非常短的（伪代码）：</p>
+<ul>
+<li>有什么<strong>版本、纠错等级、掩码</strong>；</li>
+<li>然后它有一个<strong>大小</strong>；</li>
+<li>然后它有<strong>数据编码</strong>（0100、八位组字节）；</li>
+<li>然后有一个<strong>纠错码</strong>——它是一个 data 乘以 X 的 26 次方模（一个多项式），然后 134 个码字；</li>
+<li>最后加上一个 <strong>ECC</strong>，最后直接放到这个空间里。</li>
+</ul>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_05_40.png" alt="从字符串到二维码的伪代码：版本、纠错等级、掩码、ECC" loading="lazy">
+  <p class="video-caption">📷 从字符串到二维码的伪代码：版本、纠错等级、掩码、ECC<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3940" target="_blank" rel="noopener">在 B 站中打开 (01:05:40)</a></p>
+</div>
+
+<blockquote>
+<p><strong>那为什么这么简单的东西，在 Excel 里面实现这么困难呢？这个 gap 到底是在哪里？</strong></p>
+</blockquote>
+<p>如果你跳到问题外面，你就很明显能看到：<strong>二维码容易用算法来描述。</strong> 就这个过程，我用一个 <code>.py</code>——<code>qr.py</code>——那就再容易不过了。</p>
+<p>（这就是明年保研机试我就出这个题：让你去实现，最后打一个 0/1 矩阵。好像是一个 OK 的、测试大家是不是有一定（能力）的题目；如果要拖网的话、还必须要拖网的话，是一个不错的测试大家的题目。）</p>
+<p><strong>但是我们的要求是 Excel。</strong></p>
+<h3 id="201-py2xl-llm">20.1 py2xl 不存在，而 LLM 直接上手就做</h3>
+<ul>
+<li>我们<strong>不存在任何一个翻译器</strong>、一个编译器可以把一个 Python 编译成 Excel——这显然也是做不到的：Excel 它本质上是为了这个<strong>财务、报表</strong>这些而设计的，管理学生的成绩是一个小的数据库，<strong>它本身就不是为了做 Turing complete 计算来做的</strong>。所以没有一个 <code>py → excel</code> 的编译器（就叫它 <code>py2xl</code> 吧），<strong>这个东西不存在</strong>。</li>
+<li>然后如果我们直接把它变成比如说伪代码或者是自然语言，然后我们用 <strong>LLM 去编译</strong>——那我们也看到了这个 LLM 的问题：<strong>它直接上手就做</strong>，做了以后<strong>需求漂移</strong>的时候就会遇到很大的问题。</li>
+</ul>
+<h3 id="202">20.2 我要的其实是一个中间语言</h3>
+<p>所以你马上就知道：<strong>如果我有个好的架构，我是不是可以在 Python 和 Excel 中间构造另外一个语言？</strong></p>
+<blockquote>
+<p>然后这个语言它<strong>既可以很容易地翻译成 Excel，又可以继承一定的 Python 的功能</strong>。就是刚才那个伪代码——<strong>我希望我要的东西其实是一个中间的编程语言</strong>，然后这个编程语言能够支持描述这些运算中需要的东西，然后它又可以翻译成（Excel）。</p>
+</blockquote>
+<p>我做了这样的一个设计：<strong>这样的语言是可以翻译成 Python 的。</strong> 比如说你们都写过那种<strong>表达式求值</strong>的程序——我就做一个<strong>表达式树</strong>：比如说"异或""加"，什么 A、B；或者是 <code>x of 1</code>（这可以取出一个字符串里面的某一个（字符））。<strong>这就是一个小的编程语言。</strong></p>
+<p>然后这个编程语言显然很容易翻译成 Python：你直接把它打包就行了，<strong>它递归地翻译</strong>——你把任何一个表达式树 dump 出来，你就是递归地左子树、右子树，然后根据这个节点拼起来。</p>
+<p>所以这个语言可以翻译成 Python，<strong>这个语言也可以翻译成 Excel</strong>：我只要要求<strong>每一个节点都有一个翻译成 Excel 的规则</strong>。我可以把这个东西放到一个格子里（任意的格子都可以），然后把这个结果放到一个格子里，然后我就可以在这里做出一个"这两个格子拼起来"的结果。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_08_20.png" alt="中间语言的设计：一份中介语言，两种执行方式" loading="lazy">
+  <p class="video-caption">📷 中间语言的设计：一份中介语言，两种执行方式<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4100" target="_blank" rel="noopener">在 B 站中打开 (01:08:20)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_09_05.png" alt="表达式树：递归翻译到 Python 与 Excel" loading="lazy">
+  <p class="video-caption">📷 表达式树：递归翻译到 Python 与 Excel<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4145" target="_blank" rel="noopener">在 B 站中打开 (01:09:05)</a></p>
+</div>
+
+<h3 id="203-llm-python-excel">20.3 于是流程变成了：LLM 生成 → Python 验证 → Excel 交付</h3>
+<p>好，那我就好办了：</p>
+<ol>
+<li>我让<strong>大语言模型生成这个语言的</strong>二维码计算的逻辑；</li>
+<li>然后我把这个语言<strong>翻译成 Python 去验证</strong>，看我的这个公式写得对不对；</li>
+<li><strong>等我公式写对了，我再去写 Excel。</strong></li>
+</ol>
+<pre class="highlight"><code class="language-mermaid">graph LR
+    N[&quot;自然语言 / 伪代码&lt;br/&gt;（QR 规范）&quot;] --&gt; L[&quot;LLM&quot;]
+    L --&gt; IR[&quot;中间语言&lt;br/&gt;表达式树 · 每节点两条翻译规则&quot;]
+    IR --&gt; PY[&quot;翻译到 Python&lt;br/&gt;用于验证：公式对不对&quot;]
+    IR --&gt; XL[&quot;翻译到 Excel&lt;br/&gt;用于交付：单元格公式&quot;]
+    PY -. &quot;验证通过后再生成&quot; .-&gt; XL
+    XL --&gt; OPT[&quot;改写规则 / 优化&lt;br/&gt;循环外提 · PGO&quot;]
+    style IR fill:#1f3a5f,stroke:#4a90d9,color:#e8f0fb
+    style PY fill:#1f3d2a,stroke:#4ad98a,color:#e8fbef
+    style XL fill:#3d2f1f,stroke:#d9a44a,color:#fdf3e3
+</code></pre>
+
+<p>你看到这样的架构，<strong>不就是我们刚才在第一个那个最小的例子里我讲那个 <code>getopt</code> 一样的设计吗？</strong> 你说我们要写一个命令行的工具，我们第一件事情先 <code>getopt</code> 得到一个 parsing state，再从那个 parsing state 出发去做下一步——<strong>一样的设计。</strong></p>
+<blockquote>
+<p>所以你们作为一个 <strong>unsupervised learner</strong>、你们作为神经网络：神经网络就是看好的东西，你看得多了，你自然就能泛化了。当然你看得多的时候，你要<strong>有意识</strong>去看"好这个东西为什么要这样"。回头突然有一天你会想通——看到某一个 blog 的时候，或者有一天听我上课的时候，突然就想通了一件事：哦，<strong>原来这个世界上大家做的事情都是差不多的。</strong></p>
+</blockquote>
+<p><strong>一份中介语言，两种执行方式。</strong> 所以我的架构就是：从 LLM 翻译成中间语言，这个（Python 后端）用来<strong>验证</strong>，这个（Excel 后端）用来<strong>交付</strong>。</p>
+<blockquote>
+<p>这样，<strong>这些 AI 给我生成的 slop 也就不重要了。</strong></p>
+</blockquote>
+<h3 id="204">20.4 在架构上继续发展：优化</h3>
+<p>而且这个架构上我还可以发展出比如说<strong>优化</strong>。什么是优化呢？<strong>我不是（有）一个语言吗？</strong> 一个语言我如果觉得性能不好、哪个地方生成了太长的代码，我就有一些<strong>改写的规则</strong>：我可以把一个程序从一个形态改写成另一个形态。</p>
+<p>比如说你们都知道：如果我有一个变量在循环里面每次都计算，但它们的值都一样，我就可以把这个变量的计算<strong>提到循环的外面</strong>——编译器可以自动做这件事；（或者）你自己也可以手动把这个计算移出去，你可以做<strong>手工的优化</strong>。而<strong>如果我有个中间语言，我就可以让大语言模型去优化它。</strong></p>
+<p>然后你在这个计算机系统（课）里面学到的，比如说 <strong>profiling-guided optimization</strong>：你可以先要知道性能瓶颈在哪里，然后再用这个性能的 profile 再去指导你代码应该写成什么样更好。<strong>诶，你的概念又用上了。</strong></p>
+<p>所以<strong>一个好的架构可以承载这个需求的变化</strong>：未来如果 Excel 的版本改了，没问题啊，我无非就是把一些<strong>算子</strong>用另外一个方式去实现。</p>
+<p>然后（我）讲了算子的时候，你发现今天这个 <strong>AI inference（框架）也在干这个事</strong>。类似的，是人类就是这样：因为他们有很多领域的知识，所以在他们领域里面有非常多好的设计——<strong>这些都非常值得大家学习。</strong></p>
+<h2 id="21-50-ai">21. 50 万行的架构：AI 实现的教务系统长什么样</h2>
+<p><em>(参考时间: 72:33)</em></p>
+<p>那么终于到我们最后一个：<strong>十行的讲完了，2000 行的讲完了，50 万行的架构应该怎么设计。</strong></p>
+<p>当然我觉得<strong>架构就一件事：跳出问题看问题。</strong></p>
+<p>因为当我们谈架构师的时候，你想到了什么？想到那些架构师都在那（画）框图：<strong>数据库、微服务、流式数据处理、应用框架</strong>——然后选这个应用框架、这几个应用框架搭起来，"我就解决这个教务系统的问题了"。</p>
+<h3 id="211-monolithic-54kb-83kb-38kb">21.1 一个 monolithic 的 54KB / 83KB / 38KB</h3>
+<p>在我们开始看架构之前，我们先来看一下这个 <strong>AI 实现了一个什么样的架构</strong>。很好玩：这是我在它生成中间的时候看到的结果，所以我就当场发了一个<strong>小红书</strong>，说"GPT-6 说'我不当人了、我不做人了'"——就是刚才那个汉诺塔：我在数学上能想清楚，数学上就是对的，那我不就是对的吗？<strong>毫无破绽。</strong></p>
+<p>然后它写的时候，它一个 function——你看它叫 <code>function applications(</code>，然后啪啪啪啪啪（一路括号套下去）。后来我发现 GPT 还很贴心地用那个代码的<strong>格式化工具</strong>帮我把它格式化完了，所以现在看这个东西就正常一些了。</p>
+<p>现在看教务系统的 demo 的话，它还是一个 <strong>monolithic</strong>：</p>
+<ul>
+<li>一个 <strong>54KB</strong> 的（入口/页面文件）；</li>
+<li>一个 <strong>83KB 的 <code>.tsx</code></strong>；</li>
+<li>一个 <strong>38KB 的 <code>services</code></strong>。</li>
+</ul>
+<p>还是很有水准的。虽然……我真的觉得它还蛮厉害的：<strong>这个东西能做对。</strong></p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_13_20.png" alt="GPT-6 的 function applications：格式化成一路长调用" loading="lazy">
+  <p class="video-caption">📷 GPT-6 的 function applications：格式化成一路长调用<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4400" target="_blank" rel="noopener">在 B 站中打开 (01:13:20)</a></p>
+</div>
+
+<h3 id="212-d">21.2 让 D 老师来评价一下</h3>
+<p>我们也可以问它啊："<strong>这个教务系统使用了怎样的架构？</strong>" 我们让 <strong>D 老师（DeepSeek）</strong>来评价一下 GPT 生成的东西。</p>
+<p>然后当时我就<strong>惊了</strong>。惊了以后我就启动了一个独立的 session，然后问那个 GPT（在跑的）："<strong>这个软件能维护吗？</strong>" 害怕地问它。它说：<strong>能</strong>——"现在只不过是把这个业务逻辑挤在几个大文件里，但是这个东西维护是完全没有问题的。"</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_14_55.png" alt="问它：“这个教务系统使用了怎样的架构”" loading="lazy">
+  <p class="video-caption">📷 问它：“这个教务系统使用了怎样的架构”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4495" target="_blank" rel="noopener">在 B 站中打开 (01:14:55)</a></p>
+</div>
+
+<p>它说：你看，<strong>经典三层单体、前后端分离</strong>啊，而且有几个<strong>生产级横切设计</strong>：</p>
+<ul>
+<li><strong>乐观锁</strong>：所有写请求带 <code>version</code>，<code>version()</code> 校验失败返回 <strong>409</strong>；</li>
+<li><strong>幂等</strong>：前端每个写请求自带 <code>Idempotency-Key</code>，后端 <code>mutation()</code> 里存储"身份 + 内容 + 响应"，重试去重；</li>
+<li><strong>事务</strong>：<code>transaction()</code> 用 <code>BEGIN IMMEDIATE / COMMIT / ROLLBACK</code> 包住"业务写入 + 审计 + 幂等记录"；</li>
+<li><strong>审计</strong>：<code>audit</code> 表记录操作者、对象、前后值；</li>
+<li><strong>统一错误码</strong>：<code>400 / 401 / 403 / 404 / 409</code>。</li>
+</ul>
+<p>（所以我肯定会在某一次课的时候来讲讲这些。）</p>
+<p>而它给出的<strong>架构总览</strong>（<code>docs/architecture.md</code>）是这样的：</p>
+<pre class="highlight"><code class="language-text">React SPA --本地 HTTP JSON--&gt; Express REST --&gt; SQLite(单文件)
+</code></pre>
+
+<ul>
+<li><strong>前端</strong>：React 19 + TS + Vite，<strong>无路由库、无状态管理库、无 API 层</strong>——全部逻辑在 <code>src/App.tsx</code>（2305 行）和 <code>src/Services.tsx</code>（1177 行）两个巨型组件里，靠 <code>useState</code> + 手写 fetch 封装（<code>api()</code>）驱动；</li>
+<li><strong>后端</strong>：Express 5 单文件 <code>server/app.mjs</code>（522 行），<strong>裸 SQL</strong>（<code>node:sqlite</code> 的 <code>DatabaseSync</code>），无 ORM、无 migration，建表就是一段 <code>db.exec(CREATE TABLE IF NOT EXISTS ...)</code>；</li>
+<li><strong>持久层</strong>：一张 <code>resources</code> 表用 <strong>JSON blob</strong> 存七类"扩展服务"；核心业务（课程 / 成绩 / 申请）才用关系表。</li>
+</ul>
+<p>所以你看，它就是觉得很有自信：<strong>它确实做了工程上、就是你们做不来的、这个至少要摸爬滚打几年才理解的设计</strong>——它有这个软件工程的直觉。然后你看它有<strong>数据驱动</strong>、<strong>横向扩展</strong>，扩展性很好啊。当然也有差的一面。</p>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_15_40.png" alt="D 老师的评价：经典三层单体、乐观锁、幂等、事务、审计" loading="lazy">
+  <p class="video-caption">📷 D 老师的评价：经典三层单体、乐观锁、幂等、事务、审计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4540" target="_blank" rel="noopener">在 B 站中打开 (01:15:40)</a></p>
+</div>
+
+<blockquote>
+<p>这个很有趣：<strong>很快 AI 生成生产软件的方式就要超过人类了。</strong></p>
+<p>但是我觉得，如果我<strong>跳出问题看问题</strong>，我觉得这<strong>还不是一个非常好的架构</strong>：因为本质上这是一个 <strong>CRUD 的架构</strong>，就是<strong>增删改查</strong>的架构。</p>
+</blockquote>
+<h2 id="22-crud">22. CRUD 的基本原理：世界是一台状态机</h2>
+<p><em>(参考时间: 76:32)</em></p>
+<p>然后这样的一个架构，来自于一个什么样的基本原理呢？</p>
+<blockquote>
+<p><strong>基本原理是：我们的软件是物理世界过程在信息世界里面的投影。</strong> 然后我们的物理世界是<strong>有状态的</strong>——<strong>everything is a state machine</strong>，我自己也是一个 state machine。</p>
+</blockquote>
+<p>所以软件系统它很容易会建模成一个 <strong>state transition system</strong>：也就是说它有一个<strong>状态</strong>，然后这个状态一般来说是用<strong>数据库</strong>（表示）——persistent 的状态是用数据库。</p>
+<p>比如说我可以用一张表来表示<strong>学生</strong>：学生有学号、姓名、院系等等等等；然后我还有一张表表示<strong>学院</strong>、表示<strong>选课</strong>……反正各种各样的东西都可以用<strong>二维的表</strong>来表示——这是你们在数据库课上面学过的。</p>
+<h3 id="221-normal-form-id-dependency">22.1 normal form：用 id 引用，铲除冗余的 dependency</h3>
+<p>然后数据库要求你<strong>消除这个表里面所有的冗余</strong>，要把这个数据库 factor 成 <strong>normal form</strong>。什么意思呢？</p>
+<p>你最好不要（在别的表里）有一个（学生的）姓名。比如说：</p>
+<ul>
+<li><strong>学生表</strong>：学号是唯一的，比如说 <code>1234</code>；学生有个姓名。</li>
+<li><strong>另一张表</strong>：如果要引用一个学生，<strong>尽量不要用姓名来引用</strong>——因为学生可能会<strong>重名</strong>，然后就算不重名，这个也会带来一些麻烦。</li>
+<li>更好的是不要用姓名，<strong>就把这一列从这个表里面去掉，而是这里面放一个学生的 <code>id</code></strong>（比如说 <code>1234</code>）。这个 <code>id</code> 就相当于一个<strong>链接</strong>，这个链接指向了学生的这个信息；然后这个学生还可以再指向别的表里面的一些信息。</li>
+</ul>
+<p>这样把信息（冗余降到）最小（的原则），其实是<strong>铲除冗余的 dependency</strong>：</p>
+<blockquote>
+<p><strong>我一个地方改了以后，我不会需要改另外一个地方。</strong> 因为如果这个学生真的改名字了——不要笑，这件事情在中国是合法的——你用这个分解的方式，那你学生改了名字，这个名字改掉就行了，你就记一个曾用名。但如果你是这样的、存了两份名字，那对不起，你要知道<strong>这两个地方都要修改</strong>。这就是一个很大的代价。</p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_17_30.png" alt="CRUD 的基本原理：物理世界在信息世界里的投影" loading="lazy">
+  <p class="video-caption">📷 CRUD 的基本原理：物理世界在信息世界里的投影<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4650" target="_blank" rel="noopener">在 B 站中打开 (01:17:30)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_18_10.png" alt="normal form：用 id 而不是姓名来引用，铲除冗余的 dependency" loading="lazy">
+  <p class="video-caption">📷 normal form：用 id 而不是姓名来引用，铲除冗余的 dependency<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4690" target="_blank" rel="noopener">在 B 站中打开 (01:18:10)</a></p>
+</div>
+
+<h3 id="222-update">22.2 状态迁移：一次退学就是一次 UPDATE</h3>
+<p>然后我们一般来说会把这样的世界建模成<strong>状态</strong>：在任何时候这个状态就代表了，比如说在现在这个时间点上，<strong>南京大学有哪些学生、有哪些学生选了哪些课、有哪些老师</strong>等等。</p>
+<p>然后每当（发生一个操作）——我的信息系统就<strong>前后端分离</strong>嘛，这也是一个非常经典的前后端分离的架构——那如果比如说今天我选择<strong>退学</strong>（"我没有买到 token，然后我选择退学"），那就是一个 <strong>update 这个数据库的过程</strong>，然后它就从一个状态迁移到了下一个状态：</p>
+<pre class="highlight"><code class="language-mermaid">stateDiagram-v2
+    direction LR
+    S0[&quot;状态 S0&lt;br/&gt;学生 A 存在&quot;] --&gt; S1[&quot;状态 S1&lt;br/&gt;A 的记录不存在了&quot;]
+    S1 --&gt; S2[&quot;状态 S2&lt;br/&gt;…&quot;]
+    note right of S0
+        物理世界事件：退学
+        → 一次数据库 UPDATE / transaction
+    end note
+    note right of S1
+        始终是 consistent 的视图：
+        打开网页就看到当前状态的投影
+    end note
+</code></pre>
+
+<blockquote>
+<p>那这里就（是）状态：比如说我现在 A 还在，那在下一个状态里面 A 就没有了、A 这个记录就不存在了。那这就是一个<strong>始终是 consistent 的视图</strong>：我永远在教务系统里面打开那个网页，就看到这个东西的一个<strong>投影</strong>。</p>
+<p><strong>这是非常经典的架构，没有任何的错误。</strong></p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_19_20.png" alt="前后端分离下的状态迁移" loading="lazy">
+  <p class="video-caption">📷 前后端分离下的状态迁移<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4760" target="_blank" rel="noopener">在 B 站中打开 (01:19:20)</a></p>
+</div>
+
+<h2 id="23-crud">23. CRUD 为什么会死：丢掉的历史与无法解释的黑洞</h2>
+<p><em>(参考时间: 79:49)</em></p>
+<p><strong>但是但是但是</strong>——如果我们想想教务系统为什么不适合这样的一个 CRUD 架构：</p>
+<blockquote>
+<p>就是因为<strong>当前的状态</strong>里面——当我看这个当前状态的时候，我看到的是一片祥和的景象，但是<strong>这个当前状态所有的历史它丢掉了。</strong></p>
+</blockquote>
+<h3 id="231">23.1 一个字符串就能让数据库内部不一致</h3>
+<p>比如说如果我真的在某一个地方里面，学生的姓名存了两次——这是非常正常的：在某一个表里面姓名存了两次，因为这可能是一个<strong>字符串</strong>：这个字符串就是"（学位证）加学号，<strong>授予谁谁谁什么什么</strong>"，它没有用<strong>关联</strong>的方式，而用一个字符串（就）写到数据库里了。</p>
+<p><strong>那这个时候数据库内部就发生了不一致了。</strong></p>
+<h3 id="232">23.2 "是否允许毕业"：一个由历史算出来的列</h3>
+<p>所以比如说 GPT 给了我一个例子。它说：在<strong>学生表</strong>里面有 <code>student_id</code>，然后有一个 column 就叫 <strong>"是否允许毕业"</strong>。</p>
+<ul>
+<li>比如说你们现在（的）学分——你再上我的课，应该学分还不够——所以应该都<strong>不允许毕业</strong>；</li>
+<li>然后有的同学这个学分修够了，它就<strong>允许毕业</strong>。</li>
+</ul>
+<p>而这个"允许毕业"的这个 <code>1</code>，是<strong>有很多其他的状态算出来的</strong>，是因为之前有<strong>触发</strong>：比如说每当你修了一个学分、或者你的毕业设计状态改变等等的时候，它都要重新计算一个"你的这个是否毕业的逻辑"。</p>
+<blockquote>
+<p>因为这个东西对信息系统来说很重要：<strong>教务员老师、辅导员老师需要能够在教务系统里面导出"现在还毕不了业的学生"，要找你一个一个谈话。</strong> 他必须要在教务系统里才能（做到）——这是个很典型的需求点。</p>
+</blockquote>
+<p><strong>但是这样的东西是历史上的计算的 dependency，然后它们随着当前的状态都没有了：</strong></p>
+<blockquote>
+<p>你知道这个学生<strong>可以</strong>毕业，但是你不知道他<strong>为什么</strong>可以毕业；你知道他<strong>不能</strong>毕业，你不知道他<strong>为什么</strong>不能毕业。<strong>这个计算的过程丢掉了。</strong></p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_21_10.png" alt="“是否允许毕业”：一个由历史触发算出来的列" loading="lazy">
+  <p class="video-caption">📷 “是否允许毕业”：一个由历史触发算出来的列<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4870" target="_blank" rel="noopener">在 B 站中打开 (01:21:10)</a></p>
+</div>
+
+<h3 id="233">23.3 建模不了的物理世界，最后都变成黑洞</h3>
+<p>而计算的过程丢掉，这个软件又是<strong>现实世界物理过程的一个有损的投影</strong>，那么最后导致的是：<strong>物理世界里面我建模不了的，全部都需要通过其他的途径来解决。</strong></p>
+<ul>
+<li><strong>政策更新了</strong>：今天政策更新了、领导批准了这个培养计划新的方案，<strong>新的数据还没有导入到教务系统</strong>——你们经常遇到这个问题：<strong>不一致</strong>。物理事件已经发生了（这个培养计划已经通过了、学期已经开始了、我已经上课了），<strong>物理世界已经发生的事实，在系统里面没有建模。</strong></li>
+<li><strong>教室不能用</strong>：比如说这个教室还不能用——很典型的<strong>第一周</strong>，整个仙（林）一这一片都还在修，教室不能用。这一点教务系统显然没有建模；最后就靠他们<strong>手改</strong>、重新安排教室，我第一周就去另外一个教室上课了。</li>
+</ul>
+<blockquote>
+<p>然后这样慢慢随着时间的积累，你的系统里面会有<strong>大量不一致的数据</strong>，随着时间变成<strong>无法解释的黑洞</strong>：
+- 哎，明明这个同学不该（能）毕业的，他为什么毕业了呢？
+- 明明这个同学没有交学费、应该毕不了业的，为什么他能毕业呢？</p>
+<p><strong>系统里面就无数这样你想都不能想的不一致。</strong></p>
+</blockquote>
+<p><strong>所以你们在面对这种需求的时候，CRUD 就会死。</strong></p>
+<h2 id="24">24. "南大没系了"：改名引发的数据库迁移两难</h2>
+<p><em>(参考时间: 84:01)</em></p>
+<p>（现场演示时页面弹出"当前环境异常"——啊，我知道它对 Linux 很害怕。）</p>
+<p><strong>南大没系了。</strong> 我们是最后一批"系"，然后现在成为了<strong>计算机学院</strong>。</p>
+<p>好，在<strong>南大院系发生调整</strong>的时候，这个教务系统就<strong>瑟瑟发抖</strong>了。因为还是这样的 CRUD：它是一个 <strong>single point of truth</strong>——所有的事实都在这。</p>
+<p>那好，我们的这个 <code>department</code> 变了。那我应该是把旧的这个 department……我的世界里面实际上是一个<strong>对象</strong>（虽然是表嘛，它还是对象），这个表就叫"计算机（系）"。</p>
+<blockquote>
+<p><strong>那我要把它的 <code>name</code> 从"计算机系"改成"计算机学院"吗？要吗？——要也不对，不要也不对。</strong></p>
+</blockquote>
+<p><strong>如果改（update 这个 object）：</strong> 计算机系现在确实是变成计算机学院了，但是这意味着<strong>我的毕业记录</strong>——如果我 select 到系统里面查询，我就变成了"<strong>2011 年毕业于南京大学计算机学院</strong>"。</p>
+<blockquote>
+<p><strong>这个就属于事实不符了</strong>：因为我在 2011 年的时候（还是计算机系）。系统里面给我打印什么证明的时候，给我生成了这个东西——<strong>好糟糕。</strong></p>
+</blockquote>
+<p><strong>如果不改：</strong> 也很麻烦。因为你现在所有的这个 <code>department_id</code> 都指向计算机系，还是得把它改过来。你需要对它做一个<strong>数据库的迁移</strong>：你要创建一个新的对象，然后新的对象和旧的对象之间的这个关联关系，你还要把它考虑清楚。</p>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    Q{&quot;计算机系 → 计算机学院&lt;br/&gt;department.name 改不改?&quot;}
+    Q --&gt;|&quot;改（原地 UPDATE）&quot;| A[&quot;所有历史记录被改写&lt;br/&gt;2011 年毕业证明变成&lt;br/&gt;『毕业于计算机学院』&quot;]
+    A --&gt; A2[&quot;事实不符 ❌&quot;]
+    Q --&gt;|&quot;不改&quot;| B[&quot;所有 department_id&lt;br/&gt;仍指向已不存在的『计算机系』&quot;]
+    B --&gt; B2[&quot;必须做数据库迁移：&lt;br/&gt;建新对象 + 理清新旧关联 ❌&quot;]
+    A2 --&gt; C[&quot;根源：CRUD 假设&lt;br/&gt;『这个投影不变』&quot;]
+    B2 --&gt; C
+    C --&gt; D[&quot;一旦需求发生摧毁性变化&lt;br/&gt;每次都要迁移 + 重写业务逻辑&lt;br/&gt;而历史在 transaction 里消失了&quot;]
+    style A2 fill:#4a2020,stroke:#d96a6a,color:#fbe8e8
+    style B2 fill:#4a2020,stroke:#d96a6a,color:#fbe8e8
+    style D fill:#3d2f1f,stroke:#d9a44a,color:#fdf3e3
+</code></pre>
+
+<p>所以：</p>
+<blockquote>
+<p>如果你假设这个世界就是这样的、<strong>这个投影不变了</strong>，CRUD 当然是一个<strong>完美的架构</strong>。但是只要你假设这个需求会发生<strong>摧毁性的变化</strong>，那么这个数据库你每次都要这样想：<strong>你每次都会涉及一个数据库的迁移、业务逻辑的重写。</strong></p>
+<p>你代码是可以重写，但是<strong>你的历史（会）消失</strong>——因为这是一个 database 的 <strong>transaction</strong>，它 update 完了以后，就从这个状态彻底地挪到了新的状态。</p>
+</blockquote>
+<p>你做一次数据库的迁移，你就要考虑<strong>历史上所有可能发生的情况</strong>；而且何况这个数据库里面<strong>已经有很多的不一致了</strong>，你很难写出一个规则来迁移。你还要冒着<strong>数据库迁移完了以后这个数据库就坏掉了</strong>（的风险）——就像我那个把（缺课次数）改成 <code>1</code> 一样。</p>
+<blockquote>
+<p>因为你在你的<strong>测试环境</strong>里面做一次迁移，和你把一个<strong>真的、学校里面所有的数据</strong>都做一次迁移，这个难度是完全不一样的。</p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_25_30.png" alt="计算机系 → 计算机学院：改还是不改的两难" loading="lazy">
+  <p class="video-caption">📷 计算机系 → 计算机学院：改还是不改的两难<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5130" target="_blank" rel="noopener">在 B 站中打开 (01:25:30)</a></p>
+</div>
+
+<h2 id="25">25. 手艺活：一家公司，和一个研究生院的屎山</h2>
+<p><em>(参考时间: 87:18)</em></p>
+<p>所以你们就理解了，为什么现在——或者说到今天之前——软件的设计实现，<strong>ERP 这类的系统</strong>（不管是教务系统啊），<strong>它的设计、实现、维护都是手艺活。</strong></p>
+<p>就是，你看我调侃这个教务系统做得不好——它确实有做得不好的一面；但是你反过头来想，它作为一个软件工程的实践者：</p>
+<blockquote>
+<p>他可能这家公司在 <strong>2000 年</strong>的时候成立了，然后在 2000 年成立的时候，他做的<strong>唯一的选择</strong>就是参考一个已有的<strong>企业架构</strong>来做一个教务系统，来<strong>抢占这个教育市场的第一桶金</strong>。然后他把这个东西做出来了；做出来以后，它就是一个 <strong>CRUD 的系统</strong>。那他一旦背上这个技术债，他就要在这个<strong>中国大学教育改革几十年的时间里面不断地扛下所有</strong>。</p>
+<p><strong>所以这是一门手艺活。</strong></p>
+</blockquote>
+<h3 id="251-phd">25.1 我读 PhD 时室友的那个项目</h3>
+<p>这里面还有一些有意思的故事。我读 PhD 的时候，我们的软件工程组——我是软件所的，然后隔壁的软件工程组——接了学校<strong>研究生院的教务系统</strong>的这个订单，可能就<strong>二三十万</strong>吧。</p>
+<p>在大家来看可能是一个比较大的订单，实际上在（定制化）软件里面是比较小的订单——因为<strong>你要不停地维护这个屎山</strong>。</p>
+<p>但后来这个故事是：<strong>这个屎山维护不下去了。</strong></p>
+<p>我还记得我们当时刚读 PhD，那是我的<strong>室友</strong>，然后我就经常跟他抬杠：我会跟他聊"研究生院这个系统怎么设计"（那个时候叫研究生院），然后我就经常<strong>喷他</strong>，因为他是一个非常典型的 <strong>CRUD 架构</strong>。我说："你最后会面临各种各样的问题。"</p>
+<p><strong>果然</strong>就在那几年：</p>
+<ul>
+<li>我们的研究生发生了<strong>巨大的扩招</strong>；</li>
+<li>然后多了很多研究生的<strong>类型</strong>、<strong>培养的类型</strong>；</li>
+<li>而且研究生（大家知道）压力很大，经常会有这种<strong>调整</strong>。</li>
+</ul>
+<p><strong>这都是他们在做需求设计的时候始料未及的。</strong> 然后最后那个系统就彻底变成屎山，然后最后就……反正就不存在了嘛：<strong>现在统一变成公司维护的这个系统。</strong> 他们还是有一些领域知识，知道这些系统应该怎么把屎山给扶起来。</p>
+<h2 id="26-persistent-data-structure">26. 如果重做架构：persistent data structure 与三种等价的视图</h2>
+<p><em>(参考时间: 89:53)</em></p>
+<p><strong>但是如果我要重做一个教务系统的架构，我会怎么做呢？</strong></p>
+<p>我就会看到这个 <strong>single point of truth 太危险了</strong>：一旦你有任何的不一致，你都不知道应该怎么样把它拿出来。</p>
+<p>然后你就想到<strong>数据结构课上讲过一种非常神奇的东西，叫 persistent data structure</strong>：它可以得到这个数据结构<strong>所有的历史</strong>。</p>
+<h3 id="261">26.1 从"存一棵树"到"存所有版本的树"</h3>
+<p>也就是你存一个数据结构、存一棵树——<strong>那这就是 CRUD</strong>：你看数据库也是一个数据结构嘛，所以你当前就是存一个库，然后你对它做一个操作，它就到下一个状态——<strong>这就是经典的 CRUD。</strong></p>
+<p>但我还有另外一种：</p>
+<ul>
+<li>我可以<strong>一开始只有一个节点</strong>；</li>
+<li>然后有一个节点以后，我可以创建——下一次它（这棵）树不变了，那我就可以（复用），这个节点还在，我把这个节点放过来；</li>
+<li>然后如果我到有一天，比如说这个树变了——比如说我要在这个节点上新建一个——那我就把它<strong>到根的路径上面（复制）长出来一个</strong>，然后它的<strong>左子树可以指向它</strong>（旧的那棵）。</li>
+</ul>
+<blockquote>
+<p><strong>这个树无论多大，我其实都是可以存下来的。</strong></p>
+</blockquote>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    subgraph V1[&quot;版本 1&quot;]
+        R1((R1)) --&gt; A1((A))
+        R1 --&gt; B1((B))
+    end
+    subgraph V2[&quot;版本 2（改了右子树）&quot;]
+        R2((R2)) --&gt; A1
+        R2 --&gt; C2((C))
+    end
+    R1 -. &quot;只复制到根的路径&lt;br/&gt;左子树共享&quot; .-&gt; R2
+    style R1 fill:#1f3a5f,stroke:#4a90d9,color:#e8f0fb
+    style R2 fill:#1f3d2a,stroke:#4ad98a,color:#e8fbef
+</code></pre>
+
+<h3 id="262-delta">26.2 三种等价的视图：状态 / 日志 / delta</h3>
+<p>然后我可以<strong>存状态</strong>，也可以<strong>存操作</strong>，也可以<strong>存操作对状态的 delta</strong>——<strong>这三种视图是等价的</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>视图</th>
+<th>存什么</th>
+<th>你在哪门课学过</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>日志</strong></td>
+<td>write-ahead log / journal</td>
+<td>数据库、操作系统课</td>
+</tr>
+<tr>
+<td><strong>delta</strong></td>
+<td>每次操作对状态的增量</td>
+<td><strong>git、SVN</strong> 这样的版本管理里面的思想</td>
+</tr>
+<tr>
+<td><strong>状态</strong></td>
+<td>当前状态本身</td>
+<td><strong>CRUD</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>但它们都可以帮你回放历史，得到当前的状态。</strong></p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_30_30.png" alt="persistent data structure：共享子树，保留所有历史" loading="lazy">
+  <p class="video-caption">📷 persistent data structure：共享子树，保留所有历史<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5430" target="_blank" rel="noopener">在 B 站中打开 (01:30:30)</a></p>
+</div>
+
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_32_00.png" alt="状态 / 日志 / delta：三种等价的视图" loading="lazy">
+  <p class="video-caption">📷 状态 / 日志 / delta：三种等价的视图<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5520" target="_blank" rel="noopener">在 B 站中打开 (01:32:00)</a></p>
+</div>
+
+<h2 id="27-event-sourcing">27. Event sourcing：先把干的所有事情都记下来</h2>
+<p><em>(参考时间: 92:16)</em></p>
+<p>所以如果你想要设计一个更好的架构，<strong>最好是先把干的所有的事情都先记下来</strong>：今天张三退学了，今天张三又复学了。</p>
+<h3 id="271">27.1 "复学"这个需求之前没有被考虑过</h3>
+<p>你可以假想：<strong>之前这个世界没有"复学"这个操作。</strong> 没有复学这个操作，就是把张三从这个数据库里面<strong>抹掉</strong>——抹掉了它就抹掉了，他可能有一些记录就删掉了。你要把这些和他（相关的）、他和其他部分的关联<strong>重新给建起来</strong>，那你就要付很大的代价：你要加上"复学"这个操作（"他又买到 token 了"）。</p>
+<p><strong>然而如果你是用记录所有的操作的方式，你就可以通过 replay 知道张三复学前的状态是什么，然后你再把这个状态拿过来——它没有丢。</strong></p>
+<blockquote>
+<p>你的逻辑是不能减少的：即便使用记录日志、记录历史的方式，比如说"复学"这个事情之前没有考虑过，我<strong>依然要为它写一个逻辑</strong>。但是<strong>因为事实是不可篡改的、你世界里面所有东西都是对事实的投影</strong>，那你好像就<strong>有底气了一些，你就不怕错了</strong>。</p>
+<p>你就不会像刚才那样说"我要做一个数据库迁移的时候，<strong>我手在抖</strong>"——因为你总是知道，你任何一个做错了，你都可以很快地<strong>退回到过去的一个快照</strong>，然后再把这个逻辑做修复。</p>
+</blockquote>
+<pre class="highlight"><code class="language-mermaid">graph LR
+    E1[&quot;事件：张三入学&quot;] --&gt; L[&quot;Append-only 事件日志&lt;br/&gt;（不可篡改的事实）&quot;]
+    E2[&quot;事件：张三退学&quot;] --&gt; L
+    E3[&quot;事件：院系调整&lt;br/&gt;计算机系 → 计算机学院&quot;] --&gt; L
+    E4[&quot;事件：张三复学&quot;] --&gt; L
+    L --&gt;|replay| S1[&quot;过去任意时刻的快照&quot;]
+    L --&gt;|replay 裁剪出的相关历史| S2[&quot;当前状态&quot;]
+    S1 -.-&gt;|&quot;写错了逻辑? 退回快照再修&quot;| L
+    style L fill:#1f3a5f,stroke:#4a90d9,color:#e8f0fb
+</code></pre>
+
+<h3 id="272">27.2 计算机系 / 计算机学院的问题也好解了</h3>
+<p>然后你也可以看到：<strong>计算机系、计算机学院的问题相对来说也好解决一些了。</strong></p>
+<p>我可以在某一个时刻发生了一个事件，叫<strong>"院系调整"</strong>。然后：</p>
+<ul>
+<li><strong>你查询一个过去的人的时候，你会查询到他过去的版本</strong>，并且你知道他经历了这个（事件）。如果你要查询他过去比如<strong>毕业时候</strong>发生的事情，你直接查他毕业时候就可以。</li>
+<li><strong>如果你想要得到一个它比较新的信息</strong>，你可以看到投影出和这个人相关的（历史）：这个同学在比如说 <strong>2007 年入学、2011 年毕业</strong>，然后到这（期间）都是<strong>计算机系</strong>；然后计算机系在 <strong>2014 年</strong>改为了<strong>计算机学院</strong>。</li>
+</ul>
+<blockquote>
+<p>你看到，我可以<strong>裁出一个</strong>（和事实相关的历史）：你总是想要得到一个事实、当前的事实，你可以裁出一个和事实相关的历史，然后把这个相关历史 <strong>replay</strong> 得到我现在要的状态。</p>
+<p><strong>我可以查询过去，也可以查询现在——这就是一个好的架构设计。</strong></p>
+</blockquote>
+<div class="video-card screenshot-card">
+  <img src="images/shot_01_34_30.png" alt="院系调整作为一个事件：查询过去与查询现在" loading="lazy">
+  <p class="video-caption">📷 院系调整作为一个事件：查询过去与查询现在<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5670" target="_blank" rel="noopener">在 B 站中打开 (01:34:30)</a></p>
+</div>
+
+<h3 id="273-event-sourcing">27.3 恭喜你，你发明了 event sourcing</h3>
+<p>幻灯片上把这一刻写成了三行：</p>
+<blockquote>
+<ul>
+<li>数据结构可以记录"当前状态"，也可以记录"操作历史"；</li>
+<li><strong>状态由 replay 事件序列决定（语义 = 状态机）</strong>；</li>
+<li>祝贺，你发明了 <strong>event sourcing</strong>。</li>
+</ul>
+<p>还有一句"<strong>账本的直觉</strong>"：<strong>余额是结果，逐笔记录让我们知道结果从何而来。</strong></p>
+</blockquote>
+<p>然后<strong>恭喜你，你就发明了一个叫 event sourcing 的、非常经典的设计模式。</strong></p>
+<blockquote>
+<p><strong>它的想法很简单：从历史事件生成状态，而不是直接维护这个 CRUD 的状态。</strong></p>
+</blockquote>
+<p>你们可以回去在 agent 的带领下了解一下。</p>
+<p>然后你马上会反应过来：<strong>是不是会有性能问题？</strong> 因为要大量的 replay。<strong>但这都不是很大的问题</strong>：我们总可以比如说用<strong>快照、缓存</strong>各种各样的（方式）——它会有一些优化的技巧。</p>
+<p>然后这是一个（区别）：</p>
+<blockquote>
+<p>比如说你<strong>已经在屎山上</strong>了，你把它变成一个 event sourcing 的设计<strong>就会变得很困难</strong>；但是如果你<strong>从一开始就做 event sourcing 的设计</strong>，很多问题都不会发生，你就能比较好地解决。</p>
+</blockquote>
+<h3 id="274-fancy">27.4 那些 fancy 的概念，其实你都不需要</h3>
+<p>然后这样就有了很多这种 fancy 的软件工程概念：</p>
+<ul>
+<li>什么 <strong>CQRS</strong>（Command Query Responsibility Segregation）——但这和 event sourcing 是<strong>独立的</strong>；</li>
+<li>还有什么 <strong>domain-driven design</strong> 这种。</li>
+</ul>
+<blockquote>
+<p><strong>然后其实你们都不需要（先学这些）。</strong> 你们可以去看，但是你只要回到这个最初的 <strong>first principle</strong>：</p>
+<p><strong>你要设计一个 50 万行教务系统的时候，我们跳出这个问题，看到教务系统根源的问题在哪里，你就能做一个正确的架构设计——哪怕你没有听说过这些，你也能做一个正确的架构设计。</strong></p>
+</blockquote>
+<hr />
+<h2 id="_2">附：本讲的三条主线</h2>
+<pre class="highlight"><code class="language-mermaid">graph TD
+    A[&quot;主线一 · 需求&lt;br/&gt;需求永远说不清楚&lt;br/&gt;且不是一成不变的&quot;] --&gt; D[&quot;技术债&lt;br/&gt;technical debt&quot;]
+    B[&quot;主线二 · 架构&lt;br/&gt;架构 = 控制复杂性&lt;br/&gt;= 跳出问题看问题&quot;] --&gt; D
+    C[&quot;主线三 · AI&lt;br/&gt;实现已经变便宜&lt;br/&gt;杠杆换到了需求与架构&quot;] --&gt; D
+    D --&gt; E{&quot;50 万行的系统&lt;br/&gt;怎么活下来?&quot;}
+    E --&gt;|&quot;CRUD + single point of truth&quot;| F[&quot;历史丢失 → 不一致黑洞&lt;br/&gt;迁移时手在抖 → 屎山&quot;]
+    E --&gt;|&quot;记录事实 + replay&quot;| G[&quot;event sourcing&lt;br/&gt;可查询过去, 也可查询现在&quot;]
+    style F fill:#4a2020,stroke:#d96a6a,color:#fbe8e8
+    style G fill:#1f3d2a,stroke:#4ad98a,color:#e8fbef
+</code></pre>
+
+<hr />
+<h2 id="postscript">后记 Postscript：本书是如何生成的</h2>
+<p>本书由 B 站 AI 字幕（<code>ai-zh</code>，覆盖率 100%、2387 段、总时长 96 分 50 秒）经 AI 重构而成：口语转书面语、按内容自身逻辑分为 27 章（另加本篇后记）、绘制 8 张 Mermaid 图、插入 48 个截图锚点；截帧管线在已登录的浏览器里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；最终渲染为带截图放大（lightbox）与 Mermaid 交互的 HTML。</p>
+<p>与视频逐句对照的订正稿见 <code>transcript.corrected.txt</code>：先由脚本按本讲错词 MAP 修正（如 <code>java 系统 / 交互系统 / 撬务系统 → 教务系统</code>、<code>价格 → 架构</code>、<code>技术站 / 技术宅 → 技术债</code>、<code>淘宝号 / TPHONY / tao ho h诺尔 → 汉诺塔</code>、<code>get opp t / get a o p t → getopt</code>、<code>passer / passing → parser / parsing</code>、<code>video cup → VLOOKUP</code>、<code>卡牌 → lookup</code>、<code>史山 / 石山 / 使臣 → 屎山</code>、<code>南大没戏了 → 南大没系了</code>、<code>record is → Redis</code>、<code>二个C和阿个V → argc 和 argv</code>、<code>web code → vibe code</code> 等），再由 AI 通读全文做一轮行级订正（保留讲师原始字词与有意重复，仅修明显识别错误）。</p>
+<p><strong>本讲的一处已知瑕疵</strong>：官方章节把 00:00–15:03 标为"引言（后半音频翻车）"——录制现场讲者的机器输入设备全部失效（UI 与 OBS 推流仍正常），这一段音频质量明显下降，字幕在 07:50–08:10 一带尤其破碎；本书对该区间只做了保守归纳，未强行补全语义。</p>
+    </article>
+
+    <!-- Mermaid 图表引擎初始化 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({ startOnLoad: false, theme: 'default' });
+            
+            // 兼容普通代码块以及丢失 language-mermaid 类名的情况 (CodeHilite 干扰)
+            const codeNodes = document.querySelectorAll('pre code, .highlight code');
+            codeNodes.forEach(function(node) {
+                const text = node.textContent.trim();
+                // 匹配常见的 mermaid 图表前缀
+                if (text.startsWith('graph ') || text.startsWith('sequenceDiagram') || text.startsWith('gantt') || text.startsWith('pie') || text.startsWith('classDiagram') || text.startsWith('stateDiagram') || text.startsWith('mindmap')) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.className = 'mermaid';
+                    tempDiv.textContent = text;
+                    
+                    // 获取需要替换的最外层父节点 (比如 div.highlight 或者 pre)
+                    const wrapper = node.closest('.highlight') || node.parentNode;
+                    wrapper.replaceWith(tempDiv); 
+                }
+            });
+            
+            // 所有节点转换完成，统一进行图表动态绘制
+            mermaid.run();
+        });
+    </script>
+    <!-- Lightbox：截图点击放大 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const lightbox = document.createElement('div');
+            lightbox.className = 'lightbox';
+            lightbox.innerHTML = '<img alt=""><div class="lightbox-caption"></div>';
+            document.body.appendChild(lightbox);
+            const lbImg = lightbox.querySelector('img');
+            const lbCap = lightbox.querySelector('.lightbox-caption');
+            function openLightbox(src, alt) {
+                lbImg.src = src; lbImg.alt = alt || '';
+                lbCap.textContent = alt || '';
+                lightbox.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeLightbox() {
+                lightbox.classList.remove('open');
+                lbImg.src = '';
+                document.body.style.overflow = '';
+            }
+            document.querySelectorAll('.screenshot-card img').forEach(function(img) {
+                img.addEventListener('click', function() { openLightbox(img.src, img.alt); });
+            });
+            lightbox.addEventListener('click', closeLightbox);
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeLightbox(); });
+        });
+    </script>
+</body>
+</html>
