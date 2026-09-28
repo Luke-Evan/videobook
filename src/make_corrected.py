@@ -5,8 +5,13 @@
 句尾语气词剥离、单字口吃叠词折叠）。MAP 可按视频扩充。
 
 用法: python make_corrected.py <video_id> [<video_id> ...] | --all
+可选 --edits <corrections.json>：AI 校订提案作为 MAP 之后的第二遍叠加应用
+（逐条校验段号/原文/类别/理由/变更比例，源哈希防错版），并产出审计报告
+transcript.corrections.json；不传 --edits 时行为与旧版完全一致。
 """
 import argparse
+import difflib
+import hashlib
 import json
 import os
 import re
@@ -346,35 +351,115 @@ def correct(text: str):
     return text
 
 
+# ─────────────────────────────────────────────
+# AI 校订提案校验层（叠加在 MAP 之后的第二遍，思想借鉴 PR#1，保持 MAP 与口癖清理不变）
+# AI 提交 corrections.json：每条含 segment_index / original / replacement /
+# category / reason；脚本校验后应用并产出审计报告 transcript.corrections.json。
+# ─────────────────────────────────────────────
+
+CATEGORIES = {"proper_noun", "technical_term", "transcription", "punctuation", "segmentation"}
+
+
+def source_hash(segments) -> str:
+    """transcript.json segments 的指纹，防止校订提案基于错误版本。"""
+    canonical = json.dumps(segments, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def apply_ai_edits(segments, baseline: dict, proposal: dict, allow_large: bool = False):
+    """把 AI 提案应用到 MAP 之后的基线文本上。baseline: {segment_index: text}。
+
+    校验：源哈希一致、段号合法且不重复、段未被口癖清理删除、original 与基线逐字
+   一致、replacement 非空单行、category/reason 必填、大幅修改默认拒绝。
+    返回 (applied: {index: new_text}, report: [edit+change_ratio])。"""
+    if proposal.get("source_sha256") != source_hash(segments):
+        raise ValueError("source_sha256 不匹配：请基于当前 transcript.json 重新生成提案")
+    applied, report, seen = {}, [], set()
+    for edit in proposal.get("edits", []):
+        idx = edit.get("segment_index")
+        if type(idx) is not int or not 0 <= idx < len(segments) or idx in seen:
+            raise ValueError(f"segment_index 非法或重复: {idx!r}")
+        seen.add(idx)
+        if idx not in baseline:
+            raise ValueError(f"段 {idx} 已被口癖清理删除，不允许校订")
+        cur = baseline[idx]
+        if edit.get("original") != cur:
+            raise ValueError(f"段 {idx} original 与 MAP 后基线文本不一致")
+        rep = edit.get("replacement")
+        if not isinstance(rep, str) or not rep.strip() or "\n" in rep or "\r" in rep:
+            raise ValueError(f"段 {idx}: 禁止删除、空替换或多行替换")
+        if edit.get("category") not in CATEGORIES or not str(edit.get("reason", "")).strip():
+            raise ValueError(f"段 {idx}: 必须给出合法 category 与非空 reason")
+        ratio = 1 - difflib.SequenceMatcher(None, cur, rep).ratio()
+        if len(cur) >= 40 and ratio > 0.4 and not allow_large:
+            raise ValueError(f"段 {idx}: 大幅修改({ratio:.0%})，人工确认后加 --allow-large-edits")
+        applied[idx] = rep
+        if rep != cur:
+            report.append({**edit, "change_ratio": round(ratio, 4)})
+    return applied, report
+
+
 def main():
     ap = argparse.ArgumentParser(description="生成 AI 修正版字幕对照稿")
     ap.add_argument("video_id", nargs="*")
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--edits", metavar="JSON",
+                    help="AI 校订提案 corrections.json（叠加在 MAP 之后，仅限单个视频）")
+    ap.add_argument("--allow-large-edits", action="store_true",
+                    help="允许提案中逐条人工确认过的大幅修改")
+    ap.add_argument("--force", action="store_true",
+                    help="确认覆盖已存在的 transcript.corrected.txt（其中可能含人工/AI 行级订正）")
     args = ap.parse_args()
+    if args.edits and len(args.video_id) != 1:
+        ap.error("--edits 仅支持单个 video_id")
     ids = args.video_id or [d for d in sorted(os.listdir(os.path.join(BASE, "output")))
                             if os.path.isfile(os.path.join(BASE, "output", d, "transcript.json"))]
     for vid in ids:
         src = os.path.join(BASE, "output", vid, "transcript.json")
         segs = json.load(open(src, encoding="utf-8"))["segments"]
-        out_lines, dropped, fixed = [], 0, 0
-        for seg in segs:
+        entries, dropped, fixed = [], 0, 0
+        for i, seg in enumerate(segs):
             raw = seg["text"].strip()
             if raw in FILLER_ONLY:
                 dropped += 1
+                entries.append((seg, None))
                 continue
             txt = correct(raw)
             if txt != raw:
                 fixed += 1
             if not txt:
                 dropped += 1
+                entries.append((seg, None))
+                continue
+            entries.append((seg, txt))
+        baseline = {i: t for i, (seg, t) in enumerate(entries) if t is not None}
+        ai_edits = 0
+        if args.edits:
+            proposal = json.load(open(args.edits, encoding="utf-8"))
+            applied, report = apply_ai_edits(segs, baseline, proposal, args.allow_large_edits)
+            baseline.update(applied)
+            ai_edits = len(report)
+            with open(os.path.join(BASE, "output", vid, "transcript.corrections.json"),
+                      "w", encoding="utf-8", newline="\n") as f:
+                json.dump({"source_sha256": source_hash(segs),
+                           "segment_count": len(segs),
+                           "status": "applied_ai_edits",
+                           "edits": report}, f, ensure_ascii=False, indent=2)
+        out_lines = []
+        for i, (seg, txt) in enumerate(entries):
+            if txt is None:
                 continue
             h, m, s = seg["start"].split(":")
             mm = int(h) * 60 + int(m)
-            out_lines.append(f"[{mm:02d}:{s}] {txt}")
+            out_lines.append(f"[{mm:02d}:{s}] {baseline[i]}")
         dst = os.path.join(BASE, "output", vid, "transcript.corrected.txt")
+        if os.path.exists(dst) and not args.force:
+            sys.exit(f"{vid}: transcript.corrected.txt 已存在（可能含人工/AI 行级订正）；"
+                     f"确需覆盖请加 --force，或改用 --edits 叠加校订")
         with open(dst, "w", encoding="utf-8", newline="\n") as f:
             f.write("\n".join(out_lines) + "\n")
-        print(f"{vid}: {len(segs)} 段 -> {len(out_lines)} 行（修正 {fixed} 行，删除口癖段 {dropped}）")
+        print(f"{vid}: {len(segs)} 段 -> {len(out_lines)} 行（MAP 修正 {fixed} 行，"
+              f"AI 校订 {ai_edits} 行，删除口癖段 {dropped}）")
 
 
 if __name__ == "__main__":

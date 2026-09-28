@@ -50,6 +50,13 @@ def timestamp_to_seconds(ts: str) -> int:
 def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str, description: str, image_rel: str = None) -> str:
     """根据平台生成嵌入式视频播放器 HTML 卡片"""
     seconds = timestamp_to_seconds(timestamp) if timestamp else None
+    # 回链保留原 URL 的全部查询参数（如 B 站分 P 的 p=），仅覆盖时间戳 t
+    parsed = urlparse.urlsplit(video_url)
+    query = urlparse.parse_qs(parsed.query)
+    if seconds is not None:
+        query["t"] = [str(seconds)]
+    open_url = urlparse.urlunsplit(parsed._replace(query=urlparse.urlencode(query, doseq=True)))
+    page = query.get("p", ["1"])[0]  # B 站分 P 页码
 
     # 若已提供页内截图，则渲染静态截图卡片（真·截图模式）
     if image_rel:
@@ -61,7 +68,7 @@ def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str
 </div>'''
         return f'''<div class="video-card screenshot-card">
   <img src="{image_rel}" alt="{description}" loading="lazy">
-  <p class="video-caption">📷 {description}<br><a href="{video_url}?t={seconds}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
+  <p class="video-caption">📷 {description}<br><a href="{open_url}" target="_blank" rel="noopener">回到原视频 ({timestamp})</a></p>
 </div>'''
 
     if platform == "youtube":
@@ -76,12 +83,13 @@ def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str
 </div>'''
 
     elif platform == "bilibili":
-        embed_url = f"https://player.bilibili.com/player.html?bvid={video_id}&t={seconds}&autoplay=0&high_quality=1"
+        embed_url = (f"https://player.bilibili.com/player.html?bvid={video_id}"
+                     f"&page={page}&t={seconds}&autoplay=0&high_quality=1")
         return f'''<div class="video-card">
   <div class="video-wrapper">
     <iframe src="{embed_url}" frameborder="0" allowfullscreen scrolling="no" loading="lazy"></iframe>
   </div>
-  <p class="video-caption">▶ {description}<br><a href="{video_url}?t={seconds}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
+  <p class="video-caption">▶ {description}<br><a href="{open_url}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
 </div>'''
 
     # 未知平台，返回纯文本提示
@@ -127,6 +135,8 @@ def replace_screenshots_with_embeds(md_content: str, video_url: str, images_dir:
                      else "shot_" + ts.split('.')[0].replace(":", "_") + ".png")
             if os.path.exists(os.path.join(images_dir, fname)):
                 image_rel = "images/" + fname
+        if ts is None and image_rel is None:
+            return match.group(0)  # 幻灯片图缺失时保留原 Markdown，不生成空锚点卡片
         return make_video_card(platform, video_id, video_url, ts, desc, image_rel=image_rel)
 
     return re.sub(pattern, replacer, md_content)

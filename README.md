@@ -58,6 +58,15 @@ python src/course_assets.py <video_id> --apply-map <json>                       
   `--locate-slides` 抽样视频定位每页首现时间，`--weave` 自动修复（去重保留首次、缺失页插入对应小节、课堂未展示的页进附录）。
 
 
+## 🧪 测试
+
+```bash
+python -m pytest tests -q
+```
+
+覆盖视频卡片渲染（B 站分 P `page=`、回链 query 保留、截图/幻灯片卡片）与字幕校订校验层
+（源哈希锁定、原文逐字匹配、禁删段/多行/大幅修改等）。
+
 ## ⚠️ 常见踩坑指南
 
 1. **为什么 Youtube 无法获取字幕或者在内嵌的 iframe 卡片上显示 "视频配置错误(153)" 之类的错误？**

@@ -11,3 +11,6 @@ Pillow>=10.0.0
 # 本地 ASR 兜底（平台无字幕时，src/asr_transcript.py 使用；可选）
 faster-whisper>=1.0.0
 # Windows + NVIDIA 显卡还需: nvidia-cublas-cu12 nvidia-cudnn-cu12
+
+# 测试（dev）
+pytest>=8.0.0
