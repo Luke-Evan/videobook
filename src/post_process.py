@@ -49,10 +49,16 @@ def timestamp_to_seconds(ts: str) -> int:
 
 def make_video_card(platform: str, video_id: str, video_url: str, timestamp: str, description: str, image_rel: str = None) -> str:
     """根据平台生成嵌入式视频播放器 HTML 卡片"""
-    seconds = timestamp_to_seconds(timestamp)
+    seconds = timestamp_to_seconds(timestamp) if timestamp else None
 
     # 若已提供页内截图，则渲染静态截图卡片（真·截图模式）
     if image_rel:
+        if timestamp is None:
+            # 官方课件图：无视频时间锚点，仅图片 + 点击放大
+            return f'''<div class="video-card screenshot-card">
+  <img src="{image_rel}" alt="{description}" loading="lazy">
+  <p class="video-caption">🖼️ {description}</p>
+</div>'''
         return f'''<div class="video-card screenshot-card">
   <img src="{image_rel}" alt="{description}" loading="lazy">
   <p class="video-caption">📷 {description}<br><a href="{video_url}?t={seconds}" target="_blank" rel="noopener">在 B 站中打开 ({timestamp})</a></p>
@@ -103,6 +109,7 @@ def replace_screenshots_with_embeds(md_content: str, video_url: str, images_dir:
         r'!\[([^\]]*)\]\('
         r'(?:SCREENSHOT:(\d{2}:\d{2}:\d{2}(?:\.\d+)?)'
         r'|(?:images/)?shot_(\d{2})_(\d{2})_(\d{2})\.png'
+        r'|(?:images/)?slide_(\d{3})\.png'
         r')\)'
     )
 
@@ -110,11 +117,14 @@ def replace_screenshots_with_embeds(md_content: str, video_url: str, images_dir:
         desc = match.group(1)
         if match.group(2):
             ts = match.group(2).split('.')[0]
+        elif match.group(6):
+            ts = None  # 官方课件图，无时间锚点
         else:
             ts = ":".join(match.group(i) for i in (3, 4, 5))
         image_rel = None
         if images_dir:
-            fname = "shot_" + ts.split('.')[0].replace(":", "_") + ".png"
+            fname = ("slide_" + match.group(6) + ".png" if ts is None
+                     else "shot_" + ts.split('.')[0].replace(":", "_") + ".png")
             if os.path.exists(os.path.join(images_dir, fname)):
                 image_rel = "images/" + fname
         return make_video_card(platform, video_id, video_url, ts, desc, image_rel=image_rel)
@@ -156,7 +166,8 @@ def process_markdown(video_url: str, md_file: str):
     print(">> 正在将截图占位符替换为嵌入式视频播放器...")
     screenshot_pattern = (
         r'!\[[^\]]*\]\((?:SCREENSHOT:\d{2}:\d{2}:\d{2}(?:\.\d+)?'
-        r'|(?:images/)?shot_\d{2}_\d{2}_\d{2}\.png)\)'
+        r'|(?:images/)?shot_\d{2}_\d{2}_\d{2}\.png'
+        r'|(?:images/)?slide_\d{3}\.png)\)'
     )
     count = len(re.findall(screenshot_pattern, content))
 

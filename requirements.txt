@@ -6,6 +6,7 @@ markdown>=3.5.0
 
 imageio-ffmpeg>=0.6.0
 playwright>=1.40.0
+Pillow>=10.0.0
 
 # 本地 ASR 兜底（平台无字幕时，src/asr_transcript.py 使用；可选）
 faster-whisper>=1.0.0

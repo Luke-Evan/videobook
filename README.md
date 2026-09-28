@@ -34,10 +34,28 @@
 1. **抓取 字幕 (Scraping)**: 调用脚本 `python src/dump_transcript.py <url>` 剥离得到原始口语字幕 JSON。
    若平台侧根本没有字幕（作者未上传 CC、B 站 AI 字幕尚未生成），自动兜底 `python src/asr_transcript.py <video_id>`：
    用 yt-dlp 只拉音频轨，再交给本地 faster-whisper（large-v3）转写，产出**与平台字幕完全同构**的 `transcript.json`，后续各步零改动。
-2. **重写 编排 (Stitching)**: AI 利用大模型能力将乱七八糟的字幕提取要义改写为 Markdown，并在关键讲解处插入 `![描述](SCREENSHOT:00:15:30)` 时间戳指令占位。
+2. **重写 编排 (Stitching)**: AI 利用大模型能力将乱七八糟的字幕提取要义改写为 Markdown，并在关键讲解处插入 `![描述](SCREENSHOT:00:15:30)` 时间戳指令占位；若课程有官方主页，讲义同时作为术语/结构/参考链接的校准源（见下"课程官方资料增强"）。
 3. **截帧 插图 (Capturing)**：在已登录浏览器中直接截取平台播放器画面（画质直接来自平台，不下载任何媒体文件）：Codex 桌面环境首选 Chrome 扩展（@Chrome）；通用脚本 `python src/capture_frames.py` 使用专用截帧配置（`.capture-profile/`，一次性登录、长期复用登录态；Chrome 136+ 禁止对默认配置远程调试，故不触碰主 Chrome），失败后才兜底 `python src/extract_frames.py`（下载视频源用 ffmpeg 抽帧，文件保留至流程结束并询问用户是否删除）。两者都会把 `book.md` 中的占位符物化为真实图片链接（原标签稿自动备份为 `book.tagged.md`）；HTML 中的截图支持点击放大浏览。
 4. **渲染 网页 (Rendering)**: 调用 `python src/post_process.py <url> <md>` 把所有占位的锚点改造成 YouTube/B站原生轻量级 `iframe` 代码，并且注入极简暗色主题，把枯燥的 `.md` 内容最终渲染为可直接在线看的富文本 `.html`。
 5. **发服 预览 (Serving)**: 通过 Python 挂起一个简易的本地 HTTP 服务器。
+
+### 📚 课程官方资料增强（可选，强烈推荐）
+
+不少课程（如南大《生成式软件工程》 [jyywiki.cn/GSE/2026](https://jyywiki.cn/GSE/2026/)）在录像之外维护自己的主页：
+**讲义**（讲师本人的书面描述）与**幻灯片课件**。`src/course_assets.py` 把这两样变成流水线的一等公民：
+
+```bash
+python src/course_assets.py <video_id> --course-url https://jyywiki.cn/GSE/2026/   # 抓取讲义+课件并渲染 4K 幻灯片
+python src/course_assets.py <video_id> --course-url <url> --match-shots --no-render  # 感知哈希：视频帧 ↔ 幻灯片 候选
+python src/course_assets.py <video_id> --apply-map <json>                            # 用官方渲染图替换糊帧
+```
+
+- 讲义 → `output/<id>/course/*.notes.md`：第二步写书时用于术语校准、章节对齐、参考链接收集（stitcher prompt 已内置规则）；
+- 课件 → `course/slides/slide_NNN.png`（headless Chrome 渲染，3840×2160）：`book.md` 里可用 `![描述](SLIDE:n@HH:MM:SS)` 直接引用，
+  或截帧后用 `--match-shots` + `--apply-map` 把"画面即幻灯片"的视频帧升级为官方渲染图（原帧备份在 `images/video_frames/`）；
+- 讲义/幻灯片版权归讲师（本课程为 CC BY-NC 4.0），生成物自动在书首保留出处与许可署名。
+- **幻灯片覆盖铁律**：`--audit` 校验每页幻灯片在书中恰好出现一次（重复/遗漏即报错）；
+  `--locate-slides` 抽样视频定位每页首现时间，`--weave` 自动修复（去重保留首次、缺失页插入对应小节、课堂未展示的页进附录）。
 
 
 ## ⚠️ 常见踩坑指南

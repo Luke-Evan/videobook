@@ -43,12 +43,42 @@ python src/asr_transcript.py <video_id>
 - **耗时预期**：100 分钟课程在 RTX 3050 (4GB) 上约 35 分钟；期间可并行准备第三步的截帧环境与术语表。
 - 转写完成后，仍要执行覆盖率自检（脚本已内置），低于 50% 说明没跑完，重跑续写。
 
+### 第 1.5 步（增强）：抓取课程官方资料（若视频属于有公开主页的课程）
+
+不少课程在录像之外还维护自己的课程主页（讲义 + 幻灯片课件，如 `https://jyywiki.cn/GSE/2026/`）：
+讲义是讲师本人的书面描述（权威术语、章节骨架、参考链接），幻灯片则可渲染成 4K 图片，比任何视频帧都清晰。
+先确认该课程是否有主页（用户给出或自行搜索课程名），有则执行：
+
+```bash
+python src/course_assets.py <video_id> --course-url <课程主页> [--lecture N]
+```
+
+- 按视频标题自动匹配讲次（不匹配时用 `--list` 查看讲次表、`--lecture N` 手工指定）；
+- 产出 `output/<video_id>/course/`：`*.notes.md`（讲义 Markdown）、`slides_text.md`（每页幻灯片标题+要点）、
+  `slides/slide_NNN.png`（4K 渲染图），并把 `book.md` 里的 `![...](SLIDE:n@HH:MM:SS)` 占位符物化为官方图；
+- 渲染幻灯片要启动 headless Chrome，**需沙箱外执行**；只抓取不渲染（`--no-render`）沙箱内即可；
+- **幻灯片覆盖铁律**：官方幻灯片的 **每一页** 都必须在 `book.md` 中 **恰好出现一次**。交稿前自检：
+
+  ```bash
+  python src/course_assets.py <video_id> --audit            # 有重复/遗漏即以退出码 1 结束
+  python src/course_assets.py <video_id> --locate-slides    # 抽样视频，定位每页幻灯片的首次出现时间（截帧，需沙箱外）
+  python src/course_assets.py <video_id> --weave            # 自动修复：重复图去重保留首次、缺失页按首现时间插入对应小节、课堂未展示的页进附录；修复后自动复审
+  ```
+
+- 课程没有主页就跳过本步，后续流程完全不变。
+
+本步建议在**第二步生成 book.md 之后、第三步截帧之前**执行：SLIDE 占位符先被物化，
+`capture_frames.py` 只会补拍剩下的 SCREENSHOT 帧（它本来就只截缺失帧）。
+
 ### 第二步：阅读字幕 + 生成电子书
 
 1. 阅读生成的 `output/<video_id>/transcript.json` 文件。
-2. 阅读 `prompts/stitcher_system.md` 获取排版指令。
-3. 按照 Stitcher Prompt 的要求，将字幕重构为结构化的 Markdown 技术指南。
-4. 将生成的内容写入 `output/<video_id>/book.md`。
+2. 若 `output/<video_id>/course/` 存在，先读 `course/*.notes.md` 与 `course/slides_text.md`：
+   术语校准、章节骨架对齐、参考链接收集，规则见 `prompts/stitcher_system.md` 的"课程官方资料"一节。
+3. 阅读 `prompts/stitcher_system.md` 获取排版指令。
+4. 按照 Stitcher Prompt 的要求，将字幕重构为结构化的 Markdown 技术指南。
+5. 将生成的内容写入 `output/<video_id>/book.md`。
+6. 若 `course/` 存在：交稿前跑 `python src/course_assets.py <video_id> --audit`，必须 PASS（见第 1.5 步"幻灯片覆盖铁律"）。
 
 **关键要求：**
 - 必须将口语化内容转为书面化技术语言
@@ -126,6 +156,24 @@ python src/extract_frames.py <video_id> "<VIDEO_URL>"
 - win32 屏幕截取：接管用户屏幕，已从脚本中移除。
 - `--cookies-from chrome` 读取主 Chrome：Windows 上 Chrome 新版 App-Bound 加密使 yt-dlp 无法解密，不要默认使用。
 
+#### 官方幻灯片升级（course/ 存在时，截帧后执行）
+
+```bash
+python src/course_assets.py <video_id> --course-url <课程主页> --match-shots --no-render
+```
+
+脚本把每张 `images/shot_*.png` 与官方幻灯片渲染图做感知哈希比对，打印候选（distance 越小越像，
+≤55 通常是"画面即幻灯片"，>60 基本是演示/板书帧）。Agent 抽查确认后，把确认结果写成
+`{"shot_00_00_55": 1, ...}`（值 = 幻灯片编号）的 json，再执行：
+
+```bash
+python src/course_assets.py <video_id> --apply-map <json路径>
+```
+
+糊帧即被替换为 4K 官方渲染图，原视频帧自动备份到 `images/video_frames/`。
+**校验技巧**：讲师按顺序翻页，匹配出的幻灯片编号沿时间轴应单调不减；出现乱序的候选基本是误匹配。
+最后重跑第四步 `post_process.py` 生成新 HTML。
+
 #### 完成标志
 
 - `images/` 下每个时间戳都有对应的 `shot_HH_MM_SS.png`，`book.md` 中不再有 `SCREENSHOT:` 占位符。
@@ -152,6 +200,7 @@ python -m http.server 8080 --directory output/<video_id>
    - 关闭预览服务器：在终端按 `Ctrl+C`
 4. 若流程中产生过大媒体文件（如 `output/<video_id>/video_source.mp4`、`audio.m4a`），询问用户是否需要删除，得到确认后再删。
 5. 截图清晰度说明：截图为当前账号顶档的纯视频帧（非大会员通常为 720P）；如需更高清晰度，在专用配置窗口登录大会员账号后重跑 `capture_frames.py <video_id> <url>` 即可自动升级。
+6. 若本讲用了课程官方资料：说明书中幻灯片插图为官方 4K 渲染图（书首信息块已注明来源与 CC 许可），演示帧仍为视频帧；`course/` 目录可整体删除不影响阅读。
 
 ## 注意事项
 
@@ -162,6 +211,7 @@ python -m http.server 8080 --directory output/<video_id>
 - 如果用户提供的是 YouTube 链接且终端无代理，字幕抓取可能会失败
 - **沙箱/提权**：启动 Chrome / 读取浏览器 cookie 库的命令必须沙箱外执行：`dump_transcript.py`（B 站）、`capture_frames.py`、`capture_frames.py --setup-profile`；`post_process.py`、`http.server` 沙箱内即可。在 Codex 中对应 require_escalated 审批。
 - **cookies 安全**：自动导出的 cookies 写入系统临时目录、用完即删；不要在仓库里手放 cookies.txt（已被 .gitignore 忽略，但仍应避免）。
+- **课程资料依赖**：`course_assets.py` 的抓取/解析沙箱内可跑；渲染幻灯片启动 headless Chrome，需沙箱外执行；图像哈希匹配依赖 Pillow（已在 requirements.txt）。课程讲义/幻灯片版权归讲师所有（常见 CC BY-NC），生成物必须保留署名与许可说明（stitcher prompt 已强制）。
 - **可重跑性**：流水线各步幂等。若 `output/<video_id>` 被意外清理：重跑第一步恢复字幕；只要 `book.tagged.md` 还在，重跑第三步即可恢复截图（占位符清单读自 tagged 稿）。
 - 在生成或修改 HTML 时，请确保文本颜色与背景颜色的对比度符合 WCAG AA 标准（对比度至少 4.5:1）。
 
