@@ -5,7 +5,8 @@
 1. 读 `output/<video_id>/transcript.json`（`duration`、`chapters`、`segments`）。
 2. 若存在 `output/<video_id>/course/`：先读 `course/*.notes.md`（讲师书面讲义）与 `course/slides_text.md`
    （每页幻灯片标题 + 要点），用途见 `course-assets.md`。
-3. 读仓库内的 `prompts/stitcher_system.md` —— 它是**权威排版指令**，本文件不复制它，冲突时以它为准。
+3. 读排版指令（stitcher prompt）：仓库内存在 `prompts/stitcher_system.md` 时**以它为准**；
+   否则用本 skill 自带的同源副本 `references/stitcher-prompt.md`。两者不一致时以仓库版本为准，并回头同步副本。
 4. 按其要求把字幕重构成结构化 Markdown，写入 `output/<video_id>/book.md`。
 5. 若 `course/` 存在：交稿前跑 `python src/course_assets.py <video_id> --audit`，必须 PASS（铁律 8）。
 
@@ -14,7 +15,7 @@
 - 口语转书面化技术语言；分章节，用 `##` / `###` 组织并加恰当小标题。
 - 原语言不是中文时**必须翻译成地道中文书面语**。
 - 关键界面 / 操作步骤处必须插占位符：`![场景描述](SCREENSHOT:HH:MM:SS)`。
-- 遇到系统架构、执行流程流转、条件判断，**必须用 Mermaid** 画图（```` ```mermaid ```` 包裹，如 `graph TD`），不要只用文字描述。
+- 遇到系统架构、执行流程流转、条件判断，**必须用 Mermaid** 画图（`` ``mermaid `` 包裹，如 `graph TD`），不要只用文字描述。
 - 重要章节开头可保留时间锚点 `*(参考时间: 01:15)*` 方便读者溯源。
 - 视频中提到的代码用带语言标注的代码块给出；要点用粗体与无序列表。
 

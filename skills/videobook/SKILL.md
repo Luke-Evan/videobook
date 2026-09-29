@@ -11,13 +11,18 @@ metadata:
 `output/<video_id>/book.md` + `book.html`（内嵌播放器卡片、截图点击放大、Mermaid 图），
 可选 `transcript.corrected.txt` 字幕校订对照稿，并可发布到 GitHub Pages 供他人阅读。
 
-本 skill 是**编排层**：真正的逻辑都在仓库的 `src/*.py` 里，命令与参数一律以脚本 `--help` 为准。
-不要重写脚本逻辑，也不要把脚本内容（尤其是错词 MAP、stitcher prompt）复制进 skill —— 那会立刻腐化。
+本 skill 是**编排层**，并且**自包含**：agent 需要的指令全部在本目录内（`SKILL.md` + `references/`），
+不依赖仓库里的 `instructions.md` / `README.md`（那两份面向人类读者，保持原样、不由本 skill 维护）。
+唯一的外部依赖是流水线的可执行代码 `src/*.py`：命令与参数一律以脚本 `--help` 为准，不要重写脚本逻辑。
+易变数据（例如 `src/make_corrected.py` 里的错词 MAP）**不要**复制进 skill，只写规则并指向源文件；
+唯一例外是第二步的排版指令，本目录自带同源副本 `references/stitcher-prompt.md`（仓库版本优先）。
 
 ## 前置条件（首次运行必读）
 
-1. **工作目录 = 仓库根目录**，所有相对路径（`output/<video_id>/...`）都相对它解析。
-   仓库不在本地时先 clone 到用户的项目目录，不要在临时目录里跑。
+1. **工作目录 = videobook 仓库根目录**（判据：存在 `src/dump_transcript.py` 与 `prompts/`），
+   所有相对路径（`output/<video_id>/...`）都相对它解析。仓库不在本地时先
+   `git clone https://github.com/Luke-Evan/videobook.git` 到用户存放代码项目的目录
+   （不要放临时目录，也不要另建 projects 目录），再 `cd` 进去。
 2. Python >= 3.10（推荐 3.12）。装依赖：`uv sync`（用 uv 时）或 `pip install -r requirements.txt`。
    执行统一走仓库环境的解释器：`uv run python src/xxx.py` 或 `.venv/Scripts/python.exe src/xxx.py`。
 3. **一次性登录**：`python src/capture_frames.py --setup-profile` 弹出专用 Chrome（数据目录 `.capture-profile/`），
@@ -32,7 +37,7 @@ metadata:
 | 1 | 提取字幕 | `python src/dump_transcript.py "<URL>"` | `references/transcript.md` | B 站需 |
 | 1b | 平台无字幕时本地 ASR 兜底 | `python src/asr_transcript.py <video_id>` | `references/transcript.md` | 否（耗时长） |
 | 1.5 | 课程官方讲义 + 4K 幻灯片（可选） | `python src/course_assets.py <video_id> --course-url <课程主页>` | `references/course-assets.md` | 渲染需 |
-| 2 | 大模型把字幕改写成 `book.md` | 读 `prompts/stitcher_system.md` 后自行生成 | `references/writing.md` | 否 |
+| 2 | 大模型把字幕改写成 `book.md` | 按排版指令生成（`references/stitcher-prompt.md`，仓库 `prompts/stitcher_system.md` 存在时以它为准） | `references/writing.md` | 否 |
 | 2b | 字幕校订对照稿（可选） | `python src/make_corrected.py <video_id>` | `references/correction.md` | 否 |
 | 3 | 截帧并把占位符物化为图片 | `python src/capture_frames.py <video_id> "<URL>"` | `references/capture.md` | 是 |
 | 4 | 渲染 HTML + 起本地预览 | `python src/post_process.py "<URL>" output/<id>/book.md` 然后 `python -m http.server 8080 --directory output/<id>` | — | 否 |
@@ -64,9 +69,25 @@ metadata:
 5. 用了课程官方资料时，说明书中幻灯片插图是官方 4K 渲染图（书首已注明来源与 CC 许可），演示帧仍是视频帧，`course/` 目录可整体删除不影响阅读；
 6. 询问是否删除流程中产生的大媒体文件（铁律 9）。
 
+## 本目录内容（按需读取，不要一次性全读）
+
+| 文件 | 什么时候读 |
+|---|---|
+| `references/transcript.md` | 第一步抓字幕；平台无字幕要转本地 ASR |
+| `references/writing.md` | 第二步把字幕改写成 `book.md` |
+| `references/stitcher-prompt.md` | 第二步的排版指令原文（仓库 `prompts/stitcher_system.md` 存在时以仓库版本为准） |
+| `references/course-assets.md` | 课程有官方主页时的第 1.5 步、覆盖铁律、幻灯片升级 |
+| `references/correction.md` | 生成字幕校订对照稿与 AI 行级订正提案 |
+| `references/capture.md` | 第三步截帧：优先级、明确禁用的方式、QA 习惯 |
+| `references/publish.md` | 第六步发布到 `pages` 分支 |
+| `references/troubleshooting.md` | 任何报错、画质异常、字幕抓不到、提权被拒 |
+
 ## 维护约定
 
-- 本 skill 与流水线代码同仓库版本化：**改了 `src/*.py` 的参数、步骤顺序或铁律，必须同步改这里**。
-- 仓库根的 `instructions.md` 是给人和不支持 skill 的 agent 看的概览与指针，权威细节在本目录。
+- 本 skill 与流水线代码同仓库版本化：**改了 `src/*.py` 的参数、步骤顺序或铁律，必须同步改本目录**。
+- 仓库的 `instructions.md` 与 `README.md` 面向人类读者，保持原样、不由本 skill 维护，
+  **不要为了让 skill 生效去改它们**；内容与本目录重叠时，agent 以本目录为准。
+- 同步 `references/stitcher-prompt.md` 时，在文件头的来源注记里更新提交号。
 - 他人安装：`skill-installer` 用 `--repo Luke-Evan/videobook --path skills/videobook`；
   或 clone 后把本目录复制/软链到 `~/.codex/skills/`（仅 Codex）或 `~/.agents/skills/`（跨 agent）。
+- 本目录不含 cookies、登录态、`output/` 产物或任何媒体文件，可安全公开分发。
