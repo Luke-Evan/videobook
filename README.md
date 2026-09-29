@@ -13,6 +13,23 @@
    pip install -r requirements.txt
    ```
 
+## 🧩 作为 AI Skill 安装（推荐）
+
+本仓库自带一个 Codex Skill：[`skills/videobook/`](skills/videobook/SKILL.md)。装上之后 AI 助手会**自动识别**
+「把这个视频做成电子书」这类请求并按流水线执行，不必每次手动提醒它去读指令文档；SKILL.md 只放流程路由与铁律，
+细节拆在 `skills/videobook/references/` 里按需加载。
+
+- **在 Codex 里安装**：直接说「用 skill-installer 从 GitHub 仓库 `Luke-Evan/videobook` 的 `skills/videobook` 路径安装这个 skill」，
+  它会装到 `$CODEX_HOME/skills/videobook`，下一轮对话生效；也可以显式调用 `$videobook`。
+- **手动安装**：clone 本仓库后，把 `skills/videobook/` 复制或软链到 `~/.codex/skills/`（仅 Codex）
+  或 `~/.agents/skills/`（跨 agent 共享）。Windows 建议用 junction，保持单一来源、改代码即改 skill：
+
+  ```powershell
+  New-Item -ItemType Junction -Path "$env:USERPROFILE\.agents\skills\videobook" -Target "<仓库路径>\skills\videobook"
+  ```
+
+- **维护约定**：skill 与流水线代码同仓库版本化，改了 `src/*.py` 的参数、步骤顺序或铁律，必须同步改 `skills/videobook/`。
+
 ## 🚀 如何使用？(用户视角)
 
 **全自动托管！你唯一要做的就是把视频链接发给 AI。**
@@ -29,7 +46,7 @@
 
 ## ⚙️ 内部 Pipeline 运作原理 (Agent 侧)
 
-当你向助手发放链接任务时，本工具箱实质为其底层配置了一套五步组合流水线（参考指令文档 `instructions.md`）：
+当你向助手发放链接任务时，本工具箱实质为其底层配置了一套五步组合流水线（**权威操作手册见 Codex Skill [`skills/videobook/`](skills/videobook/SKILL.md)**，一分钟概览见 [`instructions.md`](instructions.md)）：
 
 1. **抓取 字幕 (Scraping)**: 调用脚本 `python src/dump_transcript.py <url>` 剥离得到原始口语字幕 JSON。
    若平台侧根本没有字幕（作者未上传 CC、B 站 AI 字幕尚未生成），自动兜底 `python src/asr_transcript.py <video_id>`：

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VideoBook 视频转电子书"
+  short_description: "把 YouTube / B 站视频做成图文 HTML 电子书"
+  default_prompt: "Use $videobook to turn this video into an illustrated e-book: <粘贴 YouTube 或 Bilibili 链接>"
