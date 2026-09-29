@@ -202,6 +202,19 @@ python -m http.server 8080 --directory output/<video_id>
 5. 截图清晰度说明：截图为当前账号顶档的纯视频帧（非大会员通常为 720P）；如需更高清晰度，在专用配置窗口登录大会员账号后重跑 `capture_frames.py <video_id> <url>` 即可自动升级。
 6. 若本讲用了课程官方资料：说明书中幻灯片插图为官方 4K 渲染图（书首信息块已注明来源与 CC 许可），演示帧仍为视频帧；`course/` 目录可整体删除不影响阅读。
 
+
+### 第六步（可选）：发布成品到 pages 分支
+
+`ash
+python src/publish.py <video_id>   # 或 python src/publish.py --all
+git push origin pages
+`
+
+- 将 book.html / book.md / images/ 以及（若存在）transcript.corrected.txt（AI 修正版字幕对照稿）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；落地页卡片对含对照稿的书自动附"字幕对照"入口；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
+- 纯本地 git 操作，沙箱内可跑；push 需网络。
+- 首次推送后需在 GitHub 仓库 Settings → Pages 一次性启用（分支 `pages`、目录 `/ (root)`），之后每次 push 自动部署。
+
+
 ## 注意事项
 
 - 工作目录始终为本仓库根目录（即本文件所在目录），所有相对路径（如 `output/<video_id>/...`）均相对于它解析
@@ -214,14 +227,3 @@ python -m http.server 8080 --directory output/<video_id>
 - **课程资料依赖**：`course_assets.py` 的抓取/解析沙箱内可跑；渲染幻灯片启动 headless Chrome，需沙箱外执行；图像哈希匹配依赖 Pillow（已在 requirements.txt）。课程讲义/幻灯片版权归讲师所有（常见 CC BY-NC），生成物必须保留署名与许可说明（stitcher prompt 已强制）。
 - **可重跑性**：流水线各步幂等。若 `output/<video_id>` 被意外清理：重跑第一步恢复字幕；只要 `book.tagged.md` 还在，重跑第三步即可恢复截图（占位符清单读自 tagged 稿）。
 - 在生成或修改 HTML 时，请确保文本颜色与背景颜色的对比度符合 WCAG AA 标准（对比度至少 4.5:1）。
-
-### 第六步（可选）：发布成品到 pages 分支
-
-`ash
-python src/publish.py <video_id>   # 或 python src/publish.py --all
-git push origin pages
-`
-
-- 将 book.html / book.md / images/ 以及（若存在）transcript.corrected.txt（AI 修正版字幕对照稿）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；落地页卡片对含对照稿的书自动附"字幕对照"入口；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
-- 纯本地 git 操作，沙箱内可跑；push 需网络。
-- 首次推送后需在 GitHub 仓库 Settings → Pages 一次性启用（分支 `pages`、目录 `/ (root)`），之后每次 push 自动部署。
