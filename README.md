@@ -2,118 +2,58 @@
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-提供一段 YouTube 或 Bilibili 的视频链接，AI 助手（如 Claude Code / Antigravity）将负责整理内容逻辑，并将视频中带有演示操作的时间锚点直接转为内嵌视频卡片，最终自动全产出生成高质量的技术图文电子书。
+给一段 YouTube 或 Bilibili 的视频链接，AI 助手会整理内容逻辑、把演示操作的时间锚点转成内嵌视频卡片与高画质截图，产出一本可在线阅读的技术图文电子书。
 
 ## 环境准备
 
-1. `Python >= 3.10`
-2. 克隆本仓库到本地环境
-3. 安装 Python 依赖:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1. `Python >= 3.10`，克隆本仓库
+2. 安装依赖：`pip install -r requirements.txt`（或 `uv sync`）
+3. 一次性登录：`python src/capture_frames.py --setup-profile`，在弹出的 Chrome 里扫码登录 B 站 / YouTube。登录态长期复用，账号档位决定截图清晰度上限。
 
-## 🚀 如何使用？(用户视角)
+处理海外视频时，终端与浏览器都需要走代理。
 
-**全自动托管！你唯一要做的就是把视频链接发给 AI。**
+## 两种用法（效果完全一样）
 
-1. 将当前的工作目录导入或者在此唤醒你的 AI 助手。
-2. 给它下达诸如像这样的一句话口语化自然语言指令：
-   > “请接管帮我把这个视频做成电子书：`https://www.bilibili.com/video/BVxxx/`，如果是海外视频，必要的话去使用我的系统代理或者指定带有大会员权限浏览器的 cookie。”
-3. 到这步为止你就可以泡杯咖啡休息了。助手内部会自动流转管道。
-4. 完事后，它将甩在你的聊天面板里这主要两样东西：
-   - 包含着精细化Markdown技术指南文章的文件：**`output/<视频ID>/book.md`**
-   - 甚至不用你手动敲起服务，它会贴心地帮你开启本地端口服务然后告诉你：**你现在可以去 `http://localhost:8080/book.html` 边看边互动啦！**
+两种方式跑的是同一套 `src/*.py`，产出相同，区别只在于「助手怎么知道该怎么做」。
 
----
+**① 直接用本仓库**：在仓库根目录唤醒你的 AI 助手（Codex / Claude Code / Antigravity 等），发一句话即可：
 
-## ⚙️ 内部 Pipeline 运作原理 (Agent 侧)
+> 请接管帮我把这个视频做成电子书：`https://www.bilibili.com/video/BVxxx/`
 
-当你向助手发放链接任务时，本工具箱实质为其底层配置了一套五步组合流水线（参考指令文档 `instructions.md`）：
+助手会按 [`instructions.md`](instructions.md) 执行整条流水线。
 
-1. **抓取 字幕 (Scraping)**: 调用脚本 `python src/dump_transcript.py <url>` 剥离得到原始口语字幕 JSON。
-   若平台侧根本没有字幕（作者未上传 CC、B 站 AI 字幕尚未生成），自动兜底 `python src/asr_transcript.py <video_id>`：
-   用 yt-dlp 只拉音频轨，再交给本地 faster-whisper（large-v3）转写，产出**与平台字幕完全同构**的 `transcript.json`，后续各步零改动。
-2. **重写 编排 (Stitching)**: AI 利用大模型能力将乱七八糟的字幕提取要义改写为 Markdown，并在关键讲解处插入 `![描述](SCREENSHOT:00:15:30)` 时间戳指令占位；若课程有官方主页，讲义同时作为术语/结构/参考链接的校准源（见下"课程官方资料增强"）。
-3. **截帧 插图 (Capturing)**：在已登录浏览器中直接截取平台播放器画面（画质直接来自平台，不下载任何媒体文件）：Codex 桌面环境首选 Chrome 扩展（@Chrome）；通用脚本 `python src/capture_frames.py` 使用专用截帧配置（`.capture-profile/`，一次性登录、长期复用登录态；Chrome 136+ 禁止对默认配置远程调试，故不触碰主 Chrome），失败后才兜底 `python src/extract_frames.py`（下载视频源用 ffmpeg 抽帧，文件保留至流程结束并询问用户是否删除）。两者都会把 `book.md` 中的占位符物化为真实图片链接（原标签稿自动备份为 `book.tagged.md`）；HTML 中的截图支持点击放大浏览。
-4. **渲染 网页 (Rendering)**: 调用 `python src/post_process.py <url> <md>` 把所有占位的锚点改造成 YouTube/B站原生轻量级 `iframe` 代码，并且注入极简暗色主题，把枯燥的 `.md` 内容最终渲染为可直接在线看的富文本 `.html`。
-5. **发服 预览 (Serving)**: 通过 Python 挂起一个简易的本地 HTTP 服务器。
+**② 作为 Skill 使用**：仓库自带 [`skills/videobook/`](skills/videobook/SKILL.md)，装上后助手会**自动识别**这类请求，不必每次提醒它去读指令文档。
 
-### 📚 课程官方资料增强（可选，强烈推荐）
+- 在 Codex 里说一句：用 skill-installer 从 GitHub 仓库 `Luke-Evan/videobook` 的 `skills/videobook` 路径安装
+- 或把 `skills/videobook/` 复制 / 软链到 `~/.codex/skills/`（仅 Codex）或 `~/.agents/skills/`（跨 agent）
+- 装好后新开任务发同一句话即可，也可以显式调用 `$videobook`
 
-不少课程（如南大《生成式软件工程》 [jyywiki.cn/GSE/2026](https://jyywiki.cn/GSE/2026/)）在录像之外维护自己的主页：
-**讲义**（讲师本人的书面描述）与**幻灯片课件**。`src/course_assets.py` 把这两样变成流水线的一等公民：
+完成后你会拿到 `output/<视频ID>/book.md`，以及本地预览地址 `http://localhost:8080/book.html`（助手会自动起服务）。
 
-```bash
-python src/course_assets.py <video_id> --course-url https://jyywiki.cn/GSE/2026/   # 抓取讲义+课件并渲染 4K 幻灯片
-python src/course_assets.py <video_id> --course-url <url> --match-shots --no-render  # 感知哈希：视频帧 ↔ 幻灯片 候选
-python src/course_assets.py <video_id> --apply-map <json>                            # 用官方渲染图替换糊帧
-```
+## 原理
 
-- 讲义 → `output/<id>/course/*.notes.md`：第二步写书时用于术语校准、章节对齐、参考链接收集（stitcher prompt 已内置规则）；
-- 课件 → `course/slides/slide_NNN.png`（headless Chrome 渲染，3840×2160）：`book.md` 里可用 `![描述](SLIDE:n@HH:MM:SS)` 直接引用，
-  或截帧后用 `--match-shots` + `--apply-map` 把"画面即幻灯片"的视频帧升级为官方渲染图（原帧备份在 `images/video_frames/`）；
-- 讲义/幻灯片版权归讲师（本课程为 CC BY-NC 4.0），生成物自动在书首保留出处与许可署名。
-- **幻灯片覆盖铁律**：`--audit` 校验每页幻灯片在书中恰好出现一次（重复/遗漏即报错）；
-  `--locate-slides` 抽样视频定位每页首现时间，`--weave` 自动修复（去重保留首次、缺失页插入对应小节、课堂未展示的页进附录）。
+五步流水线，**完整指令与全部细节见 [`instructions.md`](instructions.md)**：
 
+1. **抓字幕**：`src/dump_transcript.py`。平台没有任何字幕时自动用本地 faster-whisper 转写兜底（`src/asr_transcript.py`），产出与平台字幕同构的文件，后续步骤零改动。
+2. **课程官方资料增强（默认流程）**：`src/course_assets.py` 抓取课程主页的讲义与幻灯片。讲义用于术语、章节骨架与参考链接校准；幻灯片渲染成 4K 官方图，比任何视频帧都清晰。每讲都会先确认课程是否有主页，只有确认没有才跳过本步。
+3. **改写成书**：大模型按 `prompts/stitcher_system.md` 把字幕重构成结构化 Markdown，并在关键处插入 `SCREENSHOT:` / `SLIDE:` 占位。
+4. **截帧**：`src/capture_frames.py` 用已登录的浏览器直接截取平台播放器画面（不下载任何媒体文件），把占位符物化为图片。
+5. **渲染与预览**：`src/post_process.py` 把时间锚点换成 B 站 / YouTube 原生轻量 iframe、注入暗色主题，生成 `book.html` 并起本地服务。
 
-## 🧪 测试
+## 测试
 
 ```bash
 python -m pytest tests -q
 ```
 
-覆盖视频卡片渲染（B 站分 P `page=`、回链 query 保留、截图/幻灯片卡片）与字幕校订校验层
-（源哈希锁定、原文逐字匹配、禁删段/多行/大幅修改等）。
+覆盖视频卡片渲染（B 站分 P `page=`、回链 query 保留、截图/幻灯片卡片）与字幕校订校验层（源哈希锁定、原文逐字匹配、禁删段/多行/大幅修改等）。
 
-## ⚠️ 常见踩坑指南
+## 成品在哪里看
 
-1. **为什么 Youtube 无法获取字幕或者在内嵌的 iframe 卡片上显示 "视频配置错误(153)" 之类的错误？**
-   这并非脚本代码问题，而是网络审查与封锁。如果你打算处理海外视频，你必须：
-   - **终端走代理**：底层基于第三方库爬取时，才能去拿去它的字幕和源信息。
-   - **浏览器走全局代理**：如果你生成的页面上有 YouTube 内嵌 iframe 请求，其源来自于你本台机器发去的直连请求。如果没有挂梯打开这篇 HTML 电子书，依旧将会是一片黑块裂图。
+- 在线阅读：<https://luke-evan.github.io/videobook/>（`pages` 分支，需在 Settings → Pages 一次性启用）
+- 发布：`python src/publish.py <video_id>`（或 `--all`），然后 `git push origin pages`
+- `main` = 代码，`pages` = 成品（orphan 分支）；`output/` 是本地工作区，不进 git
 
-2. **为什么最后偏偏多加一步挂本地 HTTP Server 服务（`python -m http.server`）而不是直接用系统双击本地资源打开 .html 文件？**
-   由于跨域安全以及 Cookie 隐私保护协议问题，内嵌在线带有交互控制器的播放组件如果是在没有后端协议的本地静态环境（浏览器左上角地址栏为 `file:///...`），视频源将会强制拒载报错加载失败。所以必须通过本地 HTTP 服务解决该隐患缺陷。
+## 开源许可
 
-3. **专享和会员加密资源抓取受限？**
-   对于大会员等登录拦截权限视频，可以通过在内部提取命令后边挂载 `--cookies-from chrome` 的相关指令，向你所在的本地机器的相应常驻浏览器的 Cookie 中调用以通过验证拿到字幕文件！
-
-4. **在 AI 沙箱（如 Codex）里运行为何报"拒绝访问"？哪些命令需要沙箱外执行？**
-   本流水线的截帧与字幕抓取需要启动 Chrome / Playwright、读取浏览器 cookie 库，属于沙箱外权限。托管给 AI 助手时，以下命令应申请沙箱外执行（Codex 中即批准 require_escalated）：
-   - `python src/capture_frames.py <video_id> <url>`（启动无头 Chrome 截帧）
-   - `python src/capture_frames.py --setup-profile`（弹出 Chrome 供一次性登录）
-   - `python src/dump_transcript.py <url>`（yt-dlp 网络请求；B 站需登录态时会自动从 .capture-profile 导出 cookies，期间启动无头 Chrome）
-   纯本地步骤（`post_process.py`、`python -m http.server`）在沙箱内即可运行。
-
-5. **视频没有任何字幕怎么办？**
-   不少新上传的 B 站视频既没有 CC 字幕、AI 字幕也还没生成（`--list-subs` 只有 `danmaku`）。此时走本地 ASR 兜底：
-   ```bash
-   python src/asr_transcript.py <video_id> [--sample-start 900 --sample-dur 180]
-   ```
-   - 依赖 `faster-whisper`；有 NVIDIA 显卡时自动用 CUDA（显存 ≤4GB 建议 `--compute-type int8_float16`），无卡则 CPU int8。
-   - Windows 上若报 `Library cublas64_12.dll is not found`，装 `nvidia-cublas-cu12 nvidia-cudnn-cu12` 即可，脚本会自动注册 DLL 目录。
-   - 进度实时落盘 `_asr_progress.jsonl`，中断后重跑自动续写。
-   - 可在 `output/<video_id>/_asr_prompt.txt` 放一段本讲领域术语，用来压制同音错词并让中文输出带标点。
-   - 100 分钟课程在 RTX 3050 (4GB) 上约 35 分钟转写完；会产生约 90MB 的 `audio.m4a`，流程结束时按第五步询问是否删除。
-
-6. **自动导出的 cookies 会泄露吗？**
-   不会落在仓库里：`dump_transcript.py` / `login_utils.py` 导出的 cookies 写入系统临时目录、用完即删；`cookies.txt` 等模式已加入 `.gitignore`。若需更高清晰度（大会员档位），在 `--setup-profile` 窗口登录大会员账号即可，截帧管线会自动按顶档原生分辨率截取。
-
----
-
-## 📚 成品在哪里看？
-
-- **在线阅读（GitHub Pages）**：`https://luke-evan.github.io/videobook/` —— 落地页列出全部电子书，点击标题即可阅读（含截图放大、Mermaid 交互）。需在仓库 Settings → Pages 一次性选择分支 `pages` + `/ (root)`。
-- **分支布局**：`main` = 工具代码；`pages` = 成品（独立 orphan 分支，目录名 = 视频标题，如 `提示词工程 [02-Raw／26生成式软件工程／NJU]`）。
-- **发布方式**：`python src/publish.py <video_id>` 或 `python src/publish.py --all`，然后 `git push origin pages`。发布 `book.html / book.md / images/` 与（若存在）`transcript.corrected.txt`（AI 修正版字幕对照稿，落地页卡片附"字幕对照"链接）；原始字幕、transcript.json 等中间物不进公开仓库；`output/` 本地工作区不受任何 git 操作影响。
-
----
-
-## 📄 开源许可
-
-本项目采用 **Apache License 2.0** 许可，完整条款见 [LICENSE](LICENSE)。
-
-你可以自由使用、修改、分发本项目（包括商用），但需保留版权声明与许可声明，并说明修改内容；如项目含 `NOTICE` 文件，分发时需一并保留。
-本项目所引用的第三方库、以及由本项目生成的电子书中包含的课程视频画面与字幕，其版权归各自权利人所有，不在本许可授予范围内。
+Apache License 2.0，见 [LICENSE](LICENSE)。生成的电子书中所含课程视频画面、字幕、讲义与幻灯片，版权归各自权利人所有，不在本许可授予范围内。
