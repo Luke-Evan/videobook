@@ -205,10 +205,10 @@ python -m http.server 8080 --directory output/<video_id>
 
 ### 第六步（可选）：发布成品到 pages 分支
 
-`ash
+```bash
 python src/publish.py <video_id>   # 或 python src/publish.py --all
 git push origin pages
-`
+```
 
 - 将 book.html / book.md / images/ 以及（若存在）transcript.corrected.txt（AI 修正版字幕对照稿）提交到独立 orphan 分支 `pages`，目录名 = 视频标题；落地页卡片对含对照稿的书自动附"字幕对照"入口；不触碰 `output/` 与 main 工作区；内容无变化时自动跳过提交。
 - 纯本地 git 操作，沙箱内可跑；push 需网络。
@@ -221,7 +221,8 @@ git push origin pages
 - 所有 Python 命令使用 `python` 执行（不要用 `pip`，用 `python -m pip`）；本仓库若用 uv 管理则用 `.venv\Scripts\python.exe` 或 `uv run python`
 - **ASR 兜底稿同样是"原始字幕"**：`asr_transcript.py` 产出的 `transcript.json` 在后续步骤中与平台字幕完全等价，同样需要建立术语表、容忍同音错词、产出 `transcript.corrected.txt`。本地 large-v3 的错词率通常低于平台 AI 字幕，但仍需人工订正专有名词。
 - 所有外部工具（yt-dlp）通过 `sys.executable -m yt_dlp` 调用
-- 如果用户提供的是 YouTube 链接且终端无代理，字幕抓取可能会失败
+- **YouTube 要两头代理**：终端不走代理抓不到字幕与源信息；读者的浏览器不走全局代理，成书里的 YouTube iframe 会黑块裂图并报「视频配置错误 (153)」——这不是脚本问题，交付时要主动提醒用户
+- **预览必须走本地 HTTP 服务**：用 `file://` 双击打开 `book.html` 时，跨域与 Cookie 隐私策略会让内嵌播放器拒载报错，所以第四步固定用 `python -m http.server`，不要建议用户直接双击打开文件
 - **沙箱/提权**：启动 Chrome / 读取浏览器 cookie 库的命令必须沙箱外执行：`dump_transcript.py`（B 站）、`capture_frames.py`、`capture_frames.py --setup-profile`；`post_process.py`、`http.server` 沙箱内即可。在 Codex 中对应 require_escalated 审批。
 - **cookies 安全**：自动导出的 cookies 写入系统临时目录、用完即删；不要在仓库里手放 cookies.txt（已被 .gitignore 忽略，但仍应避免）。
 - **课程资料依赖**：`course_assets.py` 的抓取/解析沙箱内可跑；渲染幻灯片启动 headless Chrome，需沙箱外执行；图像哈希匹配依赖 Pillow（已在 requirements.txt）。课程讲义/幻灯片版权归讲师所有（常见 CC BY-NC），生成物必须保留署名与许可说明（stitcher prompt 已强制）。
