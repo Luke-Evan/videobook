@@ -62,10 +62,10 @@ def fetch(url: str) -> bytes:
 def parse_index(html_text: str):
     """Lecture rows: (n, title, notes_href, slides_href)."""
     lects = {}
-    for m in re.finditer(r'href="(lect(\d+)\.md)"[^>]*>([^<]+)</a>', html_text):
+    for m in re.finditer(r'href="(?:[^"]*/)?(lect(\d+)\.md)"[^>]*>([^<]+)</a>', html_text):
         lects[int(m.group(2))] = {"n": int(m.group(2)), "title": m.group(3).strip(),
                                   "notes": m.group(1), "slides": None}
-    for m in re.finditer(r'href="(slides(\d+)\.html)"', html_text):
+    for m in re.finditer(r'href="(?:[^"]*/)?(slides(\d+)\.html)"', html_text):
         n = int(m.group(2))
         lects.setdefault(n, {"n": n, "title": f"(lecture {n})", "notes": None})
         lects[n]["slides"] = m.group(1)
