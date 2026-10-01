@@ -1,10 +1,10 @@
 # 需求和架构（2）：设计一片会生长的解空间，让"现在"从"过去"计算而来
 
-> **原视频**：[Bilibili · BV1JGap6LE74](https://www.bilibili.com/video/BV1JGap6LE74/)（时长约 99 分钟）
-> **课程**：南京大学《生成式软件工程》（2026 秋）第 07 讲 · Raw 版
-> **课程官方资料**：[课程主页](https://jyywiki.cn/GSE/2026/) · [本讲讲义](https://jyywiki.cn/GSE/2026/lect7.md) · [本讲幻灯片](https://jyywiki.cn/GSE/2026/slides7.html)。本讲共 **39 页官方幻灯片**，每一页在书中 **恰好出现一次**（经 `course_assets.py --audit` 校验）；幻灯片插图均为**官方幻灯片的 4K 渲染图**（`course/slides/`，远比视频帧清晰），其余插图为现场演示 / 屏幕的视频帧。
-> **整理说明**：本书由 B 站 AI 字幕（`ai-zh`，覆盖率 100%、2379 段，总时长约 99 分 41 秒）经 AI 重构而成：口语转书面语、按内容逻辑重新分章，并修正了转录中大量同音错词（如 `价格 → 架构`、`DEXTRA / DASHA → Dijkstra`、`没必要的 → essential`、`x dental / C 弹头 → accidental`、`一般缩 ING / one source → Event Sourcing`、`吹倒夫尼 → trade-off`、`携程 / CORRINE → coroutine`、`县城 → 线程`、`IMEXX / WM → Emacs / Vim`、`SAAWK → sed、awk`、`金家兔 → Jinja`、`WSA98 → OOPSLA'98`、`tony 霍尔 / NO point → Tony Hoare / null pointer`、`EF 考 → E. F. Codd` 等）。关键时间点均标注 *(参考时间)*，点击截图卡片可放大查看。
+> **课程官方资料**：[课程主页](https://jyywiki.cn/GSE/2026/) · [本讲讲义](https://jyywiki.cn/GSE/2026/lect7.md) · [本讲幻灯片](https://jyywiki.cn/GSE/2026/slides7.html)
+>
 > **版权说明**：课程讲义与幻灯片系 © 蒋炎岩 作品，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by-nc/4.0/) 发布；本书为非商业学习笔记，引用图片与文字均保留署名。
+>
+> **本讲说明**：这是“需求与架构”两讲中的第二讲，继续追问同一个问题：**好的架构究竟替我们做了什么？当需求还在变化、未来还没有到来时，我们又能设计什么？** 讲者从 UNIX 的组合规则、关系数据库与 Internet，一路讲到 MVC / MVVM 与“把过去、现在和未来分开”，最后回到教务系统，把毕业结论变成一条可追溯的计算路径。
 
 ---
 

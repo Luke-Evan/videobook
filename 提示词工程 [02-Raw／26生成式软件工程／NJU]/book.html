@@ -292,9 +292,9 @@
     <article class="book-content">
         <h1 id="_1">提示词工程：从上下文工程到长程任务</h1>
 <blockquote>
-<p><strong>课程</strong>：南京大学《生成式软件工程》系列课程 · 第 02 讲
-<strong>视频来源</strong>：<a href="https://www.bilibili.com/video/BV1CQt365EzW">B 站 BV1CQt365EzW</a>（时长约 98 分钟）
-<strong>整理说明</strong>：本书由 AI 依据课程字幕重构而成，口语内容已转写为书面表述。各节附有参考时间锚点，可回溯视频原文。</p>
+<p><strong>课程官方资料</strong>：<a href="https://jyywiki.cn/GSE/2026/">课程主页</a> · <a href="https://jyywiki.cn/GSE/2026/lect2.md">本讲讲义</a> · <a href="https://jyywiki.cn/GSE/2026/slides2.html">本讲幻灯片</a></p>
+<p><strong>版权说明</strong>：课程讲义与幻灯片系 © 蒋炎岩 作品，依 <a href="http://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a> 发布；本书为非商业学习笔记，引用图片与文字均保留署名。</p>
+<p><strong>本讲说明</strong>：这一讲把“提示词”重新定义为完整的<strong>上下文工程</strong>：从系统提示词、配置文件、技能、工具定义到环境注入；再借模型的工作机制解释为什么<strong>可验证性是写好提示词的第一原则</strong>，最后给出让任务跨越不确定性的长程建议——用算力换智力，把人的精力留给真正重要的判断。</p>
 </blockquote>
 <h2 id="_2">前言</h2>
 <p>提示词（Prompt）是人与 AI 沟通的渠道，也是生成式软件工程中与机器协作的唯一接口。自 ChatGPT 时代起，人们在聊天框中给模型下达指令，AI 则返回文字、代码乃至图片。但今天课程要澄清的第一个事实是：<strong>提示词远不止对话框里的那一句话</strong>——Agent 真正看到的是跨越系统提示词、配置文件、技能、工具定义与环境注入的一整条超长上下文。因此，所谓"提示词工程"，本质上就是<strong>上下文工程（Context Engineering）</strong>。</p>

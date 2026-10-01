@@ -1,8 +1,10 @@
 # 软件仓库管理：从“作业 V1、V2”到 Git 的第一性原理
 
-> **原视频**：[Bilibili · BV1kybV6DE47](https://www.bilibili.com/video/BV1kybV6DE47/)（时长约 100 分钟）
-> **课程**：南京大学《生成式软件工程》（2026）第 03 讲 · Raw 版
-> **整理说明**：本书由视频语音经本地 ASR（faster-whisper large-v3）转录后，由 AI 重构而成，口语已转写为书面语，并修正了转录中的明显识别错误；关键时间点均标注 *(参考时间)*，点击截图卡片可跳转视频对应位置。
+> **课程官方资料**：[课程主页](https://jyywiki.cn/GSE/2026/) · [本讲讲义](https://jyywiki.cn/GSE/2026/lect3.md) · [本讲幻灯片](https://jyywiki.cn/GSE/2026/slides3.html)
+>
+> **版权说明**：课程讲义与幻灯片系 © 蒋炎岩 作品，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by-nc/4.0/) 发布；本书为非商业学习笔记，引用图片与文字均保留署名。
+>
+> **本讲说明**：这一讲从“GPT-6 发布了，但品位还没学会”讲起，先回答 AI 时代还要不要学操作系统和数据库，再从“U 盘加压缩包”的史前时代一步步推导出版本控制的需求，最后落到 Git 的 first principle 与 init / add / status / commit 四件套；课上的现场演示（让 AI 当代码审查员、写 hook、vibe coding 一个仓库可视化工具）比结论更值得看。
 
 ---
 

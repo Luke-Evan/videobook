@@ -292,9 +292,9 @@
     <article class="book-content">
         <h1 id="2traceabilityjj-agent">软件仓库管理（2）：Traceability、jj，与为 Agent 时代重设计版本控制</h1>
 <blockquote>
-<p><strong>原视频</strong>：<a href="https://www.bilibili.com/video/BV1Q6en6NEUo/">Bilibili · BV1Q6en6NEUo</a>（时长约 98 分钟）
-<strong>课程</strong>：南京大学《生成式软件工程》（2026）第 04 讲 · Raw 版
-<strong>整理说明</strong>：本书由视频 AI 字幕经 AI 重构而成，口语已转写为书面语，并修正了转录中的明显识别错误；关键时间点均标注 <em>(参考时间)</em>，点击截图卡片可跳转视频对应位置。</p>
+<p><strong>课程官方资料</strong>：<a href="https://jyywiki.cn/GSE/2026/">课程主页</a> · <a href="https://jyywiki.cn/GSE/2026/lect4.md">本讲讲义</a> · <a href="https://jyywiki.cn/GSE/2026/slides4.html">本讲幻灯片</a></p>
+<p><strong>版权说明</strong>：课程讲义与幻灯片系 © 蒋炎岩 作品，依 <a href="http://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a> 发布；本书为非商业学习笔记，引用图片与文字均保留署名。</p>
+<p><strong>本讲说明</strong>：承接上一讲。开场先发布 Lab 1“会成长的个人助手”，接着讨论文件系统的历史包袱、traceability 与 repo.db，以及“再也不看代码”带来的焦虑；之后用 jj（Jujutsu）对比 merge / rebase 的作者权困境，并针对“人是单线程的”“一个 agent 一个容器”这些新现实，重新设计提交速度与并发控制。</p>
 </blockquote>
 <hr />
 <h2 id="_1">目录</h2>
@@ -337,7 +337,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_01_30.png" alt="个人数据库与自动填表：Lab 1 的需求示例" loading="lazy">
-  <p class="video-caption">📷 个人数据库与自动填表：Lab 1 的需求示例<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=90" target="_blank" rel="noopener">在 B 站中打开 (00:01:30)</a></p>
+  <p class="video-caption">📷 个人数据库与自动填表：Lab 1 的需求示例<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=90" target="_blank" rel="noopener">在 B 站中打开 (00:01:30)</a></p>
 </div>
 
 <p>讲者讲了一个故事：疫情的时候他招过一个研究生，在他这里做了三年，做的就是一个<strong>自动填表系统</strong>——因为觉得填表很烦。等到毕业的时候突然有了 ChatGPT，学生很慌，觉得自己做的事情马上就要被替代了。讲者说：不要紧，你赶快答辩，就可以毕业了。<strong>这世界就是发展得这么快。</strong></p>
@@ -364,7 +364,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_05_40.png" alt="README 应该写什么：初衷、效果与最重要的设计" loading="lazy">
-  <p class="video-caption">📷 README 应该写什么：初衷、效果与最重要的设计<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=340" target="_blank" rel="noopener">在 B 站中打开 (00:05:40)</a></p>
+  <p class="video-caption">📷 README 应该写什么：初衷、效果与最重要的设计<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=340" target="_blank" rel="noopener">在 B 站中打开 (00:05:40)</a></p>
 </div>
 
 <p>他打了一个比方：有一天你突然想了一个非常好的点子，真的想用它去挣一个亿。要挣一个亿，你就要组建一个创业团队，要说服 computer science 里的人——比如说服讲者出来干。这时候你其实<strong>只需要一个比较短的 README</strong>：这是你的 intent，"我想做这个东西"。</p>
@@ -384,7 +384,7 @@
 <p>有些信息其实是比较容易表达的：我的 intent、spec，"这个地方我是怎么想的"的一条文档；或者这个测试用例是什么——输入是什么、输出是什么、我要 assert 在程序运行过程中什么东西不能被违反。<strong>但你马上就会发现，项目里有很多隐藏的关联是没有地方放的。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_08_40.png" alt="文档、代码与测试之间的隐藏关联" loading="lazy">
-  <p class="video-caption">📷 文档、代码与测试之间的隐藏关联<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=520" target="_blank" rel="noopener">在 B 站中打开 (00:08:40)</a></p>
+  <p class="video-caption">📷 文档、代码与测试之间的隐藏关联<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=520" target="_blank" rel="noopener">在 B 站中打开 (00:08:40)</a></p>
 </div>
 
 <p>举一个你们经常会在 AI 写代码时遇到的例子：</p>
@@ -403,7 +403,7 @@
 <p>这是一个非常软件工程的问题。所以很多时候我们觉得蛮有意思：文件系统将错就错了。但大家最后总有一天会发现：你用文件系统来管理代码，你受不了了——打个压缩包发布、打压缩包发给你的合作者——这件事情已经维护不下去了。<strong>所以就有了 SVN，有了 git。那下一个是什么？</strong> 大家有没有想过下一个是什么？讲者今天会讲另外一个、可能甚至比 git 更好用的版本控制工具；但他同时也觉得：如果以后我们再也不要写代码了，那软件就不应该是现在 git repo 里这样管理的。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_09_40.png" alt="traceability：2014 年的 review 与更老的研究" loading="lazy">
-  <p class="video-caption">📷 traceability：2014 年的 review 与更老的研究<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=580" target="_blank" rel="noopener">在 B 站中打开 (00:09:40)</a></p>
+  <p class="video-caption">📷 traceability：2014 年的 review 与更老的研究<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=580" target="_blank" rel="noopener">在 B 站中打开 (00:09:40)</a></p>
 </div>
 
 <h3 id="41-cycle-graph">4.1 把软件变成对象与关系：一个有 cycle 的 graph</h3>
@@ -428,7 +428,7 @@
 <p>这个东西比如说我可以把它放到一个数据库里，叫 <strong>repo.db</strong>。那显然人类就没有办法用现在 UNIX 世界里面的工具去维护这样的一个 repository 了。但不要紧——<strong>用魔法打败魔法</strong>：人类理解不了的东西，我们只要训练 AI；它只要有强化学习的反馈信号，我们就可以训练 AI，AI 能够理解这个 repo。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_11_40.png" alt="repo.db：文档、代码、测试构成的结构化图" loading="lazy">
-  <p class="video-caption">📷 repo.db：文档、代码、测试构成的结构化图<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=700" target="_blank" rel="noopener">在 B 站中打开 (00:11:40)</a></p>
+  <p class="video-caption">📷 repo.db：文档、代码、测试构成的结构化图<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=700" target="_blank" rel="noopener">在 B 站中打开 (00:11:40)</a></p>
 </div>
 
 <p>我们要干的是什么？这是一个非常大的项目：什么 Linux 内核、数据库，或者你们想做的一个价值一个亿的产品。每次你就说：好，AI——你也不太可能一下子说"我要把这个产品直接变成另外一个产品"；当这个软件系统已经在工作了，你一般来说就是要给它<strong>增加一个功能、修改一个功能</strong>。</p>
@@ -444,7 +444,7 @@
 <p>这个时候，一个大型软件系统里面绝大部分的内容跟这个小步都是没有关系的。比如讲者自己的 repo：顶层有 assets、有 <code>.cache</code> 缓存系统、有 P1 P2 P3 P4 P5、有一些脚本等等。<strong>任何一个软件系统，当你只做一小步的时候，你就只需要看到这个软件系统的一小部分，大部分东西应该是无关的。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_14_40.png" alt="一个真实 repo 的顶层结构：大部分内容与「这一小步」无关" loading="lazy">
-  <p class="video-caption">📷 一个真实 repo 的顶层结构：大部分内容与「这一小步」无关<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=880" target="_blank" rel="noopener">在 B 站中打开 (00:14:40)</a></p>
+  <p class="video-caption">📷 一个真实 repo 的顶层结构：大部分内容与「这一小步」无关<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=880" target="_blank" rel="noopener">在 B 站中打开 (00:14:40)</a></p>
 </div>
 
 <p>那既然是无关的，我们就可以让 AI 根据我们的 chat，把和我相关的东西给摘出来：它可以知道"哦，我现在需要的是这个文件、这个 test case 和这个文档，其他的东西都不需要了"。然后你想 AI 有什么能力？<strong>AI 有动态生成任何内容的能力——everything is code，content as code，code 可以表达任何东西。</strong> 所以 AI 可以根据我的 chat，生成一个和我要改的这一小步相关的 <strong>view</strong>。</p>
@@ -454,7 +454,7 @@
 <p><strong>它就从一个个各种错综复杂关系的一致状态，做一次小步的修改，到下一个一致的状态。</strong> 这样，软件工程就彻底变了。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_16_40.png" alt="数据库 view：把同一份数据以看板的形式展现" loading="lazy">
-  <p class="video-caption">📷 数据库 view：把同一份数据以看板的形式展现<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1000" target="_blank" rel="noopener">在 B 站中打开 (00:16:40)</a></p>
+  <p class="video-caption">📷 数据库 view：把同一份数据以看板的形式展现<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1000" target="_blank" rel="noopener">在 B 站中打开 (00:16:40)</a></p>
 </div>
 
 <h2 id="6">6. 再也不看代码？以及为此焦虑的人</h2>
@@ -474,7 +474,7 @@
 <p>讲者的回应大概是这样的：但是如果你真的往外面的世界去走一走，这个互联网开发者社区铺天盖地都是文档，所以你一定会在某一天留意过别人的项目里有一个叫 <strong>contributing.md</strong> 的东西。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_19_50.png" alt="contributing.md：仓库根目录下的贡献者指南" loading="lazy">
-  <p class="video-caption">📷 contributing.md：仓库根目录下的贡献者指南<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1190" target="_blank" rel="noopener">在 B 站中打开 (00:19:50)</a></p>
+  <p class="video-caption">📷 contributing.md：仓库根目录下的贡献者指南<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1190" target="_blank" rel="noopener">在 B 站中打开 (00:19:50)</a></p>
 </div>
 
 <p>一般来说 contributing.md 是仓库根目录下的一份<strong>贡献者指南</strong>，通常回答"我怎么参与这个项目"。你看它里面就有：项目的总体结构、分支、提交信息、PR 的规范和流程。如果你看过很多项目的 contributing.md，随手打开看一眼：如果里面东西你都知道了，那你就知道了；如果你不知道——比如说有一天你一定会看到一个项目里面说"你必须要在你自己的分支上 rebase，我们禁止你创建那种分叉的 merge，<strong>我们要保持线性历史</strong>"——你就会知道 rebase 是干什么的。</p>
@@ -483,7 +483,7 @@
 <p>当然我相信每一个同学也还是可以成为新人类的：你只需要有一些注意力，去注意到更多的东西。因为现在我有一个危机就是：<strong>AI 时代的斩杀线以下的价值就全部归零。</strong> 当然我觉得现在斩杀线可能还斩不到各位 985 大学 computer science 专业的同学，但是可能比如说那些低级的智力劳动——比如会计从业者，我看过一个报道说中国可能有一千万还是多少会计从业者——这个行业里面顶端的人肯定暂时还是没有威胁的，但在底下的大量的人都面临被 agent 替代、斩杀的危险。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_21_40.png" alt="斩杀线：AI 时代价值归零的分界线" loading="lazy">
-  <p class="video-caption">📷 斩杀线：AI 时代价值归零的分界线<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1300" target="_blank" rel="noopener">在 B 站中打开 (00:21:40)</a></p>
+  <p class="video-caption">📷 斩杀线：AI 时代价值归零的分界线<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1300" target="_blank" rel="noopener">在 B 站中打开 (00:21:40)</a></p>
 </div>
 
 <p>所以你们需要在这些经典的课程上——不管是什么操作系统、编译器，还是软件工程——学到一些经典的东西、里面有些软件工程的智慧，然后最终形成你们自己的理解。</p>
@@ -497,7 +497,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_23_10.png" alt="两路 merge：两个 parent 与作者归属问题" loading="lazy">
-  <p class="video-caption">📷 两路 merge：两个 parent 与作者归属问题<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1390" target="_blank" rel="noopener">在 B 站中打开 (00:23:10)</a></p>
+  <p class="video-caption">📷 两路 merge：两个 parent 与作者归属问题<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1390" target="_blank" rel="noopener">在 B 站中打开 (00:23:10)</a></p>
 </div>
 
 <h3 id="81-rebase">8.1 rebase 做了什么，以及它的风险</h3>
@@ -506,7 +506,7 @@
 <p>如果成功，这就比较好：我再把 test 放过来；如果成功，那它就一路相当于——<strong>也就是说这两条线上那边的修改完全没有任何冲突——我就可以一路把它合并过去，变成一个线性的历史。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_24_50.png" alt="rebase：把 B 的 feature 与 test 逐个搬到 A 的历史之后" loading="lazy">
-  <p class="video-caption">📷 rebase：把 B 的 feature 与 test 逐个搬到 A 的历史之后<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1490" target="_blank" rel="noopener">在 B 站中打开 (00:24:50)</a></p>
+  <p class="video-caption">📷 rebase：把 B 的 feature 与 test 逐个搬到 A 的历史之后<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1490" target="_blank" rel="noopener">在 B 站中打开 (00:24:50)</a></p>
 </div>
 
 <p><strong>但一旦发生冲突，这就非常危险了。</strong> 为什么呢？一旦冲突你就需要 resolve，你会进入一个 rebase 的模式——你们如果进入过这个模式，会发现瞬间自己就不知道应该怎么办了。然后这时候你就打开你的 agent 说"哎我现在发生了什么"，agent 会细心地解释给你。更麻烦的是：你就算是把 feature 搬过来了，搬 test 的时候可能又要失败，然后你还需要再把 test 搬过来。</p>
@@ -536,7 +536,7 @@
 <p><strong>它的底层模型没有变，但是你用起来会舒服很多。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_28_40.png" alt="jj：change 作为一等公民，携带冲突一路 rebase" loading="lazy">
-  <p class="video-caption">📷 jj：change 作为一等公民，携带冲突一路 rebase<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1720" target="_blank" rel="noopener">在 B 站中打开 (00:28:40)</a></p>
+  <p class="video-caption">📷 jj：change 作为一等公民，携带冲突一路 rebase<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1720" target="_blank" rel="noopener">在 B 站中打开 (00:28:40)</a></p>
 </div>
 
 <h3 id="91-staging-areahelloc">9.1 没有 staging area：hello.c 改到一半，导师来电话了</h3>
@@ -551,7 +551,7 @@
 <p>想象一下：如果你<strong>随时随地都在编辑这个 repo</strong>——这不就是一个 change 吗？你现在把 <code>hello.c</code> 改一改、加一行减一行，它都是 change。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_30_10.png" alt="stash 是一个栈：导师的两通电话与改到一半的 hello.c" loading="lazy">
-  <p class="video-caption">📷 stash 是一个栈：导师的两通电话与改到一半的 hello.c<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=1810" target="_blank" rel="noopener">在 B 站中打开 (00:30:10)</a></p>
+  <p class="video-caption">📷 stash 是一个栈：导师的两通电话与改到一半的 hello.c<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=1810" target="_blank" rel="noopener">在 B 站中打开 (00:30:10)</a></p>
 </div>
 
 <h3 id="92-jj">9.2 jj 的做法：每改一个字节，立即提交并抹掉上一次</h3>
@@ -566,7 +566,7 @@
 <p>所以你们是反过来的、跟我正好是反过来的：<strong>你们应该在现在还没有形成记忆的时候，就直接去用那个对的东西。</strong> 人类历史都是积累的嘛：SVN 实在用不下去了才用 git；然后发现了 git 的缺点以后有了 jj。所以你们可以的是：<strong>先用肌肉记忆记住一个最正确的设计，然后再去理解这个设计是怎么样。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_33_40.png" alt="三代人的肌肉记忆：SVN → git → jj" loading="lazy">
-  <p class="video-caption">📷 三代人的肌肉记忆：SVN → git → jj<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2020" target="_blank" rel="noopener">在 B 站中打开 (00:33:40)</a></p>
+  <p class="video-caption">📷 三代人的肌肉记忆：SVN → git → jj<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2020" target="_blank" rel="noopener">在 B 站中打开 (00:33:40)</a></p>
 </div>
 
 <p>你再回去想的时候：哦，原来 git 这么蠢？——在 git 出现的时候大家会想"哦 git 这么先进，它是一个 persistent data structure"；SVN 从一开始从纯 delta 那条线就走错了；到 git 的时候大家觉得很先进；然后到现在你再回去看：哦，原来 git 也犯了一些设计上的错误。当然这是因为它最早的时候没有想过 rebase 会有这么大的 impact——它有 merge 就已经很好了、就能解决它手上的问题了，所以它可能没有把这个概念模型想得更加的清楚。</p>
@@ -578,7 +578,7 @@
 <p>讲者一直在上操作系统课的时候讲并发程序，打的比方是：把线程想象成是一个人，你的线程可以访问共享内存；访问共享内存的时候两个基本的操作是 <strong>load 和 store</strong>（或者说 read 和 write）：我可以从一个变量里读一个值（把 X 读到我的临时变量里），或者我可以写 X 等于一。<strong>然后这个操作是不能同时进行的</strong>——我不能说既读一个又写一个，你这样就需要一个原子指令了。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_37_00.png" alt="单线程的人类：load 与 store 不能同时" loading="lazy">
-  <p class="video-caption">📷 单线程的人类：load 与 store 不能同时<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2220" target="_blank" rel="noopener">在 B 站中打开 (00:37:00)</a></p>
+  <p class="video-caption">📷 单线程的人类：load 与 store 不能同时<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2220" target="_blank" rel="noopener">在 B 站中打开 (00:37:00)</a></p>
 </div>
 
 <p>绝大部分的 shared memory access，你能想象成人是什么呢？<strong>如果我想要观察这个世界，那对不起，我手要背在后面，我只能看。</strong> 等我看完了——比如说我看到这个同学在这，我想要对他施加一个效果，我想用这个粉笔导弹射击他——那当我真正要 write、要写一个变量的时候，<strong>我必须要把眼睛闭起来</strong>。而我把眼睛闭起来扔的时候注意：<strong>我读到的那个值其实已经失效了</strong>——那个值已经是旧的值，是我上一个时刻读的。在上一个时刻到这个时刻之间可能经历了很多的事情：可能我被换 CPU 换下去了、我被中断打断了、然后换了另外一个线程上来执行、执行了一秒钟以后我才恢复过来；我恢复过来以后，我在寄存器里面看到的 X 值是我上次读的 X 等于一——然后这个时候我就把那个粉笔扔出去了，<strong>那很有可能就扔的是错的</strong>。</p>
@@ -591,7 +591,7 @@
 <p><strong>所以 git 是给人用的。但是在 agent 的时代这件事情变了。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_39_00.png" alt="提交速度：人类 10 分钟一级，agent 秒级" loading="lazy">
-  <p class="video-caption">📷 提交速度：人类 10 分钟一级，agent 秒级<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2340" target="_blank" rel="noopener">在 B 站中打开 (00:39:00)</a></p>
+  <p class="video-caption">📷 提交速度：人类 10 分钟一级，agent 秒级<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2340" target="_blank" rel="noopener">在 B 站中打开 (00:39:00)</a></p>
 </div>
 
 <p>如果是一个 agent team：单个 agent 首先生产 AI slop 的速度就远远快于人——它生成 slop 以分钟级为单位甚至更快；有时候你让它 fix 一个东西，它在上下文是热的时候可能就几十秒钟；DeepSeek 的 Flash 档干活的时候就几秒钟就做了。<strong>那以秒级——当 agent 工作的时候以秒级可以产生一个原子提交——并且你可以轻易地得到一个 10 倍、100 倍的 agent team 的时候</strong>，git 或者 jj（它举起来是跟 git 兼容的、这样一个为人设计的模型）就有点跟不上。</p>
@@ -602,7 +602,7 @@
 <p><strong>所以这件事情其实是非常容易实现的。</strong> 比如说：fancy project，好——我可以这样，嘶，这样也可以——好，我就直接让 agent 开干。然后我现在就是……agent 时代有点什么好呢？<strong>每个人都是领导。</strong> 你就是这个领导。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_42_40.png" alt="一个 agent 一个容器：git.nju.edu.cn + tmux 指令" loading="lazy">
-  <p class="video-caption">📷 一个 agent 一个容器：git.nju.edu.cn + tmux 指令<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2560" target="_blank" rel="noopener">在 B 站中打开 (00:42:40)</a></p>
+  <p class="video-caption">📷 一个 agent 一个容器：git.nju.edu.cn + tmux 指令<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2560" target="_blank" rel="noopener">在 B 站中打开 (00:42:40)</a></p>
 </div>
 
 <h3 id="131-tmux-sessionmaster-slave">13.1 现场演示：两个 tmux session，master 与 slave</h3>
@@ -610,7 +610,7 @@
 <p>Okay, anyway, it doesn't matter. 你看他们两个就开始工作了。<strong>当 AI agent 变快的时候你想一想：如果你的指挥发生一点点差错——或者哪怕甚至指挥就是对的——</strong> 现在一个流行的 paradigm 是：你有一个<strong>监工的 agent</strong>，然后你有好多个子 agent；有些比如说为了最大化模型的智力、防止 AI 生成你不想要的东西，你会放两个比较强的模型：<strong>比如说由 Codex 来设计，然后让 Claude 来 review，然后让他们互相打架、达成一致</strong>——你只要开两个 tmux 就行了。然后你的主座位呢，就负责协调：观看他们的输出、或者总结报告，然后往里面 inject prompt——然后这个多 agent 就这样转起来了。然后我看一下这个 report status。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_44_10.png" alt="两个 tmux session：master 指挥，slave 干活" loading="lazy">
-  <p class="video-caption">📷 两个 tmux session：master 指挥，slave 干活<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2650" target="_blank" rel="noopener">在 B 站中打开 (00:44:10)</a></p>
+  <p class="video-caption">📷 两个 tmux session：master 指挥，slave 干活<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2650" target="_blank" rel="noopener">在 B 站中打开 (00:44:10)</a></p>
 </div>
 
 <pre class="highlight"><code class="language-mermaid">graph TD
@@ -631,7 +631,7 @@
 <p><strong>提问其实是关键的。</strong> 你们可以在各种信息里——甚至比如说你今天早上走到教室的时候在看微信公众号，然后这个微信公众号上面说"来也 git worktree"，或者它提了一个什么样的 sandbox container——你就可以立即让 agent 来帮你试一试。然后我来看一看它在做什么：诶，这不是一个相对来说比较容易的任务吗？OK，它确实是在写脚本——哎你看它把 pad 推出来了，哦应该 OK 了。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_46_10.png" alt="Codex 设计、Claude review：两个强模型互相打架" loading="lazy">
-  <p class="video-caption">📷 Codex 设计、Claude review：两个强模型互相打架<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2770" target="_blank" rel="noopener">在 B 站中打开 (00:46:10)</a></p>
+  <p class="video-caption">📷 Codex 设计、Claude review：两个强模型互相打架<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2770" target="_blank" rel="noopener">在 B 站中打开 (00:46:10)</a></p>
 </div>
 
 <h3 id="141-worktree-git">14.1 worktree 的原理：.git 可以是一个文本文件</h3>
@@ -639,7 +639,7 @@
 <p>然后大家都知道 <code>.git</code> 是什么：<code>.git</code> 是一个目录，对吧？比如说我现在……大家都知道我的 <code>.git</code> 的是一个目录，然后它里面有一些比如说 logs、还有 objects——三种类型的对象。<strong>那 worktree 里面的 <code>.git</code> 是什么呢？</strong> 点开就是一个普通的文件、是一个文本文件。然后你如果继续追问 agent 的话，agent 会告诉你——这个也是我才知道的——就是：<strong>除了 <code>.git</code> 可以是一个目录以外，它还可以是一个这样的、只有这个格式的文件</strong>：这个文件说 <code>gitdir:</code>，然后它指向了一个 worktrees——这就是文件系统里面的一个文件。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_48_40.png" alt="worktree 的 .git：一个写着 gitdir: 的文本文件" loading="lazy">
-  <p class="video-caption">📷 worktree 的 .git：一个写着 gitdir: 的文本文件<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=2920" target="_blank" rel="noopener">在 B 站中打开 (00:48:40)</a></p>
+  <p class="video-caption">📷 worktree 的 .git：一个写着 gitdir: 的文本文件<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=2920" target="_blank" rel="noopener">在 B 站中打开 (00:48:40)</a></p>
 </div>
 
 <p>所以你看到：<strong>git 最大程度上复用了操作系统里面的机制。</strong> 这个 tree 就是一个小型的 git 目录——它是个小型的 <code>.git</code>，它依然有 head、index、locks 这些——一个微型的 git 目录；但它还是依附于原有的那个 git 目录而生的这样一个特性。这个特性在 AI 时代突然间变得诶好像有点有用：<strong>我们可以在这个里面提交，直接在本地互相可见，不需要互相的 pull 和 push。</strong></p>
@@ -650,7 +650,7 @@
 <p>也就是说我们人类的限制：我刚才说 10 分钟——一个小的 team 哪怕是一个团队都要 10 分钟产生一个 commit——所以是因为<strong>人的限制塑造了这个工具</strong>。人之间的 communication 导致了你每天早上都要开一次会议、同步一下各个人的进展、然后再把这个任务给分下去。而且就算是人做了这样的沟通，你也都知道：有的时候你的室友向你请教一个数学问题，明明你会做，你就怎么都没办法给他讲明白——除非你是一个很好的老师、能够共情别人在哪里会、能站在别人的角度去思考。<strong>沟通的成本就是很高的。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_52_40.png" alt="人月神话：两两之间平方级的沟通关系" loading="lazy">
-  <p class="video-caption">📷 人月神话：两两之间平方级的沟通关系<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=3160" target="_blank" rel="noopener">在 B 站中打开 (00:52:40)</a></p>
+  <p class="video-caption">📷 人月神话：两两之间平方级的沟通关系<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=3160" target="_blank" rel="noopener">在 B 站中打开 (00:52:40)</a></p>
 </div>
 
 <p>所以也是大厂和小厂、尤其是初创公司初创团队为什么效率可以更高：当软件系统大了、人多了以后，它沟通的效率变低了以后，它产出的速度也就降下来了。所以可能你一个 100 个人的团队，它不可能达到一个十人团队效率的十倍——<strong>可能有两倍三倍就已经挺不错了</strong>。团队没有办法变大。所以我们需要 git 的各种各样的 best practice：快照、小步的前进——你改一个 title 也要做一个 commit，你做一个什么也要一个 commit——然后这些小的 commit 每个都可以追溯：因为一旦出问题了以后，你需要回溯到那个人做事的 commit 那个时间，然后<strong>那个人是有记忆的</strong>：开发者会回想起来"哦，那天我们当天早上开了一个会，然后我收到要做这个需求，然后做这个需求时候沟通发生了一个问题"——大家找到那个时候的沟通记录文档，再说"啊我们这个地方应该怎么修正"。</p>
@@ -658,7 +658,7 @@
 <p>就是因为人可以 blame："这个事情我 blame 你；多了你就该被开掉了；实习生你就背锅了。" 但 <strong>agent 没有坐牢的、被开除的能力的时候，这个模型就变了</strong>：我们再也不需要 blame 了，我们的项目只要前进就可以了。我们前进有的时候也不需要知道到底是哪一个提交引入这个错误——我只要知道这个地方错了；我也不要再管它历史上是怎么造成这个错误的，<strong>我只要把这个错误修了就行了</strong>。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_53_40.png" alt="agent 没有坐牢的能力：blame 模型失效" loading="lazy">
-  <p class="video-caption">📷 agent 没有坐牢的能力：blame 模型失效<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=3220" target="_blank" rel="noopener">在 B 站中打开 (00:53:40)</a></p>
+  <p class="video-caption">📷 agent 没有坐牢的能力：blame 模型失效<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=3220" target="_blank" rel="noopener">在 B 站中打开 (00:53:40)</a></p>
 </div>
 
 <p>因为 agent 之间的 communication——尤其现在更好玩的是：<strong>我们的每个 agent 都是相同的模型</strong>。这也就是说它们是完全相同的克隆体：同一个事情让他们来做，他们大概率会收敛到——虽然模型还是有不确定性——还是会收敛到相同的结果。同样的 prompt 做同一件事可能有点细微的差别，但是最终的那个方向性的东西可能收敛到相同的结果。</p>
@@ -672,7 +672,7 @@
 <p>比如说我们有两条 SQL，然后这个 SQL 都是一个 transaction——它是一个很大的 SQL，中间可以混任何代码：你可以先比如说一个 select、select 一个什么；我这里也可以 select；然后我先读完以后我可以做代码的计算——比如说我就是 Python 代码或 JavaScript 代码，然后这个代码是图灵完备的，<strong>你永远不知道它会根据我看到的结果算出什么</strong>——我甚至也可以从外面、比如说根据我当前的时间再算一个什么东西；然后算完以后我再 update。然后 update 的时候就会产生冲突：这也就是说这个就可能产生死锁、也可能产生冲突——就是说如果这个 update 要读它，那就会产生一个循环依赖：有可能是产生这种数据的依赖，也可能是"我要锁你、你要锁我的对象"产生死锁。然后这个时候就会导致这个 transaction 的 abort：比如说这个 transaction 说"这个就不能进行下去了，对不起，因为我检测到一个循环的依赖，所以对不起我这个就不能做了，我要回滚"——相当于它要 roll back。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_55_40.png" alt="数据库事务：select → 图灵完备的计算 → update → 冲突/回滚" loading="lazy">
-  <p class="video-caption">📷 数据库事务：select → 图灵完备的计算 → update → 冲突/回滚<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=3340" target="_blank" rel="noopener">在 B 站中打开 (00:55:40)</a></p>
+  <p class="video-caption">📷 数据库事务：select → 图灵完备的计算 → update → 冲突/回滚<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=3340" target="_blank" rel="noopener">在 B 站中打开 (00:55:40)</a></p>
 </div>
 
 <h3 id="161-git">16.1 git 是乐观并发控制</h3>
@@ -683,7 +683,7 @@
 <p>你想想我们在操作系统里面——这是在数据库里面做的——我们在操作系统里面学的并发控制，你们是用什么做并发控制啊？<strong>上锁。</strong> 锁和数据库里面的 transaction 是有点不一样的：你是 lock 一个。我上课时经常说：<strong>一把大锁保平安。</strong> 做实验你们就知道了：当我想要访问可能冲突的资源的时候，我会先把它锁住——说我先要 acquire 一把锁；然后这把锁一旦 acquire 时候，别人想要再 lock 的时候，那对不起，这个上锁的就必须要等到——等到 release 以后。acquire-release 的关系建立起来就<strong>必须是先一后二</strong>，而不是这种 optimistic 的"大家先往前跑、跑了再说"。我必须是在使用这个资源之前，我要 declare 对这个资源的使用——用上锁的方式。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_00_40.png" alt="悲观锁：先 declare、先上锁，再使用资源" loading="lazy">
-  <p class="video-caption">📷 悲观锁：先 declare、先上锁，再使用资源<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=3640" target="_blank" rel="noopener">在 B 站中打开 (01:00:40)</a></p>
+  <p class="video-caption">📷 悲观锁：先 declare、先上锁，再使用资源<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=3640" target="_blank" rel="noopener">在 B 站中打开 (01:00:40)</a></p>
 </div>
 
 <p>所以你看：只有你在这个操作系统课、数据库课你真的把这些东西学会了，你回来想的时候：软件工程里面哦，这些概念又再做一次。</p>
@@ -709,7 +709,7 @@
 <p>我们为什么现在觉得还需要软件工程？就是因为我们现在没有办法做到一句话就直出一个高质量的产品。如果斩杀线到了——到了这个：老板有一个想法，就说"我要做一个 agent 用的微信"，随口说一说；或者说做一个 AI 时代的微信，然后这个微信是一个社交爆款，以后这些人社交可能也就不要用微信了、就用它——当然你可能有个更具体的想法、为什么你有一些思考——<strong>然后如果这时候 AI 直接就能出那个微信级的产品，那软件工程就已经死了</strong>，对吧？那我们就都死了。但是呢，现在这个斩杀线暂时还没有到——至少没有到这个团队管理这一层面——所以我们可能还要学。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_04_50.png" alt="如果 AI 能直出微信级产品，软件工程就死了" loading="lazy">
-  <p class="video-caption">📷 如果 AI 能直出微信级产品，软件工程就死了<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=3890" target="_blank" rel="noopener">在 B 站中打开 (01:04:50)</a></p>
+  <p class="video-caption">📷 如果 AI 能直出微信级产品，软件工程就死了<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=3890" target="_blank" rel="noopener">在 B 站中打开 (01:04:50)</a></p>
 </div>
 
 <p>真的，我也要被拆掉：因为摩尔定律本质上也是用 scaling law，它现在还是成立的——模型肯定会更强、更小、更快，然后也许算力就有一天能够唤出我们的智能。<strong>但今天至少 AI 还不知道怎么做团队的管理</strong>：因为每当你多一个人的时候，这个沟通的关系都是平方级的上升的。因此现在软件工程团队里面最难招的其实不是码农，是<strong>那个能把任务分解的 team leader</strong>：最难招的是那种能把"国民级的应用"——他说我要去造一个微信——然后那个微信他还能够分出来：我一个 100 人的团队能分出十个小团队，然后十个人、十个 team leader 干，最后加起来我拼起来还能成为一个团队——<strong>这个人最稀缺</strong>。然后下一个：那个能够带领小团队的人，其实也很稀缺。</p>
@@ -724,7 +724,7 @@
 <p>就比如说我现在简单一点：两个盘子。我现在移过来——这个方向移是可以的、这个方向移是可以的、这个方向移也是可以的——就是只能往一个方向移动；当然折过来、折回去，我不允许。两个盘子的时候还行；<strong>三个盘子的时候就可以看出问题了</strong>：如果我要移三个盘子的话，我希望的是先把两个移到中间——假设两个已经移到中间了——那这时候我下一个就是把这个盘子从这里移到这里，对吧？这是汉诺塔的正常移法。<strong>但是在这个限制下你是做不到的</strong>：在这个限制下你不能把它移到这儿，你只能往一个方向移动。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_08_40.png" alt="受限汉诺塔：所有盘子只能往一个方向移动" loading="lazy">
-  <p class="video-caption">📷 受限汉诺塔：所有盘子只能往一个方向移动<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4120" target="_blank" rel="noopener">在 B 站中打开 (01:08:40)</a></p>
+  <p class="video-caption">📷 受限汉诺塔：所有盘子只能往一个方向移动<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4120" target="_blank" rel="noopener">在 B 站中打开 (01:08:40)</a></p>
 </div>
 
 <p>好，你很难想象小学生要做这样的题。然后他要输出这个方案、或者输出这个数字。反正 n 也不是很大，但是你确实需要一个方案、需要理解这个问题。</p>
@@ -732,7 +732,7 @@
 <p>我拆开来讲是因为：我准备了一个小例子。我写了一个这样的程序：好，没问题——就是我刚才说的：如果我的下一个目标不是目标的话，我只有最大的盘子总是向右移一个、再向右移一个，所以它是最优的——就是我最大的盘子的那个移动是最少的、是不可避免的；然后剩下的也就基于 inductive、归纳法，我这个也是最优的。有点难，对吧？你很难想象小学生那样可以做这样的题。<strong>但这不重要。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_12_00.png" alt="准备好的汉诺塔程序：最大盘子总向右移一个即最优" loading="lazy">
-  <p class="video-caption">📷 准备好的汉诺塔程序：最大盘子总向右移一个即最优<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4320" target="_blank" rel="noopener">在 B 站中打开 (01:12:00)</a></p>
+  <p class="video-caption">📷 准备好的汉诺塔程序：最大盘子总向右移一个即最优<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4320" target="_blank" rel="noopener">在 B 站中打开 (01:12:00)</a></p>
 </div>
 
 <h3 id="181-ai-deepseek-token">18.1 增值服务：AI 助教与开始燃烧的 DeepSeek token</h3>
@@ -740,7 +740,7 @@
 <p>那如果我要挣钱的话，我要提供增值服务：现在现在还只是一个纯粹的 playground——你可以写代码、可以运行它。然后到这个时候我就要提供一个 <strong>AI 助教</strong>：比如说这个小朋友——当然这个是不是不太好啊，这个开玩笑的——我们还是尽可能以一个便宜的成本提供给小朋友们：当你实在做不下去的时候，你就可以点一个这个叫"我要助教"——<strong>然后这个时候 DeepSeek 的 token 就开始燃烧</strong>。然后这样我可以收取比这个 DeepSeek 原价更贵的 token 费，记在你的账户上。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_13_10.png" alt="playground：可视化随代码运动，错了就能找到 bug" loading="lazy">
-  <p class="video-caption">📷 playground：可视化随代码运动，错了就能找到 bug<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4390" target="_blank" rel="noopener">在 B 站中打开 (01:13:10)</a></p>
+  <p class="video-caption">📷 playground：可视化随代码运动，错了就能找到 bug<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4390" target="_blank" rel="noopener">在 B 站中打开 (01:13:10)</a></p>
 </div>
 
 <p>因为我的 prompt 是我独门的：我作为一个有经验的老教师，我可以把我自己蒸馏成 prompt，然后我可以敏锐地知道这个小朋友的问题在哪里，然后给他提供一个个性化的指导。好，我就这个时候我就涉及到<strong>要做一个信息系统</strong>了。那做这个信息系统啊——因为我有学生来做这个事、我自己没有时间——我竟然有这么大的这个市场的钱、我竟然都不想挣——然后学生在设计；然后我看了那个学生和 AI 聊完那一版设计，然后我也让那个 GPT 起来就是大概梳理了一下需求。好，这个是 GPT 的原话，他说：</p>
@@ -749,7 +749,7 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_14_10.png" alt="GPT 的正统设计：一个 API 应用、一个关系数据库、一个对象存储" loading="lazy">
-  <p class="video-caption">📷 GPT 的正统设计：一个 API 应用、一个关系数据库、一个对象存储<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4450" target="_blank" rel="noopener">在 B 站中打开 (01:14:10)</a></p>
+  <p class="video-caption">📷 GPT 的正统设计：一个 API 应用、一个关系数据库、一个对象存储<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4450" target="_blank" rel="noopener">在 B 站中打开 (01:14:10)</a></p>
 </div>
 
 <h2 id="19-gpt-vs-git-commit">19. GPT 的正统设计 vs 我的设计：先 git commit，再谈数据库</h2>
@@ -759,7 +759,7 @@
 <p>然后我们说这个 playground：我难道不是应该——<strong>我的学生每改一次</strong>（比如说我现在 edit 了、或者我点运行了、或者我切换了）——<strong>我就自动做一个 git commit 嘛</strong>？然后我就可以把 AI 的点评——比如说当我申请 AI 助教的时候它转圈圈——我就可以在这个 git 提交上面产生一个分叉，对吧？这是一个 comment。<strong>咳，GPT 没有算的是：我产生一个这个东西的成本，远远大于把剩下的东西 persist 下来的成本</strong>——就这个成本是忽略不计的。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_16_10.png" alt="在 git 提交上产生分叉：AI 点评作为 comment" loading="lazy">
-  <p class="video-caption">📷 在 git 提交上产生分叉：AI 点评作为 comment<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4570" target="_blank" rel="noopener">在 B 站中打开 (01:16:10)</a></p>
+  <p class="video-caption">📷 在 git 提交上产生分叉：AI 点评作为 comment<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4570" target="_blank" rel="noopener">在 B 站中打开 (01:16:10)</a></p>
 </div>
 
 <p>而当我用这个数据库的时候，我确实得到了一些好处：比如说总体压缩的可能更小了、性能更高了。<strong>但是这其实不是我想要的：因为我的本质、我的需求是版本管理。</strong> 所以我甚至在最早期的时候，我可以把我的代码库和这个东西连在一起：把它放在我的代码库里——小朋友的代码就直接存在我的代码库里；然后我可以探索性地在这上面创建 git 的历史记录；然后直到我认为整个的——比如说文件目录的格式、commit message 的格式、然后我怎么样使用这些文件——都收敛了，然后我再把它迁移到数据库。<strong>这都是可以的。</strong> 我觉得这个就还是挺好玩的：你们学任何东西都是有用的——你学 git 是有用的、你学这个 multi-agent 的管理你会——你就能够有一个机会去想到一个和别人不一样的、不太一样的设计。</p>
@@ -769,7 +769,7 @@
 <p>我们有两种办法：第一种是直接然后直接回车——对吧，这个其实我觉得对于每个同学来说你们都可以体验一下，当然我今天来替大家体验。啊我觉得更好的方式是……这是什么啊？我们来观察一下它会做什么。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_19_00.png" alt="现场打开课程作业：直接丢给 agent" loading="lazy">
-  <p class="video-caption">📷 现场打开课程作业：直接丢给 agent<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4740" target="_blank" rel="noopener">在 B 站中打开 (01:19:00)</a></p>
+  <p class="video-caption">📷 现场打开课程作业：直接丢给 agent<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4740" target="_blank" rel="noopener">在 B 站中打开 (01:19:00)</a></p>
 </div>
 
 <p>就是——有时候 AI 的直觉和人的直觉就有点不太一样：像一线模型，它会进入一个 <strong>plan mode</strong>，它会跟你再确认、可能会再确认一些事实，然后它再会生成一个 workflow。然后如果你们看过——其实挺好玩的：比如像 Claude Code，当它需要执行一个比较复杂的任务的时候，它会生成一段 JavaScript、一段 TypeScript，然后这个 script 里面有一个函数叫 <code>agent</code>，然后这个 agent 它里面是一个自然语言；当它用这种方式来组织 workflow，它甚至可以有循环：就是说我有好多任务，然后它可以在循环上面来解决这个 workflow。</p>
@@ -781,26 +781,26 @@
 <p>你回头看那个实验的要求：这个实验要求其实是言外之意——其实是这一句话叫"<strong>实现一个持续为你工作的个人助手</strong>"——这句话最重要；其他的话相对来说就没有那么重要，这些只是一些解读。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_22_20.png" alt="实验要求的言外之意：一句话最重要" loading="lazy">
-  <p class="video-caption">📷 实验要求的言外之意：一句话最重要<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=4940" target="_blank" rel="noopener">在 B 站中打开 (01:22:20)</a></p>
+  <p class="video-caption">📷 实验要求的言外之意：一句话最重要<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=4940" target="_blank" rel="noopener">在 B 站中打开 (01:22:20)</a></p>
 </div>
 
 <p>那你们觉得——当然每个人都有自己的观点——对你们来说，如果你想实现一个你的个人助手，什么最重要？就你实现的第一个 feature 是什么？你想实现什么？最大的、就是你在可能一个月以内遇到的最大的痛点问题？<strong>学习</strong>：嗯，对吧，高效的学习和复习——因为你们要卷成绩，所以这毫无疑问是最重要的。一个学习排版方案：你可以最好是这 agent 能够自动从外网上面收集数据，然后把它以一个层次化的方式归档，然后最终并且给我一个比较好的界面。<strong>对吧，这是你最想要的。然后你看，我估计它十有八九没有。</strong></p>
 <p>我来看一下：我要问他——"其实我想要的是一个比较好的学习助手：能收集外部信息、然后综合总结、根据我的进度学习看哪部分——能实现我这个功能诶？" 对吧，读一读、读一读……然后它在做 database。你看它在做 database。嗯，可以可以这样说啊：<strong>就是在没有你精心设想过、讨论过的这个时候，AI 基本上就只会生成 slop。</strong> 你看它 email 没有——也就是说其实你要的、就你脑袋里所想的那个东西——<strong>这就是我说的你的 intent、你的 specification，是有巨大 gap 的。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_23_20.png" alt="agent 在做 database：而你要的是学习助手" loading="lazy">
-  <p class="video-caption">📷 agent 在做 database：而你要的是学习助手<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5000" target="_blank" rel="noopener">在 B 站中打开 (01:23:20)</a></p>
+  <p class="video-caption">📷 agent 在做 database：而你要的是学习助手<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5000" target="_blank" rel="noopener">在 B 站中打开 (01:23:20)</a></p>
 </div>
 
 <p>然后但是当你一旦——对吧这个模型看到说"你要实现这个"的时候，它就真的是真的去实现它了。然后我觉得肯定是做了一些不好的事情：比如说虽然当我提一卡通的时候，我真正需要的是一个 <strong>browser use agent</strong>——它能帮我在各种网页上面处理一卡通，只是作为一个测试的出口——它能把我的个人信息到一卡通上面；所以我可能第一步实现的就不需要去在你的教务系统上面做太多的设计：<strong>你作为过渡设计反而不好。</strong> 然后这个就是和刚才我给大家看的那个例子非常相关的：<strong>你看起来它做的所有的事情都是对的——从 README.md 来看它做的所有的事情都是正确的，没有一个错误——但最终它得到了一个你不想要的东西。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_25_20.png" alt="README 看起来全对，但做出来的东西不是你要的" loading="lazy">
-  <p class="video-caption">📷 README 看起来全对，但做出来的东西不是你要的<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5120" target="_blank" rel="noopener">在 B 站中打开 (01:25:20)</a></p>
+  <p class="video-caption">📷 README 看起来全对，但做出来的东西不是你要的<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5120" target="_blank" rel="noopener">在 B 站中打开 (01:25:20)</a></p>
 </div>
 
 <p>所以我看现在有没有 git 提交了：<strong>它甚至都没有创建一个 git repository。</strong> 对吧，这就是你看，你不跟它讲。当然我觉得可能如果是 Codex 的话，它可能还是会初始化一个目录、或者它会问你这个项目应该怎么管理。就如果比如说我是一个成熟的产品经理的话，老板跟我说这个以后，我肯定会跟我的团队去沟通一下项目怎么管啊——<strong>这个就在甚至在我写下第一行代码之前，我都要讨论好协作怎么做啊、项目怎么管啊、每天什么时候开会啊。</strong> Agent 很好玩：它就直接上手，就做它觉得 OK 的。这就是一个用一次就丢掉的一个东西的感觉。它烧了我不少 token——也无所谓了，我参与 DeepSeek 的内测，它送了我 1000 块的额度，到现在还没有完全用完。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_26_20.png" alt="它甚至都没有创建一个 git repository：用一次就丢掉的产出" loading="lazy">
-  <p class="video-caption">📷 它甚至都没有创建一个 git repository：用一次就丢掉的产出<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5180" target="_blank" rel="noopener">在 B 站中打开 (01:26:20)</a></p>
+  <p class="video-caption">📷 它甚至都没有创建一个 git repository：用一次就丢掉的产出<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5180" target="_blank" rel="noopener">在 B 站中打开 (01:26:20)</a></p>
 </div>
 
 <p><strong>所以你们在刚开始的时候，还是回到项目管理：脑袋里面要有一个这样的模型——你不能直接把任务就丢给 agent。</strong> 你现在想的是：先，第一件事一定是创建一个空的这个（repo）；然后创建完了以后你就会想：你的下一步要迈向哪里？对吧，下一步我也给大家展示了：不能这样。下一步不能是这样的——<strong>你需要的是往前再迈一小步，慢，往前再迈一小步。</strong> 所以你发现：现在 AI 从零开始做一个东西、做出来 slop 的难度，比它到一个成熟的项目里面去做一个维护性的任务要大很多。</p>
@@ -810,7 +810,7 @@
 <p>所以你马上就看到在刚才那个例子里：数据库……说我要生成一个挣钱的产品、去挣这个宝妈们的钱——然后我真正需要的是一个<strong>能扩展的架构</strong>：当未来有别的需求来了、AI 模型发生了变化——我其实我在想这软件工程的时候、或者说我的合作模式发生了变化——AI 助教对吧，AI 助教有可能是文字的助教、有可能是图像的助教、有可能有交互、有可能没有交互——它各种各样的需求在不断变化的时候，<strong>我还有没有可能我的架构以最少的变化去应对需求的变化？</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_28_20.png" alt="以不变应万变：架构能否抵抗需求的根本变化" loading="lazy">
-  <p class="video-caption">📷 以不变应万变：架构能否抵抗需求的根本变化<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5300" target="_blank" rel="noopener">在 B 站中打开 (01:28:20)</a></p>
+  <p class="video-caption">📷 以不变应万变：架构能否抵抗需求的根本变化<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5300" target="_blank" rel="noopener">在 B 站中打开 (01:28:20)</a></p>
 </div>
 
 <p>而这个恰恰是：大家在软件工程课也不讲这个、这个数据库课、这个操作系统课也不教——大家都说"好，这个操作系统是长这样的"。你啊，为什么会今天你会看到一个这样的操作系统、为什么会看到一个这样的数据库、数据库为什么要这样做并发控制——都是有这样的一个原因。<strong>但软件工程说的最不一样的地方，就是对未来需求的变化。</strong></p>
@@ -822,7 +822,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_29_30.png" alt="版本管理的三件事：记住现在、记住历史、记住教训" loading="lazy">
-  <p class="video-caption">📷 版本管理的三件事：记住现在、记住历史、记住教训<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5370" target="_blank" rel="noopener">在 B 站中打开 (01:29:30)</a></p>
+  <p class="video-caption">📷 版本管理的三件事：记住现在、记住历史、记住教训<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5370" target="_blank" rel="noopener">在 B 站中打开 (01:29:30)</a></p>
 </div>
 
 <h2 id="23-agent-prompt">23. 复盘 agent 的产出：早期的 prompt 决定项目的走向</h2>
@@ -835,12 +835,12 @@
 <p>就是你做的东西——你看它做的东西就是我不要的：这个东西绝大部分其实不是我要的。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_32_30.png" alt="MVP：minimal viable product，最小的验证版本" loading="lazy">
-  <p class="video-caption">📷 MVP：minimal viable product，最小的验证版本<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5550" target="_blank" rel="noopener">在 B 站中打开 (01:32:30)</a></p>
+  <p class="video-caption">📷 MVP：minimal viable product，最小的验证版本<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5550" target="_blank" rel="noopener">在 B 站中打开 (01:32:30)</a></p>
 </div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_01_31_30.png" alt="一个提交直出的「教务系统」：入口层/编排层/能力层/数据层" loading="lazy">
-  <p class="video-caption">📷 一个提交直出的「教务系统」：入口层/编排层/能力层/数据层<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5490" target="_blank" rel="noopener">在 B 站中打开 (01:31:30)</a></p>
+  <p class="video-caption">📷 一个提交直出的「教务系统」：入口层/编排层/能力层/数据层<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5490" target="_blank" rel="noopener">在 B 站中打开 (01:31:30)</a></p>
 </div>
 
 <p>我刚才在它登代码的时候我解释了：诶，我其实想要的是什么。所以如果你要做一个最小的版本，其实它逼迫的是：<strong>你要想清楚什么样的需求才是你绝对要的。</strong> 刚才我已经说了：如果我要做一个个人的助手，我最想要的是它能有让我提升学习效率的能力、和提升我工作效率的能力。<strong>你总结出了这两条以后，你可能在第一个 MVP 里面没有任何的数据库</strong>——因为你会想到：在任何时候当你文件系统膨胀的时候，你都可以跟 agent 直接说"好，按照这个数据的组织帮我提炼出一个数据库"——这个问题就结束了。所以你不需要在刚开始的时候就做数据库：<strong>因为一旦你带上一个数据库，你每次数据库重构都需要让 agent 做这个 database 的迁移。</strong></p>
@@ -854,17 +854,17 @@
 <p>但文件系统不一样：文件系统你自己就可以在你的文件管理器里去调整它的目录结构，逐渐梳理到你舒服的一个结构上。你看看：你在里面调文件、和你去调这个 database 的 schema，<strong>你的心智负担是不一样</strong>的：人类已经训练过——对人类直观的的东西已经训练得非常舒服了：文件目录在计算机里面操作，你从小、从你小学的时候上电脑课开始你就做这件事了，所以你对这个模式非常习惯。但一旦你说你要操作一个 database schema 的时候——你们很多同学还没有学过数据库课，你根本不知道它是什么——在你面对一个未知的东西的时候，你仍然需要强行地做一次概念的翻译："我这个东西脑袋里面是这样的概念，我要翻译到数据库里是这样的。" <strong>那你不如用一个你已经适应了、熟悉了的这个 system</strong>，用最简单的方式帮你把比如说这个文件的学习资料的管理、学习资料的进入、通知消息的进入——管起来。</p>
 <h3 id="231-agent">23.1 讲者自己的邮件 agent：云盘同步 + 多级流水线</h3>
 <p>甚至到我现在：我自己回邮件的那 agent 都没有用任何的数据库。我的流程大概是这样的：我的那个 agent 会收我的邮箱，然后会把那个 email id 放到我的一个共享的云盘同步上；然后那个 email id 里面会有它的这个 agent 解析出来的——比如说我回复的草稿啊、然后这个邮件的分类啊、是不是垃圾邮件啊这种；然后再由下一级的流水线去处理。也就是说：<strong>我先要明白的是我的系统里面有哪几级流水线，然后这几级流水线之间他们应该怎么协作、哪些东西通过云盘。</strong></p>
-<p>比如说那么因为我很喜欢我的云盘——是不是引入云盘要做一些架构的修改？我希望邮件和资料等都和云盘保持同步——<strong>对吧，这就叫需求的更改。</strong> 我现在不知道它的价格做的好不好啊，我让 agent 帮我来看一看。也就是说：<strong>什么是一个好的软件架构？</strong> 你当然在当前时候你是有一个需求的、这个现在实现可能是满足这个需求的；**但是当你的需求发生变更的时候，你相应的做出的那个变化是摧毁性的、还是背上一个技术债、还是别的——那就不知道了。</p>
+<p>比如说那么因为我很喜欢我的云盘——是不是引入云盘要做一些架构的修改？我希望邮件和资料等都和云盘保持同步——<strong>对吧，这就叫需求的更改。</strong> 我现在不知道它的价格做的好不好啊，我让 agent 帮我来看一看。也就是说：<strong>什么是一个好的软件架构？</strong> 你当然在当前时候你是有一个需求的、这个现在实现可能是满足这个需求的；<strong>但是当你的需求发生变更的时候，你相应的做出的那个变化是摧毁性的、还是背上一个技术债、还是别的——那就不知道了。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_36_30.png" alt="assistant.db：个人资料、邮件归档、索引草稿都进 DB" loading="lazy">
-  <p class="video-caption">📷 assistant.db：个人资料、邮件归档、索引草稿都进 DB<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5790" target="_blank" rel="noopener">在 B 站中打开 (01:36:30)</a></p>
+  <p class="video-caption">📷 assistant.db：个人资料、邮件归档、索引草稿都进 DB<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5790" target="_blank" rel="noopener">在 B 站中打开 (01:36:30)</a></p>
 </div>
-<p>**</p>
+
 <p>然后我们来看一下它的这个设计：它有一个 <code>assistant.db</code>——它要把个人资料放到这里、邮件归档也放到这里、索引草稿仍然在 DB。现在看起来还不会引起很大的问题——因为绝大部分都是这样的，数据库确实应该不会引起特别大的问题。但是随着这个项目的不断的进展，你就会发现：<strong>你有一种开发方式是这样——你上来就是一个大的、好几大步就把需求都实现完了，然后就拖着这个技术债不断地往后迭代、加功能加功能；还有一个是你从最小的、就得到一个特别精巧的架构。</strong></p>
 <p>我为什么要举刚才那个例子：就当你发现我用 git 管理这个学生的提交以后，很多事情都变得非常容易，而且我自己控制起来也会轻松很多——<strong>直到我遇到性能瓶颈之前，我都不想要把它迁移到任何的一种数据库。</strong> 啊，然后这也意味着：<strong>其实你早期的 prompt 对整个项目的走向的影响是最大的</strong>——你每一次、你最早的那个"我直接把 README 给它"、还是"我要做一个 MVP 啊"——这都会对项目造成很大的影响。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_37_30.png" alt="两种开发方式：大步拖着技术债 vs 从最小得到精巧架构" loading="lazy">
-  <p class="video-caption">📷 两种开发方式：大步拖着技术债 vs 从最小得到精巧架构<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo?t=5850" target="_blank" rel="noopener">在 B 站中打开 (01:37:30)</a></p>
+  <p class="video-caption">📷 两种开发方式：大步拖着技术债 vs 从最小得到精巧架构<br><a href="https://www.bilibili.com/video/BV1Q6en6NEUo/?t=5850" target="_blank" rel="noopener">在 B 站中打开 (01:37:30)</a></p>
 </div>
 
 <p>那我下一节课——就周日——就会进入软件架构和构造的内容。好，今天下课。</p>
