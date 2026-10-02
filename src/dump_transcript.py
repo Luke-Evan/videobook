@@ -63,6 +63,11 @@ def main():
     with open(out_file, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
 
+    txt_file = os.path.join(out_dir, "transcript.txt")
+    with open(txt_file, "w", encoding="utf-8", newline="\n") as f:
+        for s in segs:
+            f.write(f"[{s['start']}] {s['text']}\n")
+
     print(f"\n✅ 成功获取视频信息，Video ID: {video_id}")
     if result.get("chapters"):
         print(f"✅ 官方章节 {len(result['chapters'])} 个已写入，可供排版对齐")

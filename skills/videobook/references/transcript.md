@@ -6,7 +6,7 @@
 python src/dump_transcript.py "<VIDEO_URL>"
 ```
 
-- 自动识别平台，产出 `output/<video_id>/transcript.json` 与 `transcript.txt`。
+- 自动识别平台，产出 `output/<video_id>/transcript.json` 与 `transcript.txt`（`[HH:MM:SS] 原文`，逐段不合并）。
 - `transcript.json` 字段：`video_url / title / video_id / duration / chapters / segments`。
   第二步必须用到 `duration` 与 `chapters`（平台官方章节，可能是空数组）。
 - **B 站登录态自动获取**：`.capture-profile/` 里有登录态时，脚本自动把 cookies 导出到系统临时目录、用完即删，
