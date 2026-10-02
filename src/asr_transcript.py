@@ -332,8 +332,7 @@ def main():
         json.dump(result, f, ensure_ascii=False, indent=2)
     with open(os.path.join(out_dir, "transcript.txt"), "w", encoding="utf-8") as f:
         for s in segs:
-            mm = int(s["start"].split(":")[0]) * 60 + int(s["start"].split(":")[1])
-            f.write(f"[{mm:02d}:{s['start'].split(':')[2]}] {s['text']}\n")
+            f.write(f"[{s['start']}] {s['text']}\n")
 
     cov = rows[-1]["end"] / (duration or total) if rows else 0
     print(f"\n✅ transcript.json 已写入 {out_dir}（{len(segs)} 段）")

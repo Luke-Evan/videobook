@@ -19,6 +19,16 @@ import sys
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
+def hhmmss(ts: str) -> str:
+    """把 MM:SS 或 HH:MM:SS 统一成 HH:MM:SS，便于人工查看长视频时间戳。"""
+    parts = [int(x) for x in str(ts).split(":")]
+    while len(parts) < 3:
+        parts.insert(0, 0)
+    h, m, s = parts[-3:]
+    return f"{h + m // 60:02d}:{m % 60:02d}:{s:02d}"
+
+
 # ASR 错词 -> 正确词（按长度降序应用，避免子串误伤）
 MAP = {
     "深圳市软件工程": "生成式软件工程",
@@ -502,9 +512,7 @@ def main():
         for i, (seg, txt) in enumerate(entries):
             if txt is None:
                 continue
-            h, m, s = seg["start"].split(":")
-            mm = int(h) * 60 + int(m)
-            out_lines.append(f"[{mm:02d}:{s}] {baseline[i]}")
+            out_lines.append(f"[{hhmmss(seg['start'])}] {baseline[i]}")
         dst = os.path.join(BASE, "output", vid, "transcript.corrected.txt")
         if os.path.exists(dst) and not args.force:
             sys.exit(f"{vid}: transcript.corrected.txt 已存在（可能含人工/AI 行级订正）；"

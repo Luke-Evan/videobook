@@ -11,7 +11,7 @@ python src/make_corrected.py <video_id> [<video_id> ...]   # 或 --all
 python src/make_corrected.py <video_id> --edits corrections.json
 ```
 
-- 输出 `output/<video_id>/transcript.corrected.txt`，格式与 `transcript.txt` 相同：`[MM:SS] 原文`，逐段不合并。
+- 输出 `output/<video_id>/transcript.corrected.txt`，格式与 `transcript.txt` 相同：`[HH:MM:SS] 原文`，逐段不合并。
 - **重跑保护**：目标文件已存在时脚本拒绝覆盖（防止抹掉后续的人工 / AI 行级订正）。
   确需从头重建加 `--force`；要叠加新校订用 `--edits <corrections.json>`。
 - 纯本地步骤，沙箱内可跑。
