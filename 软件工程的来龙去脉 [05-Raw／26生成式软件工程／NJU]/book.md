@@ -44,7 +44,6 @@
 32. [UML：对齐语义的野心，与它为什么"死了"](#32-uml)
 33. [用 AI 备课：796 页 UML spec 与教育平权的算力问题](#33-ai-796-uml-spec)
 34. [结语：哪些 intention 必须定死，哪些留白](#34-intention)
-35. [后记 Postscript：本书是如何生成的](#postscript)
 
 ---
 
@@ -1330,8 +1329,4 @@ dump 完了以后，他直接让 AI 帮他**备课**：
 
 ---
 
-## 后记 Postscript：本书是如何生成的
-
-本书由 B 站 AI 字幕（`ai-zh`，覆盖率 100%、2583 段、时长 99 分 59 秒）经 AI 重构而成：口语转书面语、按内容逻辑分 34 章（另加本篇后记）、绘制 6 张 Mermaid 图、插入 56 个截图锚点；截帧管线在已登录的专用 Chrome 配置里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；最终渲染为带截图放大（lightbox）与 Mermaid 交互的 HTML。
-
-与视频逐句对照的订正稿见 `transcript.corrected.txt`：先由脚本按本讲错词 MAP 修正（如 `type c AI→TypeSafe AI`、`JEFF/JB→Jev`、`chal salt/CHAMPSHO/CHAS→chain of thought`、`GP6→GPT-6`、`大圆模型/大于原模型→大语言模型`、`基摩场/机膜厂/禁摩场→基模厂`、`达舍尔/DEXTRA→Dijkstra`、`I trio e→IEEE`、`IFL/埃菲尔→Eiffel`、`pick check→QuickCheck`、`rose/pom/ROIS→Royce`、`train lecture→Turing Lecture`、`NATTO→NATO`、`恋爱来了→LLM 来了`、`反攻→返工`、`羽翼→语义`、`latin space→latent space`、`流感→留白`、`button map→bottom-up`、`干水教材→灌水教材`、`AI slap/AI s lop→AI slop`、`web coding→vibe coding`、`deep pick/deep sk flash→DeepSeek`、`cloud open4.6→Claude Opus 4.6` 等），再由 AI 通读全文做一轮行级订正（保留讲师原始字词与有意重复，仅修明显识别错误）。
+*本电子书由 [videobook](https://github.com/Luke-Evan/videobook) 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by/4.0/) 发布。*

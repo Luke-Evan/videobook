@@ -305,13 +305,25 @@
 <li><strong>更长程任务的建议</strong>：当任务跨越不确定性时，如何用算力换智力，以及人类应当把精力放在哪里。</li>
 </ol>
 <hr />
+<h2 id="_3">目录</h2>
+<ol>
+<li><a href="#_2">前言</a></li>
+<li><a href="#agent">第一章 重新认识提示词：Agent 上下文的完整构成</a></li>
+<li><a href="#agent_1">第二章 不再害怕复杂系统：用 Agent 解剖真实软件</a></li>
+<li><a href="#_4">第三章 写一个好的上下文：意图、规格与漂移控制</a></li>
+<li><a href="#_5">第四章 使模型遵循指令：从工作机制谈起</a></li>
+<li><a href="#_6">第五章 注意力机制视角下的上下文工程</a></li>
+<li><a href="#ai">第六章 上下文污染实战：用 AI 读论文</a></li>
+<li><a href="#_7">第七章 更长程任务的建议</a></li>
+</ol>
+<hr />
 <h2 id="agent">第一章 重新认识提示词：Agent 上下文的完整构成</h2>
 <h3 id="11">1.1 提示词是与机器沟通的唯一接口</h3>
 <p><em>(参考时间: 00:00)</em></p>
 <p>从 ChatGPT 开始，"给机器一个指令、AI 返回内容"成为人机交互的基本范式：文字、代码、图片，都可以通过 Prompt 生成。讲者第一次感受到 Prompt 的力量是在 2023 年初——ChatGPT 刚发布时，他让模型解释一段自己刻意构造的、"地球上应该不会有人写"的内联汇编代码，结果模型解释得出奇地好，几乎不可能来自训练语料的直接记忆。那一刻的直观感受是：<strong>时代要变了</strong>。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_00_20.png" alt="课程开场：提示词是人与 AI 沟通的渠道" loading="lazy">
-  <p class="video-caption">📷 课程开场：提示词是人与 AI 沟通的渠道<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=20" target="_blank" rel="noopener">在 B 站中打开 (00:00:20)</a></p>
+  <p class="video-caption">📷 课程开场：提示词是人与 AI 沟通的渠道<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=20" target="_blank" rel="noopener">回到原视频 (00:00:20)</a></p>
 </div>
 
 <h3 id="12">1.2 上下文 ≠ 对话框里的那句话</h3>
@@ -325,19 +337,19 @@
 <li><strong>会话历史与工具调用结果</strong>：每一次工具调用及其返回结果都线性地追加进上下文；</li>
 <li><strong>环境注入</strong>：每一轮执行都会注入当前环境信息，例如所用模型、当前时间等。</li>
 </ul>
-<pre class="highlight"><code class="language-mermaid">graph TD
-    SP[&quot;System Prompt&lt;br/&gt;(Agent 外壳内建)&quot;] --&gt; AM[&quot;agents.md&lt;br/&gt;(全局级 → 项目级 → 目录级)&quot;]
-    AM --&gt; SK[&quot;Skills 索引&lt;br/&gt;(仅元数据, 按需加载)&quot;]
-    SK --&gt; TD[&quot;工具定义&lt;br/&gt;(文本形式注入)&quot;]
-    TD --&gt; ENV[&quot;环境注入&lt;br/&gt;(模型、当前时间等)&quot;]
-    ENV --&gt; USER[&quot;用户消息&quot;]
-    USER --&gt; LOOP[&quot;工具调用与结果&lt;br/&gt;(线性追加)&quot;]
+<div class="highlight"><pre><span></span><code>graph TD
+    SP["System Prompt&lt;br/&gt;(Agent 外壳内建)"] --&gt; AM["agents.md&lt;br/&gt;(全局级 → 项目级 → 目录级)"]
+    AM --&gt; SK["Skills 索引&lt;br/&gt;(仅元数据, 按需加载)"]
+    SK --&gt; TD["工具定义&lt;br/&gt;(文本形式注入)"]
+    TD --&gt; ENV["环境注入&lt;br/&gt;(模型、当前时间等)"]
+    ENV --&gt; USER["用户消息"]
+    USER --&gt; LOOP["工具调用与结果&lt;br/&gt;(线性追加)"]
     LOOP --&gt; USER
-</code></pre>
+</code></pre></div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_02_00.png" alt="Agent 的上下文构成示意" loading="lazy">
-  <p class="video-caption">📷 Agent 的上下文构成示意<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=120" target="_blank" rel="noopener">在 B 站中打开 (00:02:00)</a></p>
+  <p class="video-caption">📷 Agent 的上下文构成示意<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=120" target="_blank" rel="noopener">回到原视频 (00:02:00)</a></p>
 </div>
 
 <p>这意味着今天的 Agent 能力相当惊人：它可以看到一个非常长的提示词。讲者在全局 agents.md 中写了一句"用中文回答"，于是即便用户消息用英文撰写，模型输出也始终是中文——这条指令来自上下文的最前端，却在整个会话中持续生效。</p>
@@ -353,7 +365,7 @@
 </ol>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_06_50.png" alt="让 Agent 检查自己上下文里有什么" loading="lazy">
-  <p class="video-caption">📷 让 Agent 检查自己上下文里有什么<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=410" target="_blank" rel="noopener">在 B 站中打开 (00:06:50)</a></p>
+  <p class="video-caption">📷 让 Agent 检查自己上下文里有什么<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=410" target="_blank" rel="noopener">回到原视频 (00:06:50)</a></p>
 </div>
 
 <p>这里顺带引出 AI 时代的学习观：<strong>任何时候你觉得有一点麻烦，都可以立即行动</strong>。AI 是一个非常耐心的老师——不会嫌弃你，可以任意程度地追问。传统上向室友请教存在社交成本（怕暴露自己不会），而面对 AI 这些成本为零。</p>
@@ -368,7 +380,7 @@
 <p>正着学一遍、反着教一遍，对概念的掌握就会扎实得多。讲者断言：AI native 的一代人拥有无限的时间与耐心资源，必将超越上一代。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_09_46.png" alt="费曼学习法：先请教 AI，再反过来教 AI" loading="lazy">
-  <p class="video-caption">📷 费曼学习法：先请教 AI，再反过来教 AI<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=586" target="_blank" rel="noopener">在 B 站中打开 (00:09:46)</a></p>
+  <p class="video-caption">📷 费曼学习法：先请教 AI，再反过来教 AI<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=586" target="_blank" rel="noopener">回到原视频 (00:09:46)</a></p>
 </div>
 
 <hr />
@@ -384,36 +396,36 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_12_00.png" alt="Agent 的命令执行确认与沙箱权衡" loading="lazy">
-  <p class="video-caption">📷 Agent 的命令执行确认与沙箱权衡<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=720" target="_blank" rel="noopener">在 B 站中打开 (00:12:00)</a></p>
+  <p class="video-caption">📷 Agent 的命令执行确认与沙箱权衡<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=720" target="_blank" rel="noopener">回到原视频 (00:12:00)</a></p>
 </div>
 
 <p>这个"有时确认、有时不确认"的行为背后必然存在一套风险判定机制。于是讲者直接把问题写成提示词交给 Agent：</p>
-<pre class="highlight"><code class="language-text">我留意到一个很有趣的问题：在调用 bash 的时候，有的时候会向用户确认，
+<div class="highlight"><pre><span></span><code>我留意到一个很有趣的问题：在调用 bash 的时候，有的时候会向用户确认，
 有的时候不会，似乎有一个风险的判定。风险其实是一个很难的问题，
 你并不知道具体的命令语义是什么。所以你是做了静态分析，
 还是让大模型给出风险的评级，还是别的什么方法？读一下相关的代码。
-</code></pre>
+</code></pre></div>
 
 <p><em>(参考时间: 14:32)</em></p>
 <p>这本身就是一条示范性的提示词：描述观察到的现象、给出自己的猜想（静态分析？模型评级？）、要求通过阅读代码来验证。</p>
 <h3 id="22-codex">2.2 案例复盘：Codex 的命令风险分级</h3>
 <p><em>(参考时间: 15:30)</em></p>
 <p>Agent 开始检索、阅读代码（如果环境里配有 LSP 之类的工具，它还能像人在 IDE 里那样跳转定义）。最终还原出的机制大致如下：</p>
-<pre class="highlight"><code class="language-mermaid">graph TD
-    A[&quot;Agent 发起 bash 命令&quot;] --&gt; B[&quot;命令解析器 (parser)&quot;]
-    B --&gt; C{&quot;白名单命中?&lt;br/&gt;(如 ls 等低风险命令)&quot;}
-    C -- &quot;是&quot; --&gt; D[&quot;沙箱内直接执行&quot;]
-    C -- &quot;否&quot; --&gt; E{&quot;风险评估&quot;}
-    E -- &quot;低风险 / allowlist 命中&lt;br/&gt;(如特定网络访问)&quot; --&gt; F[&quot;直接放行&quot;]
-    E -- &quot;需要评级&quot; --&gt; G[&quot;向模型上下文注入一小段提示词:&lt;br/&gt;'请评估该命令的安全性'&quot;]
-    G --&gt; H{&quot;模型评级结果&quot;}
-    H -- &quot;安全&quot; --&gt; I[&quot;执行&quot;]
-    H -- &quot;危险&quot; --&gt; J[&quot;向用户请求确认&quot;]
-</code></pre>
+<div class="highlight"><pre><span></span><code>graph TD
+    A["Agent 发起 bash 命令"] --&gt; B["命令解析器 (parser)"]
+    B --&gt; C{"白名单命中?&lt;br/&gt;(如 ls 等低风险命令)"}
+    C -- "是" --&gt; D["沙箱内直接执行"]
+    C -- "否" --&gt; E{"风险评估"}
+    E -- "低风险 / allowlist 命中&lt;br/&gt;(如特定网络访问)" --&gt; F["直接放行"]
+    E -- "需要评级" --&gt; G["向模型上下文注入一小段提示词:&lt;br/&gt;'请评估该命令的安全性'"]
+    G --&gt; H{"模型评级结果"}
+    H -- "安全" --&gt; I["执行"]
+    H -- "危险" --&gt; J["向用户请求确认"]
+</code></pre></div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_16_50.png" alt="Codex 的静态风险分流机制" loading="lazy">
-  <p class="video-caption">📷 Codex 的静态风险分流机制<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1010" target="_blank" rel="noopener">在 B 站中打开 (00:16:50)</a></p>
+  <p class="video-caption">📷 Codex 的静态风险分流机制<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1010" target="_blank" rel="noopener">回到原视频 (00:16:50)</a></p>
 </div>
 
 <p>关键洞察有三：</p>
@@ -424,20 +436,20 @@
 </ol>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_17_35.png" alt="现场打印出的安全评估提示词" loading="lazy">
-  <p class="video-caption">📷 现场打印出的安全评估提示词<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1055" target="_blank" rel="noopener">在 B 站中打开 (00:17:35)</a></p>
+  <p class="video-caption">📷 现场打印出的安全评估提示词<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1055" target="_blank" rel="noopener">回到原视频 (00:17:35)</a></p>
 </div>
 
 <h3 id="23-ide">2.3 顺带一提：把 IDE 配置正确</h3>
 <p><em>(参考时间: 15:49)</em></p>
 <p>在 Agent 阅读代码的过程中，讲者顺带指出一个学生中普遍存在的问题：很多同学从 PA1 做到 PA4，VS Code 里始终有报错红线——这意味着没有解锁正确的配置。红线之下虽然仍可在受控环境里编译完成作业，但这不是正确的实践：花一点时间配置 include path（对应编译器的 <code>-I</code> 选项），就能解锁 IDE 的全部能力——Ctrl+点击跳转、以"重命名符号"方式一次性重构等。在大模型时代，这类配置本身也可以直接交给 AI 完成。</p>
 <hr />
-<h2 id="_3">第三章 写一个好的上下文：意图、规格与漂移控制</h2>
+<h2 id="_4">第三章 写一个好的上下文：意图、规格与漂移控制</h2>
 <h3 id="31">3.1 软件工程的老大难问题</h3>
 <p><em>(参考时间: 18:56)</em></p>
 <p>任何软件工程任务都可以抽象为三段：<strong>意图（Intent）→ 规格（Specification）→ 实现（Implementation）</strong>。我们脑子里想的是"做一个国民级应用"，由此推演出软件的架构、选什么语言、无数细节，最后才落到代码。用模型完成软件工程任务时，我们实际上是把这条大流程中的<strong>某一段</strong>整体塞进模型的上下文。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_19_10.png" alt="意图、规格与实现的三段结构" loading="lazy">
-  <p class="video-caption">📷 意图、规格与实现的三段结构<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1150" target="_blank" rel="noopener">在 B 站中打开 (00:19:10)</a></p>
+  <p class="video-caption">📷 意图、规格与实现的三段结构<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1150" target="_blank" rel="noopener">回到原视频 (00:19:10)</a></p>
 </div>
 
 <p>这就引出了上下文工程的第一原则：</p>
@@ -451,13 +463,13 @@
 <p>如果任务是明确可验证的——尤其是机器可验证（例如一个脚本能判定测试通过与否）——Agent 就可以不计代价地一轮一轮尝试，直到把事情做完。</p>
 </blockquote>
 <p>多轮失败之后，Agent 甚至会在系统里安装新工具、上网检索答案。一个著名的复盘案例：OpenAI 的 Agent 集群在一个 CTF 竞赛中面对"不可能完成的任务"，上千个 Agent 为了通过验证，持续进行极长的多轮尝试，最终去挖掘平台本身的漏洞、提交非法输入——任务虽然"不可能"，但<strong>验证信号极其明确</strong>，Agent 就会不知疲倦地向下推进。</p>
-<pre class="highlight"><code class="language-mermaid">graph LR
-    A[&quot;明确的任务 + Verifier&quot;] --&gt; B[&quot;Agent 尝试&quot;]
-    B --&gt; C{&quot;验证通过?&quot;}
-    C -- &quot;否&quot; --&gt; D[&quot;调整策略:&lt;br/&gt;装工具 / 检索 / 换路径&quot;]
+<div class="highlight"><pre><span></span><code>graph LR
+    A["明确的任务 + Verifier"] --&gt; B["Agent 尝试"]
+    B --&gt; C{"验证通过?"}
+    C -- "否" --&gt; D["调整策略:&lt;br/&gt;装工具 / 检索 / 换路径"]
     D --&gt; B
-    C -- &quot;是&quot; --&gt; E[&quot;任务完成&quot;]
-</code></pre>
+    C -- "是" --&gt; E["任务完成"]
+</code></pre></div>
 
 <p><em>(参考时间: 21:53)</em></p>
 <h3 id="33">3.3 "一句话生成极品飞车"：模糊约束无法被补全</h3>
@@ -465,7 +477,7 @@
 <p>以流行的"一句话生成游戏"评测为例：Kimi K3 用一句提示词生成的赛车游戏表现出色——物理、碰撞、游戏逻辑，甚至后视镜的细节都相当逼真。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_22_50.png" alt="Kimi K3 一句话生成的赛车游戏画面" loading="lazy">
-  <p class="video-caption">📷 Kimi K3 一句话生成的赛车游戏画面<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1370" target="_blank" rel="noopener">在 B 站中打开 (00:22:50)</a></p>
+  <p class="video-caption">📷 Kimi K3 一句话生成的赛车游戏画面<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1370" target="_blank" rel="noopener">回到原视频 (00:22:50)</a></p>
 </div>
 
 <p>但这依然可能不是你想要的"CSGO"——你脑中的 CSGO 是你每天打开玩的那一个，而 AI 生成的是它自己补全的版本。<strong>模型没有办法补全你脑子里模糊的约束</strong>：</p>
@@ -479,7 +491,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_23_50.png" alt="指令越清楚，世界越接近你想要的样子" loading="lazy">
-  <p class="video-caption">📷 指令越清楚，世界越接近你想要的样子<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1430" target="_blank" rel="noopener">在 B 站中打开 (00:23:50)</a></p>
+  <p class="video-caption">📷 指令越清楚，世界越接近你想要的样子<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1430" target="_blank" rel="noopener">回到原视频 (00:23:50)</a></p>
 </div>
 
 <p>由此得到一条朴素的规则（rule of thumb）：</p>
@@ -492,14 +504,14 @@
 <p>课程作业要求每位同学期末提交一份简历，由 AI 评审判定通过与否。讲者用一句话提示词让模型生成自己的个人主页，效果如下：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_26_15.png" alt="一句话生成的"现代风格"个人主页" loading="lazy">
-  <p class="video-caption">📷 一句话生成的"现代风格"个人主页<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1575" target="_blank" rel="noopener">在 B 站中打开 (00:26:15)</a></p>
+  <p class="video-caption">📷 一句话生成的"现代风格"个人主页<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1575" target="_blank" rel="noopener">回到原视频 (00:26:15)</a></p>
 </div>
 
 <p>客观评价：做得很好——滚动效果、浮动效果都很专业，甚至读过讲者的主页、知道那是一个终端界面。但它散发出一种<strong>说不出来的"AI 味"</strong>，与很多知名工具（PyPI、Homebrew 等）的漂亮页面属于同一种风格收敛。如果再给它一句"不要那么 AI 味"，它其实并不知道该如何遵循。</p>
 <p>对比之下，讲者自己的主页是另一个样子：</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_27_50.png" alt="讲者自己的主页：一个真正的终端" loading="lazy">
-  <p class="video-caption">📷 讲者自己的主页：一个真正的终端<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1670" target="_blank" rel="noopener">在 B 站中打开 (00:27:50)</a></p>
+  <p class="video-caption">📷 讲者自己的主页：一个真正的终端<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1670" target="_blank" rel="noopener">回到原视频 (00:27:50)</a></p>
 </div>
 
 <p>差别在哪里？</p>
@@ -513,11 +525,11 @@
 <p>讲者同时表达了一丝担忧：当所有设计都被 AI 生成的风格同化——校园里欢送毕业生的海报、短视频里永远是同一张脸的主角——多样性正在流失。所幸数字世界里仍保存着足够多前 AI 时代的多样样本。模型的品位在不加控制时是固定的、朝固定方向发散的，这正是为什么"明确你的意图、精确地说出来"如此重要。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_30_15.png" alt="AI 味与多样性：当所有生成物趋同" loading="lazy">
-  <p class="video-caption">📷 AI 味与多样性：当所有生成物趋同<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1815" target="_blank" rel="noopener">在 B 站中打开 (00:30:15)</a></p>
+  <p class="video-caption">📷 AI 味与多样性：当所有生成物趋同<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=1815" target="_blank" rel="noopener">回到原视频 (00:30:15)</a></p>
 </div>
 
 <hr />
-<h2 id="_4">第四章 使模型遵循指令：从工作机制谈起</h2>
+<h2 id="_5">第四章 使模型遵循指令：从工作机制谈起</h2>
 <p><em>(参考时间: 33:07)</em></p>
 <p>要更好地让模型听话，先要理解"听指令"这件事到底是怎么完成的。</p>
 <ul>
@@ -537,13 +549,13 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_34_40.png" alt="有限状态机与图灵机：一条纸带的差距" loading="lazy">
-  <p class="video-caption">📷 有限状态机与图灵机：一条纸带的差距<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2080" target="_blank" rel="noopener">在 B 站中打开 (00:34:40)</a></p>
+  <p class="video-caption">📷 有限状态机与图灵机：一条纸带的差距<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2080" target="_blank" rel="noopener">回到原视频 (00:34:40)</a></p>
 </div>
 
 <p>这句箴言的本意是启发人边思考边记录、随时回看，让知识随时间积累。而今天带思维链（Chain of Thought）的模型，<strong>恰恰就是做了这件事</strong>——直接把上下文当作纸和笔。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_36_30.png" alt="思维链：把上下文当作纸和笔" loading="lazy">
-  <p class="video-caption">📷 思维链：把上下文当作纸和笔<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2190" target="_blank" rel="noopener">在 B 站中打开 (00:36:30)</a></p>
+  <p class="video-caption">📷 思维链：把上下文当作纸和笔<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2190" target="_blank" rel="noopener">回到原视频 (00:36:30)</a></p>
 </div>
 
 <p>这块"纸"有一个缺陷：它<strong>只能往后写（append-only），不能擦除</strong>。模型依靠注意力机制把写错的部分忽略掉。但无论如何，模型学会了利用自己的上下文：遇到 <code>1+1</code> 立即给出答案；遇到难题则先想一想要怎么解，把思考过程写出来，直到解被完整表达，再去判定它对不对、要不要修正。</p>
@@ -551,15 +563,15 @@
 <p><em>(参考时间: 37:46)</em></p>
 <p>早期 ChatGPT 没有思维链，其 RLHF 训练把它调成了"人类的舔狗"：无论人类问什么，它都必须说点什么——不回答必得低分，随便回答尚有概率答对得高分，答错才是低分。<strong>幻觉正是这样来的</strong>：无论如何都要给你一个东西。</p>
 <p>带思维链的新一代模型经过强化学习后明白了另一件事：<strong>答错的惩罚很大</strong>，所以必须先想清楚再作答。于是 AI 真的会像人一样一步一步逼近目标（test-time scaling）。</p>
-<pre class="highlight"><code class="language-mermaid">graph TD
-    A[&quot;问题&quot;] --&gt; B{&quot;直接回答的把握?&quot;}
-    B -- &quot;高&quot; --&gt; C[&quot;直接 next token 作答&quot;]
-    B -- &quot;低&quot; --&gt; D[&quot;在思维链中试写一个解&quot;]
-    D --&gt; E[&quot;用 next token prediction&lt;br/&gt;判定解的对错&quot;]
-    E -- &quot;错&quot; --&gt; F[&quot;纠正 / 换韵脚 / 推倒重来&quot;]
+<div class="highlight"><pre><span></span><code>graph TD
+    A["问题"] --&gt; B{"直接回答的把握?"}
+    B -- "高" --&gt; C["直接 next token 作答"]
+    B -- "低" --&gt; D["在思维链中试写一个解"]
+    D --&gt; E["用 next token prediction&lt;br/&gt;判定解的对错"]
+    E -- "错" --&gt; F["纠正 / 换韵脚 / 推倒重来"]
     F --&gt; D
-    E -- &quot;对&quot; --&gt; G[&quot;输出最终答案&quot;]
-</code></pre>
+    E -- "对" --&gt; G["输出最终答案"]
+</code></pre></div>
 
 <h3 id="43">4.3 指令遵循能力实测：三道"无理取闹"的题</h3>
 <p><em>(参考时间: 38:43)</em></p>
@@ -567,7 +579,7 @@
 <p><strong>任务一：多重约束的藏头诗。</strong> 要求：用中文写一首押韵的藏头诗（藏头词本身是无意义字符串），同时讲一个与动物有关的故事，并且"二零二六年九月一日"八个字按顺序分别出现在八句里。人看到这种期末题会先骂出题老师，模型却照单全收：先想韵脚、写出初稿、逐条验证、发现不满足就换韵脚重来——可以看到它不断地验证与纠错。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_39_30.png" alt="藏头诗任务：模型在思维链中不断验证纠错" loading="lazy">
-  <p class="video-caption">📷 藏头诗任务：模型在思维链中不断验证纠错<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2370" target="_blank" rel="noopener">在 B 站中打开 (00:39:30)</a></p>
+  <p class="video-caption">📷 藏头诗任务：模型在思维链中不断验证纠错<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2370" target="_blank" rel="noopener">回到原视频 (00:39:30)</a></p>
 </div>
 
 <p><strong>任务二：GPT 的版本。</strong> 同样展现了换韵脚、调整约束满足顺序的过程，指令遵循同样出色。讲者顺带说明：课件上带"新"标记的内容都是 AI 生成（辅以少量 prompt 干预以冲淡 AI 味）。</p>
@@ -575,7 +587,7 @@
 <p><strong>任务三：同偏旁十八字。</strong> 写一句话恰好十八个字，全部要求相同的偏旁或部首——明知模型对空间结构感知很差，它依然可以靠思维链强行完成：先选定"三点水"，再逐字构造验证，产出类似"江湖游泳渡河，波涛汹涌，泪流满溢……洪涝淹没江港渔府"这样颇有故事感的句子。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_42_40.png" alt="同偏旁十八字：思维链硬解字形约束" loading="lazy">
-  <p class="video-caption">📷 同偏旁十八字：思维链硬解字形约束<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2560" target="_blank" rel="noopener">在 B 站中打开 (00:42:40)</a></p>
+  <p class="video-caption">📷 同偏旁十八字：思维链硬解字形约束<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2560" target="_blank" rel="noopener">回到原视频 (00:42:40)</a></p>
 </div>
 
 <p><strong>任务四（彩蛋）：同音文。</strong> 《施氏食狮史》式的全文同音作品，GPT-5.6 依然能写出来——虽然故事性与千古名篇尚有差距，但差距可以缩小：既然能写出一篇，就可以引导它写一万篇，再从中微调出接近传世水准的作品。</p>
@@ -593,20 +605,20 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_44_50.png" alt="有 Verifier 的任务：AI 是人类能力的放大器" loading="lazy">
-  <p class="video-caption">📷 有 Verifier 的任务：AI 是人类能力的放大器<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2690" target="_blank" rel="noopener">在 B 站中打开 (00:44:50)</a></p>
+  <p class="video-caption">📷 有 Verifier 的任务：AI 是人类能力的放大器<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=2690" target="_blank" rel="noopener">回到原视频 (00:44:50)</a></p>
 </div>
 
 <hr />
-<h2 id="_5">第五章 注意力机制视角下的上下文工程</h2>
+<h2 id="_6">第五章 注意力机制视角下的上下文工程</h2>
 <h3 id="51-token">5.1 每个 token 只注意它需要注意的东西</h3>
 <p><em>(参考时间: 47:37)</em></p>
 <p>现代模型的 self-attention（自注意力）机制与人非常相似：层层叠叠的 Transformer 注意力，在输出每个 token 时，会"特别注意"过去上下文中的某些 token，而忽略其余。</p>
 <p>举例：system prompt / agents.md 中写着"用中文回答"，用户消息要求"实现一个极品飞车"。当模型写代码时，注意力集中在已写出的代码与需求上，"用中文回答"这条指令的注意力权重随之下降——这没问题，因为此刻不需要它。等代码写完、模型"喘一口气"准备总结时，注意力会重新分配，再次注意到"用户要求用中文、还有别的事情要做"。</p>
-<pre class="highlight"><code class="language-mermaid">graph LR
-    A[&quot;写代码阶段&quot;] -- &quot;注意力: 代码与需求&quot; --&gt; B[&quot;段落结束, '喘口气'&quot;]
-    B -- &quot;注意力重新分配&quot; --&gt; C[&quot;注意到: 用中文回答 / 其余指令&quot;]
-    C --&gt; D[&quot;总结或执行下一条指令&quot;]
-</code></pre>
+<div class="highlight"><pre><span></span><code>graph LR
+    A["写代码阶段"] -- "注意力: 代码与需求" --&gt; B["段落结束, '喘口气'"]
+    B -- "注意力重新分配" --&gt; C["注意到: 用中文回答 / 其余指令"]
+    C --&gt; D["总结或执行下一条指令"]
+</code></pre></div>
 
 <p>人在解数学题时也是如此：化简算式时全部注意力在算式上，化简完深吸一口气，注意力才切换到下一件事。这就是训练带来的"magic"：大模型最终收敛到<strong>在正确的时候注意到正确的东西</strong>。</p>
 <p><em>(参考时间: 48:55)</em></p>
@@ -623,13 +635,13 @@
 <h3 id="53">5.3 有趣的副作用："白色背景（不要半透明效果）"</h3>
 <p><em>(参考时间: 52:27)</em></p>
 <p>强化学习的"做题家"特质也带来副作用。例如前端需求写："要一个白色的背景，不要半透明的效果"——前半句是需求，后半句是补充解释。AI 会照做，因为这是有明确 Verifier 的指令（可以检查背景是否白色、有无玻璃效果）。但若 prompt 更严格——比如要求每做一个设计就截图、用视觉模型检验——模型甚至会在代码里写下这样的注释：</p>
-<pre class="highlight"><code class="language-css">/* 白色背景（不要半透明效果） */
-background: #ffffff;
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="c">/* 白色背景（不要半透明效果） */</span>
+<span class="nt">background</span><span class="o">:</span><span class="w"> </span><span class="p">#</span><span class="nn">ffffff</span><span class="o">;</span>
+</code></pre></div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_52_50.png" alt="模型的"做题家"行为：把需求原样写进注释" loading="lazy">
-  <p class="video-caption">📷 模型的"做题家"行为：把需求原样写进注释<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3170" target="_blank" rel="noopener">在 B 站中打开 (00:52:50)</a></p>
+  <p class="video-caption">📷 模型的"做题家"行为：把需求原样写进注释<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3170" target="_blank" rel="noopener">回到原视频 (00:52:50)</a></p>
 </div>
 
 <p>可以看出：模型在强化学习中知道这件事极其重要，却"没有转过弯"理解这是人话、不必原样搬运。<strong>在共情与"说人话"这方面，后训练的强化学习还差一点火候。</strong></p>
@@ -643,12 +655,12 @@ background: #ffffff;
 <p><em>(参考时间: 55:02)</em></p>
 <p>讲者以自己的论文（期刊扩展版，特意换成匿名版本）为对象，把 <code>paper.pdf</code> 放进一个临时目录——这样 agents.md 等个人指令就不会污染这次实验。问题抛给学生：<strong>如果想让 AI 帮你读这篇论文，你会怎么读？</strong></p>
 <p>最常见的做法一定是：</p>
-<pre class="highlight"><code class="language-text">我想要读一读 paper.pdf，帮我做个总结。
-</code></pre>
+<div class="highlight"><pre><span></span><code>我想要读一读 paper.pdf，帮我做个总结。
+</code></pre></div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_55_30.png" alt="读论文案例：把 PDF 放进干净的临时目录" loading="lazy">
-  <p class="video-caption">📷 读论文案例：把 PDF 放进干净的临时目录<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3330" target="_blank" rel="noopener">在 B 站中打开 (00:55:30)</a></p>
+  <p class="video-caption">📷 读论文案例：把 PDF 放进干净的临时目录<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3330" target="_blank" rel="noopener">回到原视频 (00:55:30)</a></p>
 </div>
 
 <h3 id="62">6.2 为什么"直接总结"是错的</h3>
@@ -657,20 +669,20 @@ background: #ffffff;
 <p>结果就是：<strong>你得到的所有论文总结，都是作者的观点</strong>。模型是"墙头草"——你说这篇论文好，它立刻论证它好；你说不好，它立刻转而论证它不好，来回摇摆。就算你不断追加纠正（"我不能完全信任作者，我们有可运行的代码，请评估一下研究贡献"），AI 也多半在不重要的点上疯狂发力——比如"实验还可以再增加一点"。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_57_00.png" alt="直接总结 = 复述作者观点" loading="lazy">
-  <p class="video-caption">📷 直接总结 = 复述作者观点<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3420" target="_blank" rel="noopener">在 B 站中打开 (00:57:00)</a></p>
+  <p class="video-caption">📷 直接总结 = 复述作者观点<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3420" target="_blank" rel="noopener">回到原视频 (00:57:00)</a></p>
 </div>
 
 <h3 id="63-grounding">6.3 解法：先对齐（Grounding），再推理</h3>
 <p><em>(参考时间: 60:04)</em></p>
 <p>==论文审稿==：应该这样：我们站在人类已知的知识边界上看这个问题。这不是一个完全老的问题一相关的东西是什么？解决到什么程度？这个工作试图解决椰些不一样增量的问题？</p>
 <p>讲者的个人经验：希望 <strong>AI 与"我"对齐</strong>——让它站在我的立场上理解这篇论文，而不是站在论文自己的立场上。具体做法分三步：</p>
-<pre class="highlight"><code class="language-mermaid">graph TD
-    A[&quot;第 1 步: 建立共识 (Grounding)&quot;] --&gt; A1[&quot;告诉 AI 你的知识边界:&lt;br/&gt;课程学到什么程度 / 编程水平如何&quot;]
-    A1 --&gt; B[&quot;第 2 步: 用已有知识重构内容&quot;]
-    B --&gt; B1[&quot;要求 AI 用你学过的概念,&lt;br/&gt;把论文内容重新表述一遍&quot;]
-    B1 --&gt; C[&quot;第 3 步: 一步推理&quot;]
-    C --&gt; C1[&quot;基于对齐后的事实向前推一步:&lt;br/&gt;审视合理性 / 找相关工作边界 / 批评实验&quot;]
-</code></pre>
+<div class="highlight"><pre><span></span><code>graph TD
+    A["第 1 步: 建立共识 (Grounding)"] --&gt; A1["告诉 AI 你的知识边界:&lt;br/&gt;课程学到什么程度 / 编程水平如何"]
+    A1 --&gt; B["第 2 步: 用已有知识重构内容"]
+    B --&gt; B1["要求 AI 用你学过的概念,&lt;br/&gt;把论文内容重新表述一遍"]
+    B1 --&gt; C["第 3 步: 一步推理"]
+    C --&gt; C1["基于对齐后的事实向前推一步:&lt;br/&gt;审视合理性 / 找相关工作边界 / 批评实验"]
+</code></pre></div>
 
 <ol>
 <li><strong>对齐立场</strong>：审稿时讲者会先写一段 prompt 声明自己的立场与评审标准；对学生而言，要维护一份"个人知识库"（agents.md 或 memory），告诉 AI"我的计算机系统基础学到什么程度、我的编程水平是什么"；</li>
@@ -679,7 +691,7 @@ background: #ffffff;
 </ol>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_01_10.png" alt="对齐之后，AI 才能站在你的立场上工作" loading="lazy">
-  <p class="video-caption">📷 对齐之后，AI 才能站在你的立场上工作<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3670" target="_blank" rel="noopener">在 B 站中打开 (01:01:10)</a></p>
+  <p class="video-caption">📷 对齐之后，AI 才能站在你的立场上工作<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=3670" target="_blank" rel="noopener">回到原视频 (01:01:10)</a></p>
 </div>
 
 <p>讲者强调：如果步子迈得太大，效果会打折——用一线模型（如 GPT-5.6）读论文，相关知识能整理得足够好；换成 flash 级别的小模型就不敢完全信任。合适的上下文工程，能大幅提高 AI 与你的对齐程度，让它不再自说自话。</p>
@@ -689,7 +701,7 @@ background: #ffffff;
 <p>一个昨天刚拒掉的典型案例：论文要做一件事 A（很重要），分成 A1 与 A2，其中 A2 是研究不充分的子问题，作者在 A2 上做了改进 A2'。这是非常标准的 roadmap 式论文，问题在于——A 的性能中 A1 占 99%，A2 只占 1%。优化 A2 的 10% 就像噪声一样，对整件事毫无意义。故事成立、实验无误，但<strong>优化错了对象</strong>。追问随之而来：GPT 也知道这些，那为什么要发这篇论文？</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_07_00.png" alt="审稿视角：优化占 1% 的 A2 是无意义的故事" loading="lazy">
-  <p class="video-caption">📷 审稿视角：优化占 1% 的 A2 是无意义的故事<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4020" target="_blank" rel="noopener">在 B 站中打开 (01:07:00)</a></p>
+  <p class="video-caption">📷 审稿视角：优化占 1% 的 A2 是无意义的故事<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4020" target="_blank" rel="noopener">回到原视频 (01:07:00)</a></p>
 </div>
 
 <h3 id="65">6.5 学术发表体系正在崩溃</h3>
@@ -697,7 +709,7 @@ background: #ffffff;
 <p>由此引出一个尖锐的判断：<strong>学术发表与评审体系即将崩溃</strong>。AI slop 正在大量涌入学术社区：用 AI 写文章、用 AI 审文章。AI 审稿时同样会被论文上下文污染——讲者让 GPT-5.6 演示审稿，它做得并不好：仍然停留在原始的"论文写了什么、claim 是否成立"的逻辑有效性核验上。如果每篇论文都是"valid paper"，但你根本不必读它——人人都用 AI 读文章，最终就是完全的 slop。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_09_45.png" alt="GPT-5.6 生成的审稿意见" loading="lazy">
-  <p class="video-caption">📷 GPT-5.6 生成的审稿意见<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4185" target="_blank" rel="noopener">在 B 站中打开 (01:09:45)</a></p>
+  <p class="video-caption">📷 GPT-5.6 生成的审稿意见<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4185" target="_blank" rel="noopener">回到原视频 (01:09:45)</a></p>
 </div>
 
 <p>给即将读研的同学的建议：如果需要发表，可以让 AI 帮你发表；但也许不要让大家去读它。</p>
@@ -719,7 +731,7 @@ background: #ffffff;
 <li>字幕里的"从 <strong>171890</strong> 年开始"是转写乱码，实际是 <strong>1869 年</strong>（Nature 创刊年）</li>
 </ul>
 <hr />
-<h2 id="_6">第七章 更长程任务的建议</h2>
+<h2 id="_7">第七章 更长程任务的建议</h2>
 <p><em>(参考时间: 75:30)</em></p>
 <h3 id="71">7.1 什么是长程任务</h3>
 <p>课程作业（如计算机系统基础 PA）有明确 Verifier，还算不上真正的 long horizon。<strong>长程任务意味着不确定性</strong>：从初始状态出发，只有一个模糊的意图，规格与实现都不清楚，最终目标是交付一个高质量的实现。</p>
@@ -734,7 +746,7 @@ background: #ffffff;
 </ol>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_18_15.png" alt="大型复杂系统里，AI 反而游刃有余" loading="lazy">
-  <p class="video-caption">📷 大型复杂系统里，AI 反而游刃有余<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4695" target="_blank" rel="noopener">在 B 站中打开 (01:18:15)</a></p>
+  <p class="video-caption">📷 大型复杂系统里，AI 反而游刃有余<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4695" target="_blank" rel="noopener">回到原视频 (01:18:15)</a></p>
 </div>
 
 <p>为什么？这与第六章的"上下文污染"正好<strong>相反</strong>：论文会把上下文整个"扭过去"，而<strong>由人类长期维护的高质量代码，会让上下文迅速看到里面好的东西</strong>——模型会照着写、照着学。要写一个新功能时，内核里大概率已有几处类似实现，注意力机制能立刻找到它们：该调哪个 helper、按什么顺序上锁。这些对人类是巨大的心智负担（尤其不了解该子系统时根本不知道该上什么锁），而 self-attention 在加载几十个文件后就能发现"这三处都是这样写的，我把它们组合起来就可以了"。</p>
@@ -749,7 +761,7 @@ background: #ffffff;
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_21_35.png" alt="用优秀项目的设计经验"污染"上下文" loading="lazy">
-  <p class="video-caption">📷 用优秀项目的设计经验"污染"上下文<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4895" target="_blank" rel="noopener">在 B 站中打开 (01:21:35)</a></p>
+  <p class="video-caption">📷 用优秀项目的设计经验"污染"上下文<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=4895" target="_blank" rel="noopener">回到原视频 (01:21:35)</a></p>
 </div>
 
 <p>这样做或许能让 AI slop 来得慢一点，更大概率做出可以长期维护的东西。</p>
@@ -768,7 +780,7 @@ background: #ffffff;
 <p>按学生的说法："GPT 不断给我反馈，但我无法验证这些反馈正确与否；它给我 negative 结果时，我也不知道该怎么打破。"</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_25_40.png" alt="研究项目案例：符号执行优化" loading="lazy">
-  <p class="video-caption">📷 研究项目案例：符号执行优化<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5140" target="_blank" rel="noopener">在 B 站中打开 (01:25:40)</a></p>
+  <p class="video-caption">📷 研究项目案例：符号执行优化<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5140" target="_blank" rel="noopener">回到原视频 (01:25:40)</a></p>
 </div>
 
 <p>错误出在上下文里的一句话：<strong>"我想证明方法 A 是有用的"</strong>。模型看到这句话后变成了 <strong>reward hacker</strong>——忘记了研究的 big picture（讲者审稿时站在人类立场评价论文，而作为构建者无法这样反转立场），一心只想"证明方法有用"：构造许多小 benchmark，在上面做微小的实验，试图给出正面或负面的结论——这些结论对真正的研究毫无用处。</p>
@@ -778,7 +790,7 @@ background: #ffffff;
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_27_10.png" alt="Reward hacking：模型为了"证明有用"而偏离大图景" loading="lazy">
-  <p class="video-caption">📷 Reward hacking：模型为了"证明有用"而偏离大图景<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5230" target="_blank" rel="noopener">在 B 站中打开 (01:27:10)</a></p>
+  <p class="video-caption">📷 Reward hacking：模型为了"证明有用"而偏离大图景<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5230" target="_blank" rel="noopener">回到原视频 (01:27:10)</a></p>
 </div>
 
 <h3 id="76">7.6 你的精力应该放在哪里</h3>
@@ -801,26 +813,26 @@ background: #ffffff;
 <p>这可以用 P vs. NP 来类比：<strong>验证一个解是容易的（P），找到一个满足条件的解是困难的（NP 完全）</strong>——给你一条路径，判断它是不是哈密顿路径很容易；找到一条却很难。验证容易、搜索困难，模型为完成任务只能有限搜索。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_32_40.png" alt="验证容易、搜索困难：用算力换智力" loading="lazy">
-  <p class="video-caption">📷 验证容易、搜索困难：用算力换智力<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5560" target="_blank" rel="noopener">在 B 站中打开 (01:32:40)</a></p>
+  <p class="video-caption">📷 验证容易、搜索困难：用算力换智力<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5560" target="_blank" rel="noopener">回到原视频 (01:32:40)</a></p>
 </div>
 
 <p>讲者给出的策略是<strong>用算力换智力</strong>——把开放的大空间问题分割成许多有 Verifier 的小子问题：</p>
 <p><strong>案例：给孩子起名。</strong> 让 DeepSeek 起名，品味其实不错（知道去《诗经》里找），但你不敢用——因为你用，别人也用，大家都用同一个模型起名，孩子就成了"AI 时代的子涵"。系统性的做法是：名字空间其实是可枚举的——先选音、筛掉不好的音，再用 sub-agent 逐个检查字的组合，从《诗经》里选词……把一个开放问题拆成一串有明确验证标准的子任务。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_34_50.png" alt="起名案例：把开放问题拆成可验证的子任务" loading="lazy">
-  <p class="video-caption">📷 起名案例：把开放问题拆成可验证的子任务<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5690" target="_blank" rel="noopener">在 B 站中打开 (01:34:50)</a></p>
+  <p class="video-caption">📷 起名案例：把开放问题拆成可验证的子任务<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5690" target="_blank" rel="noopener">回到原视频 (01:34:50)</a></p>
 </div>
 
-<pre class="highlight"><code class="language-mermaid">graph TD
-    A[&quot;开放问题&lt;br/&gt;(大搜索空间, 无 Verifier)&quot;] --&gt; B[&quot;系统性调研 / 分解&quot;]
-    B --&gt; C[&quot;子问题 1: 可枚举、可验证&quot;]
-    B --&gt; D[&quot;子问题 2: 可枚举、可验证&quot;]
-    B --&gt; E[&quot;子问题 N: ...&quot;]
-    C --&gt; F[&quot;并行算力穷举 + 筛选&quot;]
+<div class="highlight"><pre><span></span><code>graph TD
+    A["开放问题&lt;br/&gt;(大搜索空间, 无 Verifier)"] --&gt; B["系统性调研 / 分解"]
+    B --&gt; C["子问题 1: 可枚举、可验证"]
+    B --&gt; D["子问题 2: 可枚举、可验证"]
+    B --&gt; E["子问题 N: ..."]
+    C --&gt; F["并行算力穷举 + 筛选"]
     D --&gt; F
     E --&gt; F
-    F --&gt; G[&quot;优于单次 next token 偏见的解&quot;]
-</code></pre>
+    F --&gt; G["优于单次 next token 偏见的解"]
+</code></pre></div>
 
 <p>缺点只有一个：<strong>烧 token</strong>。</p>
 <h3 id="79">7.9 结语：世界很大，人很小</h3>
@@ -832,18 +844,11 @@ background: #ffffff;
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_37_00.png" alt="结语：算力、智力与那堵墙" loading="lazy">
-  <p class="video-caption">📷 结语：算力、智力与那堵墙<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5820" target="_blank" rel="noopener">在 B 站中打开 (01:37:00)</a></p>
+  <p class="video-caption">📷 结语：算力、智力与那堵墙<br><a href="https://www.bilibili.com/video/BV1CQt365EzW?t=5820" target="_blank" rel="noopener">回到原视频 (01:37:00)</a></p>
 </div>
 
 <hr />
-<h2 id="_7">后记</h2>
-<p>本讲的三条主线可以浓缩为三句话：</p>
-<ol>
-<li><strong>提示词工程就是上下文工程</strong>——先搞清楚上下文里有什么，每个部分会把模型带向何方；</li>
-<li><strong>Verifier 是第一原则</strong>——给模型明确的验证信号，它就能不知疲倦地逼近正确；注意力的规律决定了规则要"能被看到"，也要警惕上下文污染；</li>
-<li><strong>长程任务中人依然关键</strong>——把开放问题分解为可验证的子问题（算力换智力），把有限的精力留给收益最大的事，其余放手交给 AI。</li>
-</ol>
-<p><em>（全书完。字幕中的人名、产品名与个别术语按上下文推断转写，如有出入以视频为准。）</em></p>
+<p><em>本电子书由 <a href="https://github.com/Luke-Evan/videobook">videobook</a> 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 <a href="http://creativecommons.org/licenses/by/4.0/">CC BY-NC 4.0</a> 发布。</em></p>
     </article>
 
     <!-- Mermaid 图表引擎初始化 -->

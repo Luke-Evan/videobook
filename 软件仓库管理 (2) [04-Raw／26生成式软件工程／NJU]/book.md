@@ -33,7 +33,6 @@
 21. [prompt 的舔狗：过度遵循与 intent 的 gap](#21-prompt-intent-gap)
 22. [MVP 与以不变应万变](#22-mvp)
 23. [复盘 agent 的产出：早期的 prompt 决定项目的走向](#23-agent-prompt)
-24. [后记 Postscript：本书是如何生成的](#postscript)
 
 
 ---
@@ -659,8 +658,4 @@ graph TD
 
 ---
 
-## 后记 Postscript：本书是如何生成的
-
-本书由 B 站 AI 字幕（`ai-zh`，覆盖率 99.9%、2427 段）经 AI 重构而成：口语转书面语、按内容逻辑分 23 章（另加本篇后记）、绘制 6 张 Mermaid 图、插入 40 个截图锚点；截帧管线在已登录的浏览器里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；最终渲染为带截图放大（lightbox）与 Mermaid 交互的 HTML。
-
-与视频逐句对照的订正稿见 `transcript.corrected.txt`：先由脚本按本讲错词 MAP 修正（如 `web code→vibe code`、`A证/A政→agent`、`交流坑→焦油坑`、`瑞贝斯→rebase`、`t max→tmux`、`get it report→git repo`、`句句词/JJS→Jujutsu/jj`、`deep pick→DeepSeek` 等），再由 AI 通读全文做一轮行级订正（保留讲师原始字词与有意重复，仅修明显识别错误）。
+*本电子书由 [videobook](https://github.com/Luke-Evan/videobook) 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by/4.0/) 发布。*

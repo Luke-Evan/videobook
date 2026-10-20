@@ -293,7 +293,7 @@
         <h1 id="1-event-sourcing">需求和架构（1）：从教务系统的需求爆炸，到 event sourcing</h1>
 <blockquote>
 <p><strong>课程官方资料</strong>：<a href="https://jyywiki.cn/GSE/2026/">课程主页</a> · <a href="https://jyywiki.cn/GSE/2026/lect6.md">本讲讲义</a> · <a href="https://jyywiki.cn/GSE/2026/slides6.html">本讲幻灯片</a></p>
-<p><strong>版权说明</strong>：课程讲义与幻灯片系 © 蒋炎岩 作品，依 <a href="http://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a> 发布；本书为非商业学习笔记，引用图片与文字均保留署名。</p>
+<p><strong>版权说明</strong>：课程讲义与幻灯片系 © 蒋炎岩 作品，依 <a href="http://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a> 发布；本书为非商业学习笔记，引用图片与文字均保留署名。</p>
 <p><strong>本讲说明</strong>：这是“需求与架构”两讲中的第一讲。讲者用一整节课的时间，把南京大学教务系统当成一个“史诗级需求爆炸”的活体标本现场解剖，然后用十行、两千行、五十万行三个尺度，说明<strong>架构不是玄学，而是跳出问题看问题</strong>。</p>
 </blockquote>
 <hr />
@@ -326,7 +326,9 @@
 <li><a href="#25">手艺活：一家公司，和一个研究生院的屎山</a></li>
 <li><a href="#26-persistent-data-structure">如果重做架构：persistent data structure 与三种等价的视图</a></li>
 <li><a href="#27-event-sourcing">Event sourcing：先把干的所有事情都记下来</a></li>
-<li><a href="#postscript">后记 Postscript：本书是如何生成的</a></li>
+<li><a href="#_2">附：本讲的三条主线</a></li>
+<li><a href="#_3">附：本讲官方参考与延伸阅读</a></li>
+<li><a href="#_4">附录：课堂未展示的幻灯片</a></li>
 </ol>
 <hr />
 <h2 id="1-royce">1. 回顾：软件危机、Royce，与那张错综复杂的依赖网络</h2>
@@ -362,7 +364,7 @@
 <p>在这样的背景下，<strong>软件工程</strong>就诞生了。所以软件工程研究的是：在各个阶段——做需求分析、做系统设计、做系统实现的时候——我们有什么样的方法。不管是<strong>有人文关怀的方法</strong>（你需要用 checklist，产品经理应该怎么管人，这其实也是软件工程的一部分），到比如说你写代码的时候应该怎么写测试、我们有没有可能做自动化的测试、自动化的分析——展开了一整个软件工程里面的故事。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_00_55.png" alt="intent → spec → implementation：制品之间的依赖网络" loading="lazy">
-  <p class="video-caption">📷 intent → spec → implementation：制品之间的依赖网络<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=55" target="_blank" rel="noopener">回到原视频 (00:00:55)</a></p>
+  <p class="video-caption">📷 intent → spec → implementation：制品之间的依赖网络<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=55" target="_blank" rel="noopener">回到原视频 (00:00:55)</a></p>
 </div>
 
 <h2 id="2-pre-ai-traceability-uml">2. pre-AI 时代留下的两个概念：traceability 与 UML</h2>
@@ -391,7 +393,7 @@
 <p>所以软件本身就是一个大家认为是<strong>集成了人类智慧</strong>的东西，然后同时它又要承载客户来的这些需求。就比如说教务系统——我今天会花时间来讲教务系统应该怎么样设计、应该怎么样<strong>防止它堆积成屎山</strong>。那就是软件工程。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_04_40.png" alt="软件不软：一次 bit 翻转就能让整个程序 collapse" loading="lazy">
-  <p class="video-caption">📷 软件不软：一次 bit 翻转就能让整个程序 collapse<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=280" target="_blank" rel="noopener">回到原视频 (00:04:40)</a></p>
+  <p class="video-caption">📷 软件不软：一次 bit 翻转就能让整个程序 collapse<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=280" target="_blank" rel="noopener">回到原视频 (00:04:40)</a></p>
 </div>
 
 <h2 id="4-intent-spec">4. 被迫从底层学起：今天讲 intent → spec 的那一段</h2>
@@ -401,7 +403,7 @@
 <p>所以你们上来以后就先学 <strong>C 语言</strong>：先学一个最基础的、老的、已经过时了、没有人用的（也还算有一些人用的）编程语言。然后在这个基础上你不断地产生新的知识：<strong>知道世界是怎么失败的</strong>，然后新的语言是怎么创造出来的、为什么要有它，然后一点一点去往上走。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_07_00.png" alt="被迫从底层学起：从 C 语言一路往上到需求、产品、架构" loading="lazy">
-  <p class="video-caption">📷 被迫从底层学起：从 C 语言一路往上到需求、产品、架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=420" target="_blank" rel="noopener">回到原视频 (00:07:00)</a></p>
+  <p class="video-caption">📷 被迫从底层学起：从 C 语言一路往上到需求、产品、架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=420" target="_blank" rel="noopener">回到原视频 (00:07:00)</a></p>
 </div>
 
 <p>然后你今天看到的是像<strong>需求、产品、架构</strong>——这是我今天要讲的主题：在软件的设计阶段，<strong>从 intent 到 spec 的阶段</strong>。这其实是决定了一个软件系统<strong>从零开始走向</strong>的最关键的部分。</p>
@@ -428,7 +430,7 @@
 <p>所以你会做一个（判断）、你会有一个倾向：<strong>你不要做无用功，不要去研究一个你即将会扔掉的东西。</strong> 每个人都有这个本能。那如果你确实有这个本能，那么你就应该知道：在做 MVP 的时候选哪些最重要的功能，你会得到一个可以运行的版本。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_09_55.png" alt="MVP：找到一个从 intent 到 implementation 的切片" loading="lazy">
-  <p class="video-caption">📷 MVP：找到一个从 intent 到 implementation 的切片<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=595" target="_blank" rel="noopener">回到原视频 (00:09:55)</a></p>
+  <p class="video-caption">📷 MVP：找到一个从 intent 到 implementation 的切片<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=595" target="_blank" rel="noopener">回到原视频 (00:09:55)</a></p>
 </div>
 
 <h3 id="52-prompt-mvp">5.2 几个字的 prompt，会长出完全不同的 MVP</h3>
@@ -474,14 +476,14 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_14_30.png" alt="现场翻车：UI 还在、OBS 还在推流，但所有输入设备都死了" loading="lazy">
-  <p class="video-caption">📷 现场翻车：UI 还在、OBS 还在推流，但所有输入设备都死了<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=870" target="_blank" rel="noopener">回到原视频 (00:14:30)</a></p>
+  <p class="video-caption">📷 现场翻车：UI 还在、OBS 还在推流，但所有输入设备都死了<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=870" target="_blank" rel="noopener">回到原视频 (00:14:30)</a></p>
 </div>
 
 <h2 id="6">6. 需求工程：学生为什么见不到真正的客户</h2>
 <p><em>(参考时间: 15:03)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_15_15.png" alt="第 5 页幻灯片 · 需求工程" loading="lazy">
-  <p class="video-caption">📷 第 5 页幻灯片 · 需求工程<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=915" target="_blank" rel="noopener">回到原视频 (00:15:15)</a></p>
+  <p class="video-caption">📷 第 5 页幻灯片 · 需求工程<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=915" target="_blank" rel="noopener">回到原视频 (00:15:15)</a></p>
 </div>
 
 <p>回到今天。我们要讲的内容是<strong>需求工程</strong>。</p>
@@ -494,14 +496,14 @@
 <p><em>(参考时间: 15:48)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_15_55.png" alt="第 6 页幻灯片 · 来看看教务系统吧 😁" loading="lazy">
-  <p class="video-caption">📷 第 6 页幻灯片 · 来看看教务系统吧 😁<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=955" target="_blank" rel="noopener">回到原视频 (00:15:55)</a></p>
+  <p class="video-caption">📷 第 6 页幻灯片 · 来看看教务系统吧 😁<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=955" target="_blank" rel="noopener">回到原视频 (00:15:55)</a></p>
 </div>
 
 <p>我们今天要讲的软件系统的例子，是我比较喜欢的这个<strong>教务系统</strong>。我可以称它是<strong>史诗级的需求爆炸</strong>。</p>
 <p>我昨天就趁机看了一下。（登录态还在吗？）好，我的登录不在了，让我扫码登录一下……好，我发现教务系统这几年一直都在进步啊。这是我的界面，我稍微放大一点点。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_16_30.png" alt="南京大学本科教学服务平台：教师端首页" loading="lazy">
-  <p class="video-caption">📷 南京大学本科教学服务平台：教师端首页<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=990" target="_blank" rel="noopener">回到原视频 (00:16:30)</a></p>
+  <p class="video-caption">📷 南京大学本科教学服务平台：教师端首页<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=990" target="_blank" rel="noopener">回到原视频 (00:16:30)</a></p>
 </div>
 
 <h3 id="71">7.1 史诗级的更新：可以直接问它</h3>
@@ -513,12 +515,12 @@
 <p>还是一个（能用的东西）对吧。这是一个史诗级的更新，你们竟然……相信大家应该不知道突然有这个功能了，我不知道什么时候加上的，曾经肯定是没有的。因为我不会去搜索——我总是在那个快捷搜索栏里，直接等到它下一个界面弹出的时候，我就点它。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_17_05.png" alt="教务系统里的 AI 问答：仙林教学楼的灯该找谁" loading="lazy">
-  <p class="video-caption">📷 教务系统里的 AI 问答：仙林教学楼的灯该找谁<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1025" target="_blank" rel="noopener">回到原视频 (00:17:05)</a></p>
+  <p class="video-caption">📷 教务系统里的 AI 问答：仙林教学楼的灯该找谁<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1025" target="_blank" rel="noopener">回到原视频 (00:17:05)</a></p>
 </div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_17_40.png" alt="“我现在在上什么课”：带登录上下文的教师课表" loading="lazy">
-  <p class="video-caption">📷 “我现在在上什么课”：带登录上下文的教师课表<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1060" target="_blank" rel="noopener">回到原视频 (00:17:40)</a></p>
+  <p class="video-caption">📷 “我现在在上什么课”：带登录上下文的教师课表<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1060" target="_blank" rel="noopener">回到原视频 (00:17:40)</a></p>
 </div>
 
 <p>所以这是一个非常典型的<strong>需求爆炸</strong>的系统。这个系统肯定是花了很多钱的。然后这个钱我觉得某种程度上，<strong>还不如变成 token 的补贴给大家</strong>：因为它要购买算力、它要购买开发；不如我刚才如果用 PyAgent 去找一下的话，可能就一毛钱两毛钱。</p>
@@ -534,12 +536,12 @@
 <p>然后在这里，上一次给大家演示过：直接用 AI、用 slop 来填满<strong>教学周记</strong>。你看，没有人管我，我没有任何人来审计我填的任何内容——至少还没有。（我觉得他们更应该把这个教室的灯给修好。）</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_19_05.png" alt="教学任务与学生名单：能直接看到电话号码的糟糕 feature" loading="lazy">
-  <p class="video-caption">📷 教学任务与学生名单：能直接看到电话号码的糟糕 feature<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1145" target="_blank" rel="noopener">回到原视频 (00:19:05)</a></p>
+  <p class="video-caption">📷 教学任务与学生名单：能直接看到电话号码的糟糕 feature<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1145" target="_blank" rel="noopener">回到原视频 (00:19:05)</a></p>
 </div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_19_20.png" alt="用 AI slop 填满的教学周记，没有任何人审计" loading="lazy">
-  <p class="video-caption">📷 用 AI slop 填满的教学周记，没有任何人审计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1160" target="_blank" rel="noopener">回到原视频 (00:19:20)</a></p>
+  <p class="video-caption">📷 用 AI slop 填满的教学周记，没有任何人审计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1160" target="_blank" rel="noopener">回到原视频 (00:19:20)</a></p>
 </div>
 
 <p>然后你就看到在这个界面里面有<strong>无穷多的功能</strong>。你看比如说有"编辑联系方式"，然后我在这里有"当前教学学期""最新排课学期""历史授课信息"。然后在这个历史授课信息里面，我要选择学年学期——诶，选择学年学期不太好用。你的感觉是不太好用、又还蛮好用的：<strong>它还是做了需求分析的。</strong></p>
@@ -551,12 +553,12 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_20_10.png" alt="期末考试签到表：一个带条件弹窗的功能点" loading="lazy">
-  <p class="video-caption">📷 期末考试签到表：一个带条件弹窗的功能点<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1210" target="_blank" rel="noopener">回到原视频 (00:20:10)</a></p>
+  <p class="video-caption">📷 期末考试签到表：一个带条件弹窗的功能点<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1210" target="_blank" rel="noopener">回到原视频 (00:20:10)</a></p>
 </div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_20_42.png" alt="查看大纲：等了很久才刷新出来，不满足非功能性需求" loading="lazy">
-  <p class="video-caption">📷 查看大纲：等了很久才刷新出来，不满足非功能性需求<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1242" target="_blank" rel="noopener">回到原视频 (00:20:42)</a></p>
+  <p class="video-caption">📷 查看大纲：等了很久才刷新出来，不满足非功能性需求<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1242" target="_blank" rel="noopener">回到原视频 (00:20:42)</a></p>
 </div>
 
 <p>（看有没有还有没有别的可以点的。我就不用 AI（键）的点，我还是用古法方式来点。）</p>
@@ -575,12 +577,12 @@
 <p>然后我点删除可以吗？好。点新增可以吗？——<strong>"请在可维护时段内操作"</strong>。课内教学班可以吗？新增，请在可维护（时段内操作）啊——现在不能、已经不能申请助教了。anyway，这就是你看到的教务系统。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_21_50.png" alt="慕课助教 vs 课内教学班助教：需求叠加出来的史诗级 bug" loading="lazy">
-  <p class="video-caption">📷 慕课助教 vs 课内教学班助教：需求叠加出来的史诗级 bug<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1310" target="_blank" rel="noopener">回到原视频 (00:21:50)</a></p>
+  <p class="video-caption">📷 慕课助教 vs 课内教学班助教：需求叠加出来的史诗级 bug<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1310" target="_blank" rel="noopener">回到原视频 (00:21:50)</a></p>
 </div>
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_22_28.png" alt="“请在可维护时段内操作”" loading="lazy">
-  <p class="video-caption">📷 “请在可维护时段内操作”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1348" target="_blank" rel="noopener">回到原视频 (00:22:28)</a></p>
+  <p class="video-caption">📷 “请在可维护时段内操作”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1348" target="_blank" rel="noopener">回到原视频 (00:22:28)</a></p>
 </div>
 
 <h3 id="75-agent">7.5 你们不敢，agent 敢</h3>
@@ -600,14 +602,14 @@
 <p>所以 AI 真的是很好用：你要学东西的时候，我就想如果要教需求工程的话，我当然可以找一个经典的案例，那我也可以<strong>把身边的案例直接变成需求说明书</strong>。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_23_52.png" alt="GPT 爬出来的《南京大学本科教学服务平台需求说明书》" loading="lazy">
-  <p class="video-caption">📷 GPT 爬出来的《南京大学本科教学服务平台需求说明书》<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1432" target="_blank" rel="noopener">回到原视频 (00:23:52)</a></p>
+  <p class="video-caption">📷 GPT 爬出来的《南京大学本科教学服务平台需求说明书》<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1432" target="_blank" rel="noopener">回到原视频 (00:23:52)</a></p>
 </div>
 
 <p>你马上就发现这个目录里面有这么多项：从<strong>调研方法、证据边界</strong>到<strong>业务目标、成功标准</strong>，到各种各样的<strong>详细用例规约、功能需求目录</strong>，最后还有<strong>术语文档与配套文件</strong>。</p>
 <p>所以你看，<strong>GPT 是懂软件工程的。</strong> 它为什么要写这么多？这在我们看来——这已经是一个做好的系统——这就完全是 slop，就突然间写了好多好多的东西。但它懂得：如果你要做一个真正的工程，<strong>当你面对的是客户的时候，一个术语（表）就很重要</strong>——在他看不懂的时候，他可以去查一下术语，他就对齐了。虽然你不是 UML、（还）在一个早期的意图沟通的阶段，但是这些东西显然是有一定用处的。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_24_25.png" alt="需求说明书目录：调研方法、证据边界、业务目标、成功标准……" loading="lazy">
-  <p class="video-caption">📷 需求说明书目录：调研方法、证据边界、业务目标、成功标准……<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1465" target="_blank" rel="noopener">回到原视频 (00:24:25)</a></p>
+  <p class="video-caption">📷 需求说明书目录：调研方法、证据边界、业务目标、成功标准……<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1465" target="_blank" rel="noopener">回到原视频 (00:24:25)</a></p>
 </div>
 
 <h2 id="9-traceabilitytedious">9. 需求清单里的 traceability，与"tedious 到你不想干"</h2>
@@ -617,7 +619,7 @@
 <p>而不是说我这个教学班是和学生管理是有关的——你自然语言肯定是说了这样的一句话的——但是<strong>它用有编号、一个 ID、有形式意义的 ID，它就在一定程度上帮助你做了 traceability。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_25_15.png" alt="功能需求目录：带编号 ID 的 traceability" loading="lazy">
-  <p class="video-caption">📷 功能需求目录：带编号 ID 的 traceability<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1515" target="_blank" rel="noopener">回到原视频 (00:25:15)</a></p>
+  <p class="video-caption">📷 功能需求目录：带编号 ID 的 traceability<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1515" target="_blank" rel="noopener">回到原视频 (00:25:15)</a></p>
 </div>
 
 <h3 id="92">9.2 当你真正做软件的时候，复杂就来了</h3>
@@ -631,7 +633,7 @@
 <p>所以刚才你看到，交互系统还是有一定的设计（感）的：它会想你做这件事情的时候会想要做什么，然后它会留一个 <strong>combobox</strong> 在那边，你可以选那个 combobox，然后选一个学期或者选一个什么东西。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_26_05.png" alt="门户与身份：多身份选择与当前身份显示" loading="lazy">
-  <p class="video-caption">📷 门户与身份：多身份选择与当前身份显示<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1565" target="_blank" rel="noopener">回到原视频 (00:26:05)</a></p>
+  <p class="video-caption">📷 门户与身份：多身份选择与当前身份显示<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1565" target="_blank" rel="noopener">回到原视频 (00:26:05)</a></p>
 </div>
 
 <h3 id="93-tedious">9.3 tedious 到你根本就不想干</h3>
@@ -652,14 +654,14 @@
 <p>这个 checklist 最终你就可以把它分成：前 20 个需求分给这个团队，后 20 个需求分给那个团队，然后就可以 <strong>track 每一个人的进度</strong>——你就知道哪一个团队落后于实现需求、落后于进度了。<strong>这个 traceability 有了以后，你作为一个管理者，你就可以把团队管起来了。</strong>（当然这是我们本科上课的时候不怎么学的。）</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_29_35.png" alt="验收场景与结构化需求清单：可以直接按条切给团队" loading="lazy">
-  <p class="video-caption">📷 验收场景与结构化需求清单：可以直接按条切给团队<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1775" target="_blank" rel="noopener">回到原视频 (00:29:35)</a></p>
+  <p class="video-caption">📷 验收场景与结构化需求清单：可以直接按条切给团队<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1775" target="_blank" rel="noopener">回到原视频 (00:29:35)</a></p>
 </div>
 
 <p>AI 的魅力时刻就在于——我又干了这样的一件事：<strong>我让 GPT 起一个 sub agent，然后这个 sub agent 不要看任何其他的教务系统，只根据这个需求说明书来实现一个假的教务系统。</strong></p>
 <p>然后就得到了一个……哎，我觉得<strong>突然你又有信心了</strong>：觉得好像我也可以跟学校谈一个 20 万的合同了。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_30_55.png" alt="只根据需求说明书实现的“假教务系统”" loading="lazy">
-  <p class="video-caption">📷 只根据需求说明书实现的“假教务系统”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1855" target="_blank" rel="noopener">回到原视频 (00:30:55)</a></p>
+  <p class="video-caption">📷 只根据需求说明书实现的“假教务系统”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1855" target="_blank" rel="noopener">回到原视频 (00:30:55)</a></p>
 </div>
 
 <p>哎，真的还就是跟我刚才看的那个挺像的嘞：返回到全部教学任务、我的教学任务、本科教材管理（《软件工程：实践者的研究方法》）、编辑记录……我看这能不能编辑啊，演示书目一，保存记录——<strong>记录已保存</strong>，这个成功地保存了。</p>
@@ -667,7 +669,7 @@
 <p>诶，这是什么？"一次记录，缺课一次"——哎，它不给我输入一？那就保存记录……哇，这个还是——<strong>那它没有阻止我。</strong> 我记录一个这个（超过总课次的数字）其实也不合理，因为这个数字已经超过了所有的这个学期上课次数的总和。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_31_50.png" alt="缺课次数：一个超过学期总课次也没被拦下的输入" loading="lazy">
-  <p class="video-caption">📷 缺课次数：一个超过学期总课次也没被拦下的输入<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1910" target="_blank" rel="noopener">回到原视频 (00:31:50)</a></p>
+  <p class="video-caption">📷 缺课次数：一个超过学期总课次也没被拦下的输入<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1910" target="_blank" rel="noopener">回到原视频 (00:31:50)</a></p>
 </div>
 
 <blockquote>
@@ -683,14 +685,14 @@
 <p>然后我们要设计一个教务系统：<strong>要为她设计，也要同样为我设计、为年轻人设计。</strong> 诶，这个时候怎么得到那一张表——这是完全是另外的一个问题（当然这不是这门课的重点）。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_32_40.png" alt="从入学到毕业：权限规则、版本、数据同步、操作留痕" loading="lazy">
-  <p class="video-caption">📷 从入学到毕业：权限规则、版本、数据同步、操作留痕<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=1960" target="_blank" rel="noopener">回到原视频 (00:32:40)</a></p>
+  <p class="video-caption">📷 从入学到毕业：权限规则、版本、数据同步、操作留痕<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=1960" target="_blank" rel="noopener">回到原视频 (00:32:40)</a></p>
 </div>
 
 <h2 id="11">11. 行业壁垒：做软件是被迫从零开始的</h2>
 <p><em>(参考时间: 34:03)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_34_20.png" alt="第 8 页幻灯片 · 教务系统的需求泥潭" loading="lazy">
-  <p class="video-caption">📷 第 8 页幻灯片 · 教务系统的需求泥潭<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2060" target="_blank" rel="noopener">回到原视频 (00:34:20)</a></p>
+  <p class="video-caption">📷 第 8 页幻灯片 · 教务系统的需求泥潭<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2060" target="_blank" rel="noopener">回到原视频 (00:34:20)</a></p>
 </div>
 
 <p>这门课的重点是说：<strong>当你的教务系统已经像刚才那样、用一个那么长的需求列表来做的话，其实就已经进入了泥潭。</strong></p>
@@ -735,7 +737,7 @@
 <p><strong>然后每当你叠加一个这个东西的时候，这个屎山就开始累积了。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_37_15.png" alt="毕业要求：下拉框 + 增加一条按钮的初版需求" loading="lazy">
-  <p class="video-caption">📷 毕业要求：下拉框 + 增加一条按钮的初版需求<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2235" target="_blank" rel="noopener">回到原视频 (00:37:15)</a></p>
+  <p class="video-caption">📷 毕业要求：下拉框 + 增加一条按钮的初版需求<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2235" target="_blank" rel="noopener">回到原视频 (00:37:15)</a></p>
 </div>
 
 <h3 id="122">12.2 裂缝会传递到系统里的各个部分</h3>
@@ -762,11 +764,11 @@
 <p><em>(参考时间: 40:51)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_40_55.png" alt="第 10 页幻灯片 · 勉强实现需求，然后进入焦油坑" loading="lazy">
-  <p class="video-caption">📷 第 10 页幻灯片 · 勉强实现需求，然后进入焦油坑<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2455" target="_blank" rel="noopener">回到原视频 (00:40:55)</a></p>
+  <p class="video-caption">📷 第 10 页幻灯片 · 勉强实现需求，然后进入焦油坑<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2455" target="_blank" rel="noopener">回到原视频 (00:40:55)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_42_35.png" alt="第 11 页幻灯片 · Agentic AI 时代的 MVP" loading="lazy">
-  <p class="video-caption">📷 第 11 页幻灯片 · Agentic AI 时代的 MVP<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2555" target="_blank" rel="noopener">回到原视频 (00:42:35)</a></p>
+  <p class="video-caption">📷 第 11 页幻灯片 · Agentic AI 时代的 MVP<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2555" target="_blank" rel="noopener">回到原视频 (00:42:35)</a></p>
 </div>
 
 <p>我记得我开始上课的第一天——那应该是 <strong>2018 年</strong>的时候，好多年以前了——那个时候还是一个老版的教务系统，好像是和我上学的时候教务系统差不多。</p>
@@ -793,7 +795,7 @@
 <p><em>(参考时间: 43:30)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_43_40.png" alt="第 13 页幻灯片 · 银弹：传说中的“一招制胜”" loading="lazy">
-  <p class="video-caption">📷 第 13 页幻灯片 · 银弹：传说中的“一招制胜”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2620" target="_blank" rel="noopener">回到原视频 (00:43:40)</a></p>
+  <p class="video-caption">📷 第 13 页幻灯片 · 银弹：传说中的“一招制胜”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2620" target="_blank" rel="noopener">回到原视频 (00:43:40)</a></p>
 </div>
 
 <p>这也是<strong>所有的软件工程都面临的问题</strong>，叫 <strong>there is no silver bullet</strong>——没有银弹。</p>
@@ -804,18 +806,18 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_43_35.png" alt="There is no silver bullet" loading="lazy">
-  <p class="video-caption">📷 There is no silver bullet<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2615" target="_blank" rel="noopener">回到原视频 (00:43:35)</a></p>
+  <p class="video-caption">📷 There is no silver bullet<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2615" target="_blank" rel="noopener">回到原视频 (00:43:35)</a></p>
 </div>
 
 <h2 id="15">15. 无处不在的架构：第一步要做的其实是架构</h2>
 <p><em>(参考时间: 44:23)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_46_00.png" alt="第 15 页幻灯片 · 好的架构：复杂性有归处，变化有边界" loading="lazy">
-  <p class="video-caption">📷 第 15 页幻灯片 · 好的架构：复杂性有归处，变化有边界<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2760" target="_blank" rel="noopener">回到原视频 (00:46:00)</a></p>
+  <p class="video-caption">📷 第 15 页幻灯片 · 好的架构：复杂性有归处，变化有边界<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2760" target="_blank" rel="noopener">回到原视频 (00:46:00)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_46_20.png" alt="第 16 页幻灯片 · 再小的代码也有架构" loading="lazy">
-  <p class="video-caption">📷 第 16 页幻灯片 · 再小的代码也有架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2780" target="_blank" rel="noopener">回到原视频 (00:46:20)</a></p>
+  <p class="video-caption">📷 第 16 页幻灯片 · 再小的代码也有架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2780" target="_blank" rel="noopener">回到原视频 (00:46:20)</a></p>
 </div>
 
 <p>对，这是需求。<strong>那解决这个问题的方式是什么呢？——是架构。</strong></p>
@@ -835,7 +837,7 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_45_40.png" alt="架构就是控制复杂性：哪怕最小的代码也有架构" loading="lazy">
-  <p class="video-caption">📷 架构就是控制复杂性：哪怕最小的代码也有架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2740" target="_blank" rel="noopener">回到原视频 (00:45:40)</a></p>
+  <p class="video-caption">📷 架构就是控制复杂性：哪怕最小的代码也有架构<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2740" target="_blank" rel="noopener">回到原视频 (00:45:40)</a></p>
 </div>
 
 <h2 id="16-getopt">16. getopt：命令行参数解析里的架构</h2>
@@ -891,18 +893,18 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_47_45.png" alt="getopt：把 argv 的复杂性隔开，只留下一个 parsing state" loading="lazy">
-  <p class="video-caption">📷 getopt：把 argv 的复杂性隔开，只留下一个 parsing state<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=2865" target="_blank" rel="noopener">回到原视频 (00:47:45)</a></p>
+  <p class="video-caption">📷 getopt：把 argv 的复杂性隔开，只留下一个 parsing state<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=2865" target="_blank" rel="noopener">回到原视频 (00:47:45)</a></p>
 </div>
 
 <h2 id="17">17. 汉诺塔的四种表达：架构是一种品位</h2>
 <p><em>(参考时间: 50:49)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_51_00.png" alt="第 17 页幻灯片 · 10 行的架构例子" loading="lazy">
-  <p class="video-caption">📷 第 17 页幻灯片 · 10 行的架构例子<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3060" target="_blank" rel="noopener">回到原视频 (00:51:00)</a></p>
+  <p class="video-caption">📷 第 17 页幻灯片 · 10 行的架构例子<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3060" target="_blank" rel="noopener">回到原视频 (00:51:00)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_54_10.png" alt="第 20 页幻灯片 · 绿导师：抽象机器" loading="lazy">
-  <p class="video-caption">📷 第 20 页幻灯片 · 绿导师：抽象机器<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3250" target="_blank" rel="noopener">回到原视频 (00:54:10)</a></p>
+  <p class="video-caption">📷 第 20 页幻灯片 · 绿导师：抽象机器<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3250" target="_blank" rel="noopener">回到原视频 (00:54:10)</a></p>
 </div>
 
 <p>所以我们可以看几个比较典型的架构。我<strong>从最小的十行代码的架构</strong>来开始讲。</p>
@@ -937,7 +939,7 @@
 <p>这还是一个移动方向固定吗？<strong>We don't know.</strong> 反正 anyway，它这个应该是对的——<strong>反正你看不明白，但是 highly optimized、极度最优。</strong>（当然我没有（验证），除非我叫它模拟栈。）</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_52_40.png" alt="GPT-6 的非递归汉诺塔：盘号 = 1 + 步号二进制末尾零的个数" loading="lazy">
-  <p class="video-caption">📷 GPT-6 的非递归汉诺塔：盘号 = 1 + 步号二进制末尾零的个数<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3160" target="_blank" rel="noopener">回到原视频 (00:52:40)</a></p>
+  <p class="video-caption">📷 GPT-6 的非递归汉诺塔：盘号 = 1 + 步号二进制末尾零的个数<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3160" target="_blank" rel="noopener">回到原视频 (00:52:40)</a></p>
 </div>
 
 <h3 id="172-deepseek-v4-flash">17.2 表达二：DeepSeek V4 Flash —— 递归是栈</h3>
@@ -960,7 +962,7 @@
 
 <div class="video-card screenshot-card">
   <img src="images/shot_00_53_10.png" alt="DeepSeek V4 Flash 的非递归汉诺塔：显式栈的标准答案" loading="lazy">
-  <p class="video-caption">📷 DeepSeek V4 Flash 的非递归汉诺塔：显式栈的标准答案<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3190" target="_blank" rel="noopener">回到原视频 (00:53:10)</a></p>
+  <p class="video-caption">📷 DeepSeek V4 Flash 的非递归汉诺塔：显式栈的标准答案<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3190" target="_blank" rel="noopener">回到原视频 (00:53:10)</a></p>
 </div>
 
 <p>然后我特意试了一下<strong>豆包</strong>：豆包选了这个方案，但是写了一个有瑕疵的代码，跟这个基本上差不多，我就不展示了。（然后我就呵呵。）</p>
@@ -982,7 +984,7 @@
 <p>然后（右边）我不知道是不是 AI（写的评论），也给你营造一种这个 CSDN 的博客质量很高的感觉。<strong>但如果你们在上学的时候被这种 slop 污染了</strong>——你还不如跟 AI 学，跟 DeepSeek 学都很好（GPT-6 已经不当人了）。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_55_55.png" alt="CSDN 上搜到的“非递归汉诺塔”：比 AI slop 还严重" loading="lazy">
-  <p class="video-caption">📷 CSDN 上搜到的“非递归汉诺塔”：比 AI slop 还严重<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3355" target="_blank" rel="noopener">回到原视频 (00:55:55)</a></p>
+  <p class="video-caption">📷 CSDN 上搜到的“非递归汉诺塔”：比 AI slop 还严重<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3355" target="_blank" rel="noopener">回到原视频 (00:55:55)</a></p>
 </div>
 
 <h3 id="175">17.5 跳出问题看问题</h3>
@@ -1020,7 +1022,7 @@
 </table>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_56_45.png" alt="同一个汉诺塔的四种表达" loading="lazy">
-  <p class="video-caption">📷 同一个汉诺塔的四种表达<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3405" target="_blank" rel="noopener">回到原视频 (00:56:45)</a></p>
+  <p class="video-caption">📷 同一个汉诺塔的四种表达<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3405" target="_blank" rel="noopener">回到原视频 (00:56:45)</a></p>
 </div>
 
 <p>这个很有意思吧：<strong>你在任何一个小的地方，都能看出架构水平的高低。</strong> 这是<strong>十行</strong>的架构。</p>
@@ -1028,7 +1030,7 @@
 <p><em>(参考时间: 57:46)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_58_05.png" alt="第 23 页幻灯片 · 2,000 行的架构例子" loading="lazy">
-  <p class="video-caption">📷 第 23 页幻灯片 · 2,000 行的架构例子<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3485" target="_blank" rel="noopener">回到原视频 (00:58:05)</a></p>
+  <p class="video-caption">📷 第 23 页幻灯片 · 2,000 行的架构例子<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3485" target="_blank" rel="noopener">回到原视频 (00:58:05)</a></p>
 </div>
 
 <p>然后如果我们要再大一点，比如说 <strong>2000 行的架构</strong>，我们（要）展示<strong>跳出问题看问题</strong>：</p>
@@ -1048,7 +1050,7 @@
 <p>（我打开它看一下……应该是第一次课的时候。）对，就生成这样的一个可以扫描的二维码：它可以把任何一个长的字符串，编码成一个你能够直接扫描的二维码。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_00_59_30.png" alt="Excel 里生成二维码：输入单元格 → 01 序列" loading="lazy">
-  <p class="video-caption">📷 Excel 里生成二维码：输入单元格 → 01 序列<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3570" target="_blank" rel="noopener">回到原视频 (00:59:30)</a></p>
+  <p class="video-caption">📷 Excel 里生成二维码：输入单元格 → 01 序列<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3570" target="_blank" rel="noopener">回到原视频 (00:59:30)</a></p>
 </div>
 
 <p>然后你回头再用软件工程的、就用我们今天讲过的概念去理解这个问题：</p>
@@ -1069,7 +1071,7 @@
 <p><strong>那这个时候你就需要一个抽象。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_01_30.png" alt="直接写成一个公式的后果：长得像一页 Lisp" loading="lazy">
-  <p class="video-caption">📷 直接写成一个公式的后果：长得像一页 Lisp<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3690" target="_blank" rel="noopener">回到原视频 (01:01:30)</a></p>
+  <p class="video-caption">📷 直接写成一个公式的后果：长得像一页 Lisp<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3690" target="_blank" rel="noopener">回到原视频 (01:01:30)</a></p>
 </div>
 
 <h3 id="193-excel">19.3 需求看起来明确，但其实有很多坑：Excel 是有版本的</h3>
@@ -1089,11 +1091,11 @@
 <p><em>(参考时间: 64:37)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_10_40.png" alt="第 26 页幻灯片 · 一份中间语言，两种执行方式" loading="lazy">
-  <p class="video-caption">📷 第 26 页幻灯片 · 一份中间语言，两种执行方式<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4240" target="_blank" rel="noopener">回到原视频 (01:10:40)</a></p>
+  <p class="video-caption">📷 第 26 页幻灯片 · 一份中间语言，两种执行方式<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4240" target="_blank" rel="noopener">回到原视频 (01:10:40)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_11_20.png" alt="第 29 页幻灯片 · 性能优化也有自己的位置" loading="lazy">
-  <p class="video-caption">📷 第 29 页幻灯片 · 性能优化也有自己的位置<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4280" target="_blank" rel="noopener">回到原视频 (01:11:20)</a></p>
+  <p class="video-caption">📷 第 29 页幻灯片 · 性能优化也有自己的位置<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4280" target="_blank" rel="noopener">回到原视频 (01:11:20)</a></p>
 </div>
 
 <p>所以如果我们跳出问题看问题，<strong>其实这是一个编译的问题。</strong></p>
@@ -1108,7 +1110,7 @@
 </ul>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_05_40.png" alt="从字符串到二维码的伪代码：版本、纠错等级、掩码、ECC" loading="lazy">
-  <p class="video-caption">📷 从字符串到二维码的伪代码：版本、纠错等级、掩码、ECC<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=3940" target="_blank" rel="noopener">回到原视频 (01:05:40)</a></p>
+  <p class="video-caption">📷 从字符串到二维码的伪代码：版本、纠错等级、掩码、ECC<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=3940" target="_blank" rel="noopener">回到原视频 (01:05:40)</a></p>
 </div>
 
 <blockquote>
@@ -1132,7 +1134,7 @@
 <p>所以这个语言可以翻译成 Python，<strong>这个语言也可以翻译成 Excel</strong>：我只要要求<strong>每一个节点都有一个翻译成 Excel 的规则</strong>。我可以把这个东西放到一个格子里（任意的格子都可以），然后把这个结果放到一个格子里，然后我就可以在这里做出一个"这两个格子拼起来"的结果。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_08_20.png" alt="中间语言的设计：一份中介语言，两种执行方式" loading="lazy">
-  <p class="video-caption">📷 中间语言的设计：一份中介语言，两种执行方式<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4100" target="_blank" rel="noopener">回到原视频 (01:08:20)</a></p>
+  <p class="video-caption">📷 中间语言的设计：一份中介语言，两种执行方式<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4100" target="_blank" rel="noopener">回到原视频 (01:08:20)</a></p>
 </div>
 
 <h3 id="203-llm-python-excel">20.3 于是流程变成了：LLM 生成 → Python 验证 → Excel 交付</h3>
@@ -1172,7 +1174,7 @@
 <p><em>(参考时间: 72:33)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_15_20.png" alt="第 32 页幻灯片 · 新增功能，越来越像拆盲盒" loading="lazy">
-  <p class="video-caption">📷 第 32 页幻灯片 · 新增功能，越来越像拆盲盒<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4520" target="_blank" rel="noopener">回到原视频 (01:15:20)</a></p>
+  <p class="video-caption">📷 第 32 页幻灯片 · 新增功能，越来越像拆盲盒<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4520" target="_blank" rel="noopener">回到原视频 (01:15:20)</a></p>
 </div>
 
 <p>那么终于到我们最后一个：<strong>十行的讲完了，2000 行的讲完了，50 万行的架构应该怎么设计。</strong></p>
@@ -1190,7 +1192,7 @@
 <p>还是很有水准的。虽然……我真的觉得它还蛮厉害的：<strong>这个东西能做对。</strong></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_13_20.png" alt="GPT-6 的 function applications：格式化成一路长调用" loading="lazy">
-  <p class="video-caption">📷 GPT-6 的 function applications：格式化成一路长调用<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4400" target="_blank" rel="noopener">回到原视频 (01:13:20)</a></p>
+  <p class="video-caption">📷 GPT-6 的 function applications：格式化成一路长调用<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4400" target="_blank" rel="noopener">回到原视频 (01:13:20)</a></p>
 </div>
 
 <h3 id="212-d">21.2 让 D 老师来评价一下</h3>
@@ -1198,7 +1200,7 @@
 <p>然后当时我就<strong>惊了</strong>。惊了以后我就启动了一个独立的 session，然后问那个 GPT（在跑的）："<strong>这个软件能维护吗？</strong>" 害怕地问它。它说：<strong>能</strong>——"现在只不过是把这个业务逻辑挤在几个大文件里，但是这个东西维护是完全没有问题的。"</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_14_55.png" alt="问它：“这个教务系统使用了怎样的架构”" loading="lazy">
-  <p class="video-caption">📷 问它：“这个教务系统使用了怎样的架构”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4495" target="_blank" rel="noopener">回到原视频 (01:14:55)</a></p>
+  <p class="video-caption">📷 问它：“这个教务系统使用了怎样的架构”<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4495" target="_blank" rel="noopener">回到原视频 (01:14:55)</a></p>
 </div>
 
 <p>它说：你看，<strong>经典三层单体、前后端分离</strong>啊，而且有几个<strong>生产级横切设计</strong>：</p>
@@ -1222,7 +1224,7 @@
 <p>所以你看，它就是觉得很有自信：<strong>它确实做了工程上、就是你们做不来的、这个至少要摸爬滚打几年才理解的设计</strong>——它有这个软件工程的直觉。然后你看它有<strong>数据驱动</strong>、<strong>横向扩展</strong>，扩展性很好啊。当然也有差的一面。</p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_15_40.png" alt="D 老师的评价：经典三层单体、乐观锁、幂等、事务、审计" loading="lazy">
-  <p class="video-caption">📷 D 老师的评价：经典三层单体、乐观锁、幂等、事务、审计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4540" target="_blank" rel="noopener">回到原视频 (01:15:40)</a></p>
+  <p class="video-caption">📷 D 老师的评价：经典三层单体、乐观锁、幂等、事务、审计<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4540" target="_blank" rel="noopener">回到原视频 (01:15:40)</a></p>
 </div>
 
 <blockquote>
@@ -1251,7 +1253,7 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_17_30.png" alt="CRUD 的基本原理：物理世界在信息世界里的投影" loading="lazy">
-  <p class="video-caption">📷 CRUD 的基本原理：物理世界在信息世界里的投影<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4650" target="_blank" rel="noopener">回到原视频 (01:17:30)</a></p>
+  <p class="video-caption">📷 CRUD 的基本原理：物理世界在信息世界里的投影<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4650" target="_blank" rel="noopener">回到原视频 (01:17:30)</a></p>
 </div>
 
 <h3 id="222-update">22.2 状态迁移：一次退学就是一次 UPDATE</h3>
@@ -1279,7 +1281,7 @@
 <p><em>(参考时间: 79:49)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_22_30.png" alt="第 35 页幻灯片 · 软件是现实过程的有损投影" loading="lazy">
-  <p class="video-caption">📷 第 35 页幻灯片 · 软件是现实过程的有损投影<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4950" target="_blank" rel="noopener">回到原视频 (01:22:30)</a></p>
+  <p class="video-caption">📷 第 35 页幻灯片 · 软件是现实过程的有损投影<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4950" target="_blank" rel="noopener">回到原视频 (01:22:30)</a></p>
 </div>
 
 <p><strong>但是但是但是</strong>——如果我们想想教务系统为什么不适合这样的一个 CRUD 架构：</p>
@@ -1305,7 +1307,7 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_21_10.png" alt="“是否允许毕业”：一个由历史触发算出来的列" loading="lazy">
-  <p class="video-caption">📷 “是否允许毕业”：一个由历史触发算出来的列<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=4870" target="_blank" rel="noopener">回到原视频 (01:21:10)</a></p>
+  <p class="video-caption">📷 “是否允许毕业”：一个由历史触发算出来的列<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=4870" target="_blank" rel="noopener">回到原视频 (01:21:10)</a></p>
 </div>
 
 <h3 id="233">23.3 建模不了的物理世界，最后都变成黑洞</h3>
@@ -1325,11 +1327,11 @@
 <p><em>(参考时间: 84:01)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_24_30.png" alt="第 36 页幻灯片 · 需求的语义，还会变" loading="lazy">
-  <p class="video-caption">📷 第 36 页幻灯片 · 需求的语义，还会变<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5070" target="_blank" rel="noopener">回到原视频 (01:24:30)</a></p>
+  <p class="video-caption">📷 第 36 页幻灯片 · 需求的语义，还会变<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5070" target="_blank" rel="noopener">回到原视频 (01:24:30)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_26_30.png" alt="第 38 页幻灯片 · 系统一旦跑起来，修改的代价极高" loading="lazy">
-  <p class="video-caption">📷 第 38 页幻灯片 · 系统一旦跑起来，修改的代价极高<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5190" target="_blank" rel="noopener">回到原视频 (01:26:30)</a></p>
+  <p class="video-caption">📷 第 38 页幻灯片 · 系统一旦跑起来，修改的代价极高<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5190" target="_blank" rel="noopener">回到原视频 (01:26:30)</a></p>
 </div>
 
 <p>（现场演示时页面弹出"当前环境异常"——啊，我知道它对 Linux 很害怕。）</p>
@@ -1369,7 +1371,7 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_25_30.png" alt="计算机系 → 计算机学院：改还是不改的两难" loading="lazy">
-  <p class="video-caption">📷 计算机系 → 计算机学院：改还是不改的两难<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5130" target="_blank" rel="noopener">回到原视频 (01:25:30)</a></p>
+  <p class="video-caption">📷 计算机系 → 计算机学院：改还是不改的两难<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5130" target="_blank" rel="noopener">回到原视频 (01:25:30)</a></p>
 </div>
 
 <h2 id="25">25. 手艺活：一家公司，和一个研究生院的屎山</h2>
@@ -1455,26 +1457,26 @@
 </blockquote>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_30_30.png" alt="persistent data structure：共享子树，保留所有历史" loading="lazy">
-  <p class="video-caption">📷 persistent data structure：共享子树，保留所有历史<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5430" target="_blank" rel="noopener">回到原视频 (01:30:30)</a></p>
+  <p class="video-caption">📷 persistent data structure：共享子树，保留所有历史<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5430" target="_blank" rel="noopener">回到原视频 (01:30:30)</a></p>
 </div>
 
 <h2 id="27-event-sourcing">27. Event sourcing：先把干的所有事情都记下来</h2>
 <p><em>(参考时间: 92:16)</em></p>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_35_10.png" alt="第 40 页幻灯片 · Event Sourcing：从事件历史生成状态" loading="lazy">
-  <p class="video-caption">📷 第 40 页幻灯片 · Event Sourcing：从事件历史生成状态<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5710" target="_blank" rel="noopener">回到原视频 (01:35:10)</a></p>
+  <p class="video-caption">📷 第 40 页幻灯片 · Event Sourcing：从事件历史生成状态<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5710" target="_blank" rel="noopener">回到原视频 (01:35:10)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_36_15.png" alt="第 41 页幻灯片 · Replay 时，究竟重放什么？" loading="lazy">
-  <p class="video-caption">📷 第 41 页幻灯片 · Replay 时，究竟重放什么？<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5775" target="_blank" rel="noopener">回到原视频 (01:36:15)</a></p>
+  <p class="video-caption">📷 第 41 页幻灯片 · Replay 时，究竟重放什么？<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5775" target="_blank" rel="noopener">回到原视频 (01:36:15)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_36_20.png" alt="第 42 页幻灯片 · CQRS：读与写，可以有不同的模型" loading="lazy">
-  <p class="video-caption">📷 第 42 页幻灯片 · CQRS：读与写，可以有不同的模型<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5780" target="_blank" rel="noopener">回到原视频 (01:36:20)</a></p>
+  <p class="video-caption">📷 第 42 页幻灯片 · CQRS：读与写，可以有不同的模型<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5780" target="_blank" rel="noopener">回到原视频 (01:36:20)</a></p>
 </div>
 <div class="video-card screenshot-card">
   <img src="images/shot_01_36_30.png" alt="第 43 页幻灯片 · DDD：让业务概念决定软件边界" loading="lazy">
-  <p class="video-caption">📷 第 43 页幻灯片 · DDD：让业务概念决定软件边界<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ/?t=5790" target="_blank" rel="noopener">回到原视频 (01:36:30)</a></p>
+  <p class="video-caption">📷 第 43 页幻灯片 · DDD：让业务概念决定软件边界<br><a href="https://www.bilibili.com/video/BV1Rch76WEfQ?t=5790" target="_blank" rel="noopener">回到原视频 (01:36:30)</a></p>
 </div>
 
 <p>所以如果你想要设计一个更好的架构，<strong>最好是先把干的所有的事情都先记下来</strong>：今天张三退学了，今天张三又复学了。</p>
@@ -1562,11 +1564,6 @@
 <li><a href="https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf">Eric Evans：DDD Reference</a> —— 限界上下文（Bounded Context）与统一语言的原始文献。</li>
 </ul>
 <hr />
-<h2 id="postscript">后记 Postscript：本书是如何生成的</h2>
-<p>本书由 B 站 AI 字幕（<code>ai-zh</code>，覆盖率 100%、2387 段、总时长 96 分 50 秒）经 AI 重构而成：口语转书面语、按内容自身逻辑分为 27 章（另加本篇后记）、绘制 8 张 Mermaid 图、插入 48 个截图锚点；截帧管线在已登录的浏览器里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；随后与课程官方资料（<code>course/</code> 目录）对齐：讲义用于术语与参考链接核对，26 张"画面即幻灯片"的截图经感知哈希匹配后替换为官方幻灯片的 4K 渲染图；<code>--locate-slides</code> 抽样视频定位每页幻灯片的首现时间，<code>--weave</code> 去重重复插图并补插缺失页（课堂未展示的 7 页入附录），使 47 页幻灯片各恰好出现一次（<code>--audit</code> PASS）；最终渲染为带截图放大（lightbox）与 Mermaid 交互的 HTML。</p>
-<p>与视频逐句对照的订正稿见 <code>transcript.corrected.txt</code>：先由脚本按本讲错词 MAP 修正（如 <code>java 系统 / 交互系统 / 撬务系统 → 教务系统</code>、<code>价格 → 架构</code>、<code>技术站 / 技术宅 → 技术债</code>、<code>淘宝号 / TPHONY / tao ho h诺尔 → 汉诺塔</code>、<code>get opp t / get a o p t → getopt</code>、<code>passer / passing → parser / parsing</code>、<code>video cup → VLOOKUP</code>、<code>卡牌 → lookup</code>、<code>史山 / 石山 / 使臣 → 屎山</code>、<code>南大没戏了 → 南大没系了</code>、<code>record is → Redis</code>、<code>二个C和阿个V → argc 和 argv</code>、<code>web code → vibe code</code> 等），再由 AI 通读全文做一轮行级订正（保留讲师原始字词与有意重复，仅修明显识别错误）。</p>
-<p><strong>本讲的一处已知瑕疵</strong>：官方章节把 00:00–15:03 标为"引言（后半音频翻车）"——录制现场讲者的机器输入设备全部失效（UI 与 OBS 推流仍正常），这一段音频质量明显下降，字幕在 07:50–08:10 一带尤其破碎；本书对该区间只做了保守归纳，未强行补全语义。</p>
-<hr />
 <h2 id="_4">附录：课堂未展示的幻灯片</h2>
 <div class="video-card screenshot-card">
   <img src="images/slide_027.png" alt="第 27 页幻灯片 · 让需求变更找到自己的位置" loading="lazy">
@@ -1596,6 +1593,9 @@
   <img src="images/slide_047.png" alt="第 47 页幻灯片 · 几个字的架构，改变整个系统的走向" loading="lazy">
   <p class="video-caption">🖼️ 第 47 页幻灯片 · 几个字的架构，改变整个系统的走向</p>
 </div>
+
+<hr />
+<p><em>本电子书由 <a href="https://github.com/Luke-Evan/videobook">videobook</a> 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 <a href="http://creativecommons.org/licenses/by/4.0/">CC BY-NC 4.0</a> 发布。</em></p>
     </article>
 
     <!-- Mermaid 图表引擎初始化 -->

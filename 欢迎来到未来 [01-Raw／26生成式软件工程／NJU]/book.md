@@ -753,13 +753,4 @@ Intention 的需求方可能是老板、甲方——他没有任何计算机经�
 
 ---
 
-## 后记：本书是如何生成的
-
-本书由 VideoBook 流水线自动生成：
-
-1. **抓取**：下载视频音频（该视频未提供可匿名访问的字幕）；
-2. **转录**：使用 faster-whisper（medium 模型，GPU）完成约 100 分钟语音识别，共 2943 个片段；
-3. **重构**：AI 依据转录文稿修正识别错误（如 "Vibe Coding"、"Neovim"、"Altair 8800"、各模型名称等），重组为章节体技术指南；
-4. **渲染**：截图占位符替换为可点击跳转的视频卡片，Markdown 渲染为暗色主题 HTML。
-
-文中的观点均来自授课教师本人，整理者（AI）仅负责书面化与结构化，未添加课程之外的论断。
+*本电子书由 [videobook](https://github.com/Luke-Evan/videobook) 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by/4.0/) 发布。*

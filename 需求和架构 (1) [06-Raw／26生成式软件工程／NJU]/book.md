@@ -37,7 +37,9 @@
 25. [手艺活：一家公司，和一个研究生院的屎山](#25)
 26. [如果重做架构：persistent data structure 与三种等价的视图](#26-persistent-data-structure)
 27. [Event sourcing：先把干的所有事情都记下来](#27-event-sourcing)
-28. [后记 Postscript：本书是如何生成的](#postscript)
+28. [附：本讲的三条主线](#_2)
+29. [附：本讲官方参考与延伸阅读](#_3)
+30. [附录：课堂未展示的幻灯片](#_4)
 
 ---
 
@@ -1340,17 +1342,6 @@ graph TD
 
 ---
 
-## 后记 Postscript：本书是如何生成的
-
-本书由 B 站 AI 字幕（`ai-zh`，覆盖率 100%、2387 段、总时长 96 分 50 秒）经 AI 重构而成：口语转书面语、按内容自身逻辑分为 27 章（另加本篇后记）、绘制 8 张 Mermaid 图、插入 48 个截图锚点；截帧管线在已登录的浏览器里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；随后与课程官方资料（`course/` 目录）对齐：讲义用于术语与参考链接核对，26 张"画面即幻灯片"的截图经感知哈希匹配后替换为官方幻灯片的 4K 渲染图；`--locate-slides` 抽样视频定位每页幻灯片的首现时间，`--weave` 去重重复插图并补插缺失页（课堂未展示的 7 页入附录），使 47 页幻灯片各恰好出现一次（`--audit` PASS）；最终渲染为带截图放大（lightbox）与 Mermaid 交互的 HTML。
-
-与视频逐句对照的订正稿见 `transcript.corrected.txt`：先由脚本按本讲错词 MAP 修正（如 `java 系统 / 交互系统 / 撬务系统 → 教务系统`、`价格 → 架构`、`技术站 / 技术宅 → 技术债`、`淘宝号 / TPHONY / tao ho h诺尔 → 汉诺塔`、`get opp t / get a o p t → getopt`、`passer / passing → parser / parsing`、`video cup → VLOOKUP`、`卡牌 → lookup`、`史山 / 石山 / 使臣 → 屎山`、`南大没戏了 → 南大没系了`、`record is → Redis`、`二个C和阿个V → argc 和 argv`、`web code → vibe code` 等），再由 AI 通读全文做一轮行级订正（保留讲师原始字词与有意重复，仅修明显识别错误）。
-
-**本讲的一处已知瑕疵**：官方章节把 00:00–15:03 标为"引言（后半音频翻车）"——录制现场讲者的机器输入设备全部失效（UI 与 OBS 推流仍正常），这一段音频质量明显下降，字幕在 07:50–08:10 一带尤其破碎；本书对该区间只做了保守归纳，未强行补全语义。
-
-
----
-
 ## 附录：课堂未展示的幻灯片
 
 ![第 27 页幻灯片 · 让需求变更找到自己的位置](images/slide_027.png)
@@ -1360,3 +1351,7 @@ graph TD
 ![第 45 页幻灯片 · 实践：先决定什么必须一起正确](images/slide_045.png)
 ![第 46 页幻灯片 · 实践：让运行中的系统逐步换轨](images/slide_046.png)
 ![第 47 页幻灯片 · 几个字的架构，改变整个系统的走向](images/slide_047.png)
+
+---
+
+*本电子书由 [videobook](https://github.com/Luke-Evan/videobook) 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by/4.0/) 发布。*

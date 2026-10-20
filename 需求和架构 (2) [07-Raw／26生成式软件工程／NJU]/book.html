@@ -312,7 +312,6 @@
 <li><a href="#11_1">教务系统：让毕业结论有一条可追溯的计算路径</a></li>
 <li><a href="#12_1">从状态一致性问题，转向计算正确性问题</a></li>
 <li><a href="#_2">附：官方参考与延伸阅读</a></li>
-<li><a href="#_3">后记：本书是如何生成的</a></li>
 </ol>
 <hr />
 <h2 id="1">1. 需求与架构：怎样驾驭复杂性</h2>
@@ -1369,14 +1368,6 @@ prompt = system_prompt + "
 <li><a href="https://martinfowler.com/eaaDev/EventSourcing.html">Martin Fowler：Event Sourcing</a> —— 事实/视图/预期的分离，以及外部查询与外部更新带来的重放陷阱。</li>
 <li><a href="https://www.postgresql.org/docs/current/rules-materializedviews.html">PostgreSQL：物化视图</a> —— 保存查询结果并刷新重生成。</li>
 </ul>
-<hr />
-<h2 id="_3">后记：本书是如何生成的</h2>
-<p>本书由 B 站 AI 字幕（<code>ai-zh</code>，覆盖率 100%、2379 段、总时长约 99 分 41 秒）经 AI 重构而成：口语转书面语、按内容自身逻辑重新分章，并配以 Mermaid 图与截图卡片。</p>
-<p>截帧管线使用已登录的浏览器，逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取<strong>纯视频帧</strong>；随后与课程官方资料（<code>course/</code> 目录）对齐：<strong>讲义用于术语校准、章节骨架对齐与参考链接补全</strong>；说明书中的"幻灯片画面"直接引用<strong>官方幻灯片的 4K 渲染图</strong>（<code>course/slides/</code>），只有现场演示/屏幕画面使用视频帧。经 <code>course_assets.py --audit</code> 校验，本讲 <strong>39 页官方幻灯片在书中各恰好出现一次</strong>。</p>
-<blockquote>
-<p><strong>一句话总结本讲</strong>：好的架构不是选出一个解，而是设计一片解空间；当需求、规则和世界都会变化时，与其维护一份随时可能损坏的"当前状态"，不如保存足以重建其余信息的事实依据，让"现在"成为"过去"经过可查证、可重跑的计算得到的结果。</p>
-</blockquote>
-<p>与视频逐句对照的订正稿见 <code>transcript.corrected.txt</code>：先由脚本按本讲错词 MAP 修正明显的 ASR 识别错误，再由 AI 通读全文做一轮行级订正（保留讲师原始字词与有意重复，仅修明显识别错误）。</p>
 <hr />
 <p><em>本电子书由 <a href="https://github.com/Luke-Evan/videobook">videobook</a> 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 <a href="http://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a> 发布。</em></p>
     </article>

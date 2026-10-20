@@ -33,7 +33,6 @@
 21. [Commit Often, Perfect Later：小步提交的工程理由](#21-commit-often-perfect-later)
 22. [总结：Git 是用 Atomic Change 推进的快照](#22-git-atomic-change)
 23. [附：讲者自己的多 Agent 工作流](#23-agent)
-24. [后记 Postscript：本书是如何生成的](#postscript)
 
 ---
 
@@ -896,17 +895,4 @@ graph TD
 
 ---
 
-## 后记 Postscript：本书是如何生成的
-
-这本书的生成过程和之前的几讲有一个重要区别：**这个视频在平台上没有任何字幕。**
-
-上传当天抓取时，B 站的字幕接口返回的是空列表——既没有作者上传的 CC 字幕，AI 字幕也还没有生成（`--list-subs` 里只有弹幕）。所以这次走的是一条新的兜底路径：
-
-1. **只下载音频轨**（`yt-dlp -f bestaudio`，约 90 MB 的 `audio.m4a`），不下载任何视频流；
-2. **本地 ASR 转写**：faster-whisper `large-v3`，CUDA + `int8_float16`（RTX 3050 4GB），VAD 过滤，配合一段领域术语 prompt（Git / 版本控制 / Conventional Commits 等）来压制同音错词并让中文输出自带标点；
-3. 100 分钟的音频约 21 分钟转写完，切成 **2907 段**、覆盖率 100%，写成与平台字幕同构的 `transcript.json`；
-4. AI 通读全文，建立术语表并重构为本书：口语转书面语、按内容逻辑分 23 章（另加一篇后记）、绘制 6 张 Mermaid 图、插入 38 个截图锚点；
-5. 截帧管线在已登录的浏览器里逐个 seek 到锚点时间、隐藏播放器 UI、锁定顶码率流后截取纯视频帧；
-6. 渲染为带视频卡片、截图放大（lightbox）与 Mermaid 交互的暗色主题 HTML。
-
-本地 large-v3 的识别质量整体高于平台 AI 字幕，但仍有少量专有名词需要人工订正（例如 `GPT-6` 被识别成 `GP6`/`GP16`、`AGENTS.md` → `agency.md`、`int main(void)` → `interment`、`convention` → `考案神`、`外包` → `外部`、`Conventional Commits` → `confessional commits`）。与视频逐句对照的订正稿见 `transcript.corrected.txt`。
+*本电子书由 [videobook](https://github.com/Luke-Evan/videobook) 流水线生成。课程讲义与幻灯片版权归讲师 © 蒋炎岩 所有，依 [CC BY-NC 4.0](http://creativecommons.org/licenses/by/4.0/) 发布。*
