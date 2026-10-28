@@ -1,7 +1,7 @@
 [project]
 name = "videobook"
 version = "0.1.0"
-description = "Add your description here"
+description = "把 YouTube / Bilibili 视频整理成图文技术电子书的流水线"
 readme = "README.md"
 requires-python = ">=3.12"
 # 与 requirements.txt 保持一致（两处必须同步修改）

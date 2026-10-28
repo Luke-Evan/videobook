@@ -6,7 +6,7 @@
 
 ## 环境准备
 
-1. `Python >= 3.10`，克隆本仓库
+1. `Python >= 3.12`，克隆本仓库
 2. 安装依赖：`pip install -r requirements.txt`（或 `uv sync`）
 3. 一次性登录：`python src/capture_frames.py --setup-profile`，在弹出的 Chrome 里扫码登录 B 站 / YouTube。登录态长期复用，账号档位决定截图清晰度上限。
 
