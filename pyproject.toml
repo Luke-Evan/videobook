@@ -17,6 +17,10 @@ dependencies = [
     # 本地 ASR 兜底（平台无字幕时，src/asr_transcript.py 使用；可选）
     # Windows + NVIDIA 显卡还需: nvidia-cublas-cu12 nvidia-cudnn-cu12
     "faster-whisper>=1.0.0",
+    # PyAV 19 删了 av.open() 的 metadata_errors 参数，而 faster-whisper 1.2.1
+    # 仍在传它 → decode_audio() 必抛 TypeError（SYSTRAN/faster-whisper#1589）。
+    # 上游修复已合并未发版，故限制 av<19；发版后与 requirements.txt 一并删除。
+    "av>=11,<19",
 ]
 
 # pytest 只在测试时需要；uv sync 默认安装 dev 组，与 requirements.txt 行为一致
