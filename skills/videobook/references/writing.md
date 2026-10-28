@@ -12,7 +12,11 @@
    然后跑 `python src/build_toc.py output/<video_id>/book.md` 生成目录（`--check` 只校验）。
    链接文字与锚点全部从 `##` 标题机械推导、并剥掉标题自带的编号，避免出现
    「1. 1. 回顾与开场……」这种“有序列表编号 + 标题编号”叠在一起的事故（第四步渲染前还有一遭自动兜底）。
-6. 若 `course/` 存在：交稿前跑 `python src/course_assets.py <video_id> --audit`，必须 PASS（铁律 8）。
+6. 若 `course/` 存在：写完 `book.md` 后要**回头再跑一次第 1.5 步**物化 `SLIDE:` 占位符
+   （`python src/course_assets.py <video_id> --course-url <主页> --lecture <N> --no-render`），
+   然后再跑 `--audit` 必须 PASS（铁律 8），最后才去第三步截帧/第四步渲染。
+   **顺序不能颠倒**：第 1.5 步首次执行时 `book.md` 还不存在，它无法替物化；
+   漏掉这一步的直接后果是 HTML 里原样留着一堆 `SLIDE:` 占位符、图片全缺（已踩过两次）。
 
 ## 硬性要求
 
