@@ -10,6 +10,10 @@ Pillow>=10.0.0
 
 # 本地 ASR 兜底（平台无字幕时，src/asr_transcript.py 使用；可选）
 faster-whisper>=1.0.0
+# PyAV 19 删了 av.open() 的 metadata_errors 参数，而 faster-whisper 1.2.1
+# 仍在传它 → decode_audio() 必抛 TypeError（SYSTRAN/faster-whisper#1589）。
+# 上游修复已合并未发版，故限制 av<19；发版后与 pyproject.toml 一并删除。
+av>=11,<19
 # Windows + NVIDIA 显卡还需: nvidia-cublas-cu12 nvidia-cudnn-cu12
 
 # 测试（dev）

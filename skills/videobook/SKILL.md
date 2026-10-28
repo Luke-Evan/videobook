@@ -23,7 +23,7 @@ metadata:
    所有相对路径（`output/<video_id>/...`）都相对它解析。仓库不在本地时先
    `git clone https://github.com/Luke-Evan/videobook.git` 到用户存放代码项目的目录
    （不要放临时目录，也不要另建 projects 目录），再 `cd` 进去。
-2. Python >= 3.10（推荐 3.12）。装依赖：`uv sync`（用 uv 时）或 `pip install -r requirements.txt`。
+2. Python >= 3.12。装依赖：`uv sync`（用 uv 时）或 `pip install -r requirements.txt`。
    执行统一走仓库环境的解释器：`uv run python src/xxx.py` 或 `.venv/Scripts/python.exe src/xxx.py`。
 3. **一次性登录**：`python src/capture_frames.py --setup-profile` 弹出专用 Chrome（数据目录 `.capture-profile/`），
    扫码登录 B 站 / YouTube 后关窗即可，登录态长期复用。登录账号的会员档位 = 截图清晰度上限。
