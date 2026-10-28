@@ -4,4 +4,23 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+# 与 requirements.txt 保持一致（两处必须同步修改）
+dependencies = [
+    "yt-dlp>=2024.0.0",
+    "youtube-transcript-api>=0.6.0",
+    "python-dotenv>=1.0.0",
+    "webvtt-py>=0.5.0",
+    "markdown>=3.5.0",
+    "imageio-ffmpeg>=0.6.0",
+    "playwright>=1.40.0",
+    "Pillow>=10.0.0",
+    # 本地 ASR 兜底（平台无字幕时，src/asr_transcript.py 使用；可选）
+    # Windows + NVIDIA 显卡还需: nvidia-cublas-cu12 nvidia-cudnn-cu12
+    "faster-whisper>=1.0.0",
+]
+
+# pytest 只在测试时需要；uv sync 默认安装 dev 组，与 requirements.txt 行为一致
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
