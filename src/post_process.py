@@ -6,8 +6,31 @@ post_process.py
 import argparse
 import os
 import re
+import shutil
 import urllib.parse as urlparse
 import markdown
+
+# 自托管西文字体：CaskaydiaCove Nerd Font Mono 子集（SIL OFL 1.1）
+# 来源：Nerd Fonts CascadiaCode 发布包，已子集化为拉丁字母/标点/箭头等常用符号。
+# 产物随仓库分发，渲染时无需任何字体工具；许可与版权见
+# assets/fonts/LICENSE-OFL-CascadiaCode.txt
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FONT_SRC = os.path.join(BASE, "assets", "fonts")
+FONT_FILES = ("caskaydia-nfm-regular.woff2", "caskaydia-nfm-semibold.woff2",
+              "caskaydia-nfm-bold.woff2", "LICENSE-OFL-CascadiaCode.txt")
+
+
+def copy_webfonts(book_dir: str) -> int:
+    """把字体复制进书的 fonts/ 目录，让每个发布目录自包含（相对路径即可命中）。"""
+    dst = os.path.join(book_dir, "fonts")
+    os.makedirs(dst, exist_ok=True)
+    n = 0
+    for fn in FONT_FILES:
+        src = os.path.join(FONT_SRC, fn)
+        if os.path.isfile(src):
+            shutil.copyfile(src, os.path.join(dst, fn))
+            n += 1
+    return n
 
 # ─────────────────────────────────────────────
 # 平台检测与 ID 提取
@@ -238,8 +261,10 @@ def process_markdown(video_url: str, md_file: str):
     else:
         print(">> 未发现截图占位符，直接转换")
 
-    # 2) 将 Markdown 转为精美的 HTML
+    # 2) 将 Markdown 转为精美的 HTML（先把自托管字体放到书目录，页面用相对路径引用）
     print(">> 正在生成 HTML 电子书...")
+    n_fonts = copy_webfonts(os.path.dirname(os.path.abspath(md_file)))
+    print(f">> 已投放 {n_fonts} 个字体文件 -> fonts/")
     html_output = md_to_html(content, title)
 
     # 3) 保存 HTML 文件
@@ -273,6 +298,11 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        /* ── 西文自托管字体：CaskaydiaCove Nerd Font Mono（中文无字形，自动回落到下面的 Noto Serif SC） ── */
+        @font-face { font-family: 'CaskaydiaCove NFM'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/caskaydia-nfm-regular.woff2') format('woff2'); }
+        @font-face { font-family: 'CaskaydiaCove NFM'; font-style: normal; font-weight: 600; font-display: swap; src: url('fonts/caskaydia-nfm-semibold.woff2') format('woff2'); }
+        @font-face { font-family: 'CaskaydiaCove NFM'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/caskaydia-nfm-bold.woff2') format('woff2'); }
+
         /* ── 基础重置 ── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -298,7 +328,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
         }
 
         body {
-            font-family: 'Inter', 'Noto Serif SC', -apple-system, sans-serif;
+            font-family: 'CaskaydiaCove NFM', 'Inter', 'Noto Serif SC', -apple-system, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.8;
@@ -431,7 +461,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
 
         /* ── 代码 ── */
         code {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'CaskaydiaCove NFM', 'JetBrains Mono', monospace;
             background: var(--bg-code);
             padding: 2px 7px;
             border-radius: 5px;

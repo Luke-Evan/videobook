@@ -1,6 +1,6 @@
 """将成品电子书发布到独立 orphan 分支 pages（目录名 = 视频标题）。
 
-只发布三件套：book.html / book.md / images/*.png；不发布 transcript、srt、
+只发布 book.html / book.md / images/*.png / fonts/*；不发布 transcript、srt、
 tagged 稿等中间物。全程使用 git plumbing + 临时 index/工作树，不切换分支、
 不触碰 main 工作区与 output/ 目录。脚本只写本地 ref，推送由执行者显式完成。
 
@@ -52,6 +52,9 @@ def _src_blob_map(src):
         rels.append(CORRECTED)
     img = os.path.join(src, "images")
     rels += ["images/" + f for f in sorted(os.listdir(img)) if f.lower().endswith(".png")]
+    fonts = os.path.join(src, "fonts")
+    if os.path.isdir(fonts):
+        rels += ["fonts/" + f for f in sorted(os.listdir(fonts))]
     out = {}
     for rel in rels:
         r = run(["hash-object", "--", os.path.join(src, *rel.split("/"))])
@@ -274,7 +277,13 @@ def main():
                     shutil.copyfile(os.path.join(src, "images", fn),
                                     os.path.join(dst, "images", fn))
                     n += 1
-            print(f">> {vid}: {n} 张截图 -> {folder}/")
+            fonts_src = os.path.join(src, "fonts")
+            if os.path.isdir(fonts_src):
+                os.makedirs(os.path.join(dst, "fonts"), exist_ok=True)
+                for fn in sorted(os.listdir(fonts_src)):
+                    shutil.copyfile(os.path.join(fonts_src, fn),
+                                    os.path.join(dst, "fonts", fn))
+            print(f">> {vid}: {n} 张截图 + 字体 -> {folder}/")
 
         # 5) 写 manifest 与落地页
         with open(os.path.join(tmp, "manifest.json"), "w", encoding="utf-8") as f:
