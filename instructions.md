@@ -225,6 +225,6 @@ git push origin pages
 - **预览必须走本地 HTTP 服务**：用 `file://` 双击打开 `book.html` 时，跨域与 Cookie 隐私策略会让内嵌播放器拒载报错，所以第四步固定用 `python -m http.server`，不要建议用户直接双击打开文件
 - **沙箱/提权**：启动 Chrome / 读取浏览器 cookie 库的命令必须沙箱外执行：`dump_transcript.py`（B 站）、`capture_frames.py`、`capture_frames.py --setup-profile`；`post_process.py`、`http.server` 沙箱内即可。在 Codex 中对应 require_escalated 审批。
 - **cookies 安全**：自动导出的 cookies 写入系统临时目录、用完即删；不要在仓库里手放 cookies.txt（已被 .gitignore 忽略，但仍应避免）。
-- **课程资料依赖**：`course_assets.py` 的抓取/解析沙箱内可跑；渲染幻灯片启动 headless Chrome，需沙箱外执行；图像哈希匹配依赖 Pillow（已在 requirements.txt）。课程讲义/幻灯片版权归讲师所有（常见 CC BY-NC），生成物必须保留署名与许可说明（stitcher prompt 已强制）。
+- **课程资料依赖**：`course_assets.py` 的抓取/解析沙箱内可跑；渲染幻灯片启动 headless Chrome，需沙箱外执行；图像哈希匹配依赖 Pillow（已在 `pyproject.toml`）。课程讲义/幻灯片版权归讲师所有（常见 CC BY-NC），生成物必须保留署名与许可说明（stitcher prompt 已强制）。
 - **可重跑性**：流水线各步幂等。若 `output/<video_id>` 被意外清理：重跑第一步恢复字幕；只要 `book.tagged.md` 还在，重跑第三步即可恢复截图（占位符清单读自 tagged 稿）。
 - 在生成或修改 HTML 时，请确保文本颜色与背景颜色的对比度符合 WCAG AA 标准（对比度至少 4.5:1）。

@@ -74,5 +74,5 @@ python src/course_assets.py <video_id> --apply-map <json路径>
 ## 版权与其他
 
 - 讲义 / 幻灯片版权归讲师（南大《生成式软件工程》为 CC BY-NC 4.0），生成物必须保留署名与许可说明（stitcher prompt 已强制）。
-- 图像哈希匹配依赖 Pillow（已在 `requirements.txt`）。
+- 图像哈希匹配依赖 Pillow（已在 `pyproject.toml`）。
 - `course/` 目录可整体删除，不影响阅读（书中引用的是已物化进 `images/` 的图）。
