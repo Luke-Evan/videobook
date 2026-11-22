@@ -8,7 +8,8 @@
 仅当运行在 Codex / ChatGPT 桌面应用内、且 ChatGPT 浏览器扩展已安装并连接时使用（在 设置 > Computer Use 中确认）。
 
 - 通过扩展控制用户真实、已登录的 Chrome：对 `book.md`（或 `book.tagged.md`）里每个 `SCREENSHOT:` 时间戳，
-  打开对应平台播放器页面，等视频画面渲染后对该标签页截图，保存为 `output/<video_id>/images/shot_HH_MM_SS.png`。
+  打开对应平台播放器页面，等视频画面渲染后对该标签页截图，保存为 `output/<video_id>/images/shot_HH_MM_SS.avif`
+  （扩展名由 `image_export.web_ext()` 决定：AVIF 优先，Pillow 缺 AVIF 编码时退回 `.webp`）。
   - B 站播放器地址：`https://player.bilibili.com/player.html?bvid=<video_id>&t=<秒>&autoplay=1&high_quality=1&danmaku=0`
   - YouTube 播放器地址：`https://www.youtube.com/embed/<video_id>?start=<秒>&autoplay=1&high_quality=1`
 - 特点：使用登录态画质、后台运行、不接管用户屏幕。
@@ -72,13 +73,13 @@ python src/extract_frames.py <video_id> "<VIDEO_URL>"
 - win32 屏幕截取：会接管用户屏幕，已从脚本中移除。
 - `--cookies-from chrome` 读主 Chrome：Windows 上 Chrome 新版 App-Bound 加密使 yt-dlp 无法解密，不要默认使用。
 
-## 有 course/ 时：把糊帧升级为官方 4K 幻灯片
+## 有 course/ 时：把糊帧升级为官方幻灯片
 
 截帧之后执行，见 `course-assets.md` 的「截帧后升级」一节（`--match-shots` → 抽查 → `--apply-map`）。
 
 ## 完成标志
 
-- `images/` 下每个时间戳都有对应的 `shot_HH_MM_SS.png`，`book.md` 中不再有 `SCREENSHOT:` 占位符
+- `images/` 下每个时间戳都有对应的 `shot_HH_MM_SS.avif`（旧书可仍为 `.png`），`book.md` 中不再有 `SCREENSHOT:` 占位符
   （原标签稿已自动备份为 `book.tagged.md`）。
 - 第四步生成的 HTML 中，截图卡片内置点击放大（lightbox）：点击图片看大图，点空白处或按 Esc 关闭。
 - **归一化路径**：占位符物化成真图片后，`post_process.py` 生成的是**静态截图卡片**

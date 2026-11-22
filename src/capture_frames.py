@@ -36,8 +36,11 @@ running inside the Codex desktop app, prefer the ChatGPT browser extension
 No video or audio file is downloaded by any browser method.
 
 After capturing, the SCREENSHOT placeholders in book.md are materialized into
-images/shot_HH_MM_SS.png links (same naming post_process.py expects), and the
-original tagged draft is kept as book.tagged.md.
+images/shot_HH_MM_SS.<ext> links (same naming post_process.py expects; the
+extension is AVIF, or WebP when Pillow lacks AVIF support — see
+image_export.py), and the original tagged draft is kept as book.tagged.md.
+The <video> screenshot itself is written to a temp PNG first: the black-frame
+QA below relies on PNG size, and PNG stays the pipeline's master format.
 """
 import argparse
 import os
@@ -46,6 +49,7 @@ import subprocess
 import sys
 
 from extract_frames import materialize
+from image_export import export_web, image_path
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_PROFILE_DIR = os.path.join(BASE_DIR, ".capture-profile")
@@ -103,7 +107,7 @@ def shots_spec(timestamps, platform, video_id):
 
 def frames_missing(timestamps, imgdir):
     return [ts for ts in timestamps
-            if not os.path.exists(os.path.join(imgdir, "shot_" + ts.replace(":", "_") + ".png"))]
+            if image_path(imgdir, "shot_" + ts.replace(":", "_")) is None]
 
 
 def find_chrome_exe():
@@ -201,9 +205,9 @@ def _shoot(page, sec, name, imgdir, urls):
     }""", sec)
     page.wait_for_timeout(500)
     page.add_style_tag(content=HIDE_CSS)
-    path = os.path.join(imgdir, name + ".png")
-    page.locator("video").screenshot(path=path)
-    if os.path.getsize(path) < MIN_SHOT_BYTES:
+    tmp = os.path.join(imgdir, name + ".tmp.png")
+    page.locator("video").screenshot(path=tmp)
+    if os.path.getsize(tmp) < MIN_SHOT_BYTES:
         print("  QA: black frame detected, retry at +2s")
         page.evaluate("""async (sec) => {
             const v = document.querySelector('video');
@@ -212,8 +216,12 @@ def _shoot(page, sec, name, imgdir, urls):
             v.pause();
         }""", sec)
         page.wait_for_timeout(500)
-        page.locator("video").screenshot(path=path)
-    print("saved", name + ".png")
+        page.locator("video").screenshot(path=tmp)
+    try:
+        saved = export_web(tmp, imgdir, name)
+    finally:
+        os.remove(tmp)
+    print("saved", saved)
     return True
 
 

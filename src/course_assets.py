@@ -27,7 +27,11 @@ Outputs (all under output/<video_id>/course/):
     slide_map.json        provenance: which placeholder used which slide
     shot_slide_proposals.json   (--match-shots) shot -> slide candidates
 
---match-shots compares every images/shot_*.png against the rendered slides
+The 4K PNGs above are masters (perceptual hashing and re-render protection
+need lossless originals). What lands in images/ for publication is a 2K AVIF
+copy (see image_export.py); slide_map.json keys carry that extension.
+
+--match-shots compares every images/shot_*.* against the rendered slides
 (perceptual hash of the slide pane) and writes ranked candidates; the agent
 confirms them and feeds the result back through --apply-map, which swaps the
 blurry video frame for the crisp slide render (originals kept in
@@ -43,6 +47,8 @@ import shutil
 import sys
 import urllib.request
 from html.parser import HTMLParser
+
+from image_export import EXT_ALT, export_web, image_path, list_images
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -307,7 +313,9 @@ def _sec_ts(sec: int) -> str:
 
 
 def load_file_slide_map(cdir: str) -> dict:
-    """image basename -> slide index (materialized SLIDE placeholders + upgrades)."""
+    """image stem (no extension) -> slide index (materialized SLIDE placeholders
+    + upgrades). Keys are normalized to the stem, so the .png entries of an old
+    map and the .avif ones written now both resolve."""
     m = {}
     for name in ("slide_map.json", "slide_upgrade_map.json"):
         path = os.path.join(cdir, name)
@@ -315,17 +323,16 @@ def load_file_slide_map(cdir: str) -> dict:
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
             for k, v in data.items():
-                m[k if "." in k else k + ".png"] = int(v)
+                m[os.path.splitext(k)[0]] = int(v)
     return m
 
 
 def figure_slide(target: str, fmap: dict):
     """Which slide a book.md figure target shows (None = demo/non-slide frame)."""
-    m = re.search(r"slide_(\d+)\.png$", target)
+    m = re.search(r"slide_(\d+)\.(?:" + EXT_ALT + r")$", target)
     if m:
         return int(m.group(1))
-    base = os.path.basename(target)
-    return fmap.get(base)
+    return fmap.get(os.path.splitext(os.path.basename(target))[0])
 
 
 def scan_figures(book: str, fmap: dict):
@@ -381,7 +388,7 @@ def locate_slides(vdir: str, cdir: str, imgdir: str, step: int, threshold: int) 
     n_slides = len(json.load(open(os.path.join(cdir, "slides.json"), encoding="utf-8")))
     shot_anchors, probe_anchors = {}, {}
     for stem, slide in fmap.items():
-        m = re.match(r"shot_(\d{2})_(\d{2})_(\d{2})\.png", stem)
+        m = re.match(r"shot_(\d{2})_(\d{2})_(\d{2})$", stem)
         if m and slide:
             shot_anchors.setdefault(int(slide), _ts_sec(":".join(m.group(i) for i in (1, 2, 3))))
     tl_path = os.path.join(cdir, "slide_timeline.json")
@@ -401,7 +408,7 @@ def locate_slides(vdir: str, cdir: str, imgdir: str, step: int, threshold: int) 
     probe_dir = os.path.join(cdir, "_probe_frames")
     os.makedirs(probe_dir, exist_ok=True)
     todo = [sec for sec in sorted(set(samples))
-            if not os.path.exists(os.path.join(probe_dir, f"probe_{sec:05d}.png"))]
+            if image_path(probe_dir, f"probe_{sec:05d}") is None]
     print(f">> {len(todo)} probe frame(s) to capture (step {step}s)")
     if todo:
         shots = [[sec, f"probe_{sec:05d}", cf.build_url(platform, os.path.basename(vdir), sec),
@@ -414,7 +421,7 @@ def locate_slides(vdir: str, cdir: str, imgdir: str, step: int, threshold: int) 
     slide_files = sorted(glob.glob(os.path.join(cdir, "slides", "slide_*.png")))
     slide_hashes = [(int(re.search(r"slide_(\d+)", os.path.basename(x)).group(1)), dhash(x))
                     for x in slide_files]
-    for path in sorted(glob.glob(os.path.join(probe_dir, "probe_*.png"))):
+    for path in list_images(probe_dir, "probe_"):
         sec = int(re.search(r"probe_(\d+)", os.path.basename(path)).group(1))
         idx, dist = shot_slide_candidates(path, slide_hashes)
         if dist <= threshold:
@@ -660,15 +667,10 @@ def materialize_slides(book: str, slide_dir: str, imgdir: str, cdir: str) -> Non
         if not os.path.exists(src):
             print(f"  warning: slide {n} not rendered; placeholder kept")
             return m.group(0)
-        if ts:
-            dst = os.path.join(imgdir, "shot_" + ts.replace(":", "_") + ".png")
-            shutil.copyfile(src, dst)
-            prov[os.path.basename(dst)] = n
-            return f"![{desc}](images/{os.path.basename(dst)})"
-        dst = os.path.join(imgdir, f"slide_{n:03d}.png")
-        shutil.copyfile(src, dst)
-        prov[os.path.basename(dst)] = n
-        return f"![{desc}](images/slide_{n:03d}.png)"
+        stem = "shot_" + ts.replace(":", "_") if ts else f"slide_{n:03d}"
+        name = export_web(src, imgdir, stem)
+        prov[name] = n
+        return f"![{desc}](images/{name})"
 
     new, count = SLIDE_PLACEHOLDER.subn(repl, content)
     if count:
@@ -693,9 +695,10 @@ def match_shots(imgdir: str, slide_dir: str, cdir: str) -> None:
     slide_hashes = [(int(re.search(r"slide_(\d+)", os.path.basename(p)).group(1)),
                      dhash(p)) for p in slide_files]
     proposals = {}
-    for shot in sorted(glob.glob(os.path.join(imgdir, "shot_*.png"))):
+    for shot in list_images(imgdir, "shot_"):
+        stem = os.path.splitext(os.path.basename(shot))[0]
         idx, dist = shot_slide_candidates(shot, slide_hashes)
-        proposals[os.path.basename(shot)[:-4]] = {"slide": idx, "distance": dist}
+        proposals[stem] = {"slide": idx, "distance": dist}
         print(f"  {os.path.basename(shot):<22} -> slide {idx:>2}  d={dist}")
     out = os.path.join(cdir, "shot_slide_proposals.json")
     with open(out, "w", encoding="utf-8") as f:
@@ -710,15 +713,17 @@ def apply_map(map_file: str, cdir: str, imgdir: str) -> None:
     os.makedirs(backup, exist_ok=True)
     n = 0
     for shot_stem, slide_n in mapping.items():
+        stem = os.path.splitext(shot_stem)[0]
         src = os.path.join(cdir, "slides", f"slide_{int(slide_n):03d}.png")
-        dst = os.path.join(imgdir, shot_stem + ".png")
-        if not os.path.exists(src) or not os.path.exists(dst):
-            print("  skip (missing):", shot_stem, "->", slide_n)
+        old = image_path(imgdir, stem)
+        if not os.path.exists(src) or old is None:
+            print("  skip (missing):", stem, "->", slide_n)
             continue
-        shutil.copyfile(dst, os.path.join(backup, shot_stem + ".png"))
-        shutil.copyfile(src, dst)
+        shutil.copyfile(old, os.path.join(backup, os.path.basename(old)))
+        # 沿用 book.md 已引用的扩展名：换扩展名会让链接指向不存在的文件
+        export_web(src, imgdir, stem, ext=os.path.splitext(old)[1])
         n += 1
-        print("  upgraded", shot_stem, "<- slide", slide_n)
+        print("  upgraded", stem, "<-", "slide", slide_n)
     print(f">> {n} shot(s) upgraded to official slide renders "
           f"(originals in images/video_frames/)")
 

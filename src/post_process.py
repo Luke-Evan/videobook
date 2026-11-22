@@ -10,6 +10,8 @@ import shutil
 import urllib.parse as urlparse
 import markdown
 
+from image_export import EXT_ALT, image_path
+
 # 自托管西文字体：CaskaydiaCove Nerd Font Mono 子集（SIL OFL 1.1）
 # 来源：Nerd Fonts CascadiaCode 发布包，已子集化为拉丁字母/标点/箭头等常用符号。
 # 产物随仓库分发，渲染时无需任何字体工具；许可与版权见
@@ -135,29 +137,31 @@ def replace_screenshots_with_embeds(md_content: str, video_url: str, images_dir:
     # 匹配 ![任意描述](SCREENSHOT:HH:MM:SS) 或 ![任意描述](SCREENSHOT:HH:MM:SS.xxx)
     # 匹配两种形态：
     #   1) 占位符 ![描述](SCREENSHOT:HH:MM:SS[.xxx])
-    #   2) 已物化图片链接 ![描述](images/shot_HH_MM_SS.png) 或 ![描述](shot_HH_MM_SS.png)
+    #   2) 已物化图片链接 ![描述](images/shot_HH_MM_SS.avif) 或 ![描述](slide_001.avif)
     pattern = (
         r'!\[([^\]]*)\]\('
         r'(?:SCREENSHOT:(\d{2}:\d{2}:\d{2}(?:\.\d+)?)'
-        r'|(?:images/)?shot_(\d{2})_(\d{2})_(\d{2})\.png'
-        r'|(?:images/)?slide_(\d{3})\.png'
+        r'|((?:images/)?(?:shot_\d{2}_\d{2}_\d{2}|slide_\d{3})\.(?:' + EXT_ALT + r'))'
         r')\)'
     )
 
     def replacer(match):
-        desc = match.group(1)
-        if match.group(2):
-            ts = match.group(2).split('.')[0]
-        elif match.group(6):
-            ts = None  # 官方课件图，无时间锚点
+        desc, ts, ref = match.group(1), match.group(2), match.group(3)
+        if ts:
+            ts = ts.split('.')[0]
         else:
-            ts = ":".join(match.group(i) for i in (3, 4, 5))
+            tsm = re.search(r"shot_(\d{2})_(\d{2})_(\d{2})\.", ref or "")
+            ts = ":".join(tsm.groups()) if tsm else None  # 官方课件图无时间锚点
         image_rel = None
         if images_dir:
-            fname = ("slide_" + match.group(6) + ".png" if ts is None
-                     else "shot_" + ts.split('.')[0].replace(":", "_") + ".png")
-            if os.path.exists(os.path.join(images_dir, fname)):
-                image_rel = "images/" + fname
+            if ref:
+                base = os.path.basename(ref)
+                if os.path.exists(os.path.join(images_dir, base)):
+                    image_rel = "images/" + base
+            else:
+                path = image_path(images_dir, "shot_" + ts.replace(":", "_"))
+                if path:
+                    image_rel = "images/" + os.path.basename(path)
         if ts is None and image_rel is None:
             return match.group(0)  # 幻灯片图缺失时保留原 Markdown，不生成空锚点卡片
         return make_video_card(platform, video_id, video_url, ts, desc, image_rel=image_rel)
@@ -250,8 +254,7 @@ def process_markdown(video_url: str, md_file: str):
     print(">> 正在将截图占位符替换为嵌入式视频播放器...")
     screenshot_pattern = (
         r'!\[[^\]]*\]\((?:SCREENSHOT:\d{2}:\d{2}:\d{2}(?:\.\d+)?'
-        r'|(?:images/)?shot_\d{2}_\d{2}_\d{2}\.png'
-        r'|(?:images/)?slide_\d{3}\.png)\)'
+        r'|(?:images/)?(?:shot_\d{2}_\d{2}_\d{2}|slide_\d{3})\.(?:' + EXT_ALT + r'))\)'
     )
     count = len(re.findall(screenshot_pattern, content))
 
