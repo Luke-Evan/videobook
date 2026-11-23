@@ -47,6 +47,12 @@ def safe_folder(title, bvid):
     return name or bvid
 
 
+def is_publishable_image(name):
+    """images/ 里该发布的文件。.tmp.png 这类中间产物（编码中断的残留）不算：
+    它以 .png 结尾，仅按扩展名过滤会被当成成品一起发出去。"""
+    return name.lower().endswith(IMAGE_EXTS) and ".tmp." not in name
+
+
 def _src_blob_map(src):
     """源目录三件套 -> blob sha（与 add 相同过滤标准）。"""
     rels = ["book.html", "book.md"]
@@ -54,7 +60,7 @@ def _src_blob_map(src):
         rels.append(CORRECTED)
     img = os.path.join(src, "images")
     rels += ["images/" + f for f in sorted(os.listdir(img))
-             if f.lower().endswith(IMAGE_EXTS)]
+             if is_publishable_image(f)]
     fonts = os.path.join(src, "fonts")
     if os.path.isdir(fonts):
         rels += ["fonts/" + f for f in sorted(os.listdir(fonts))]
@@ -318,7 +324,7 @@ def main():
                 shutil.copyfile(os.path.join(src, CORRECTED), os.path.join(dst, CORRECTED))
             n = 0
             for fn in sorted(os.listdir(os.path.join(src, "images"))):
-                if fn.lower().endswith(IMAGE_EXTS):
+                if is_publishable_image(fn):
                     shutil.copyfile(os.path.join(src, "images", fn),
                                     os.path.join(dst, "images", fn))
                     n += 1

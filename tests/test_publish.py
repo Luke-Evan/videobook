@@ -13,6 +13,15 @@ def test_index_template_supports_system_dark_mode():
     assert "color-scheme: light;" not in html
 
 
+def test_publish_skips_tmp_images():
+    """编码中断残留的 .tmp.png 不能当成品发布。"""
+    assert publish.is_publishable_image("shot_00_00_55.avif")
+    assert publish.is_publishable_image("shot_00_00_55.webp")
+    assert publish.is_publishable_image("slide_007.png")
+    assert not publish.is_publishable_image("shot_00_00_55.tmp.png")
+    assert not publish.is_publishable_image("book.md")
+
+
 def test_index_card_links_and_badges():
     manifest = {
         "BV1xx": {"folder": "示例书名", "title": "示例书名", "updated": "2026-01-02T03:04:05+08:00",

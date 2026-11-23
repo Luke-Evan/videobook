@@ -78,6 +78,27 @@ def materialize(book: str, tagged: str, imgdir: str) -> None:
     print(f"materialize: replaced {n} placeholders with image links")
 
 
+def extract_one(ff: str, src: str, sec: int, ts: str, imgdir: str) -> str:
+    """ffmpeg 落一张临时 PNG -> 编码成发布格式 -> 删掉临时文件，返回文件名。
+
+    临时文件必须删干净：它以 .png 结尾，残留会被 publish.py 当成成品发布。
+    用 try/finally 是因为编码失败时同样要删。
+    """
+    stem = "shot_" + ts.replace(":", "_")
+    out = os.path.join(imgdir, stem + ".tmp.png")
+    cmd = [
+        ff, "-hide_banner", "-loglevel", "error",
+        "-ss", str(sec), "-i", src,
+        "-frames:v", "1", "-y", out,
+    ]
+    subprocess.run(cmd, check=True)
+    try:
+        return export_web(out, imgdir, stem)
+    finally:
+        if os.path.exists(out):
+            os.remove(out)
+
+
 def main() -> None:
     video_id = sys.argv[1] if len(sys.argv) > 1 else "BV1pb8o6yE8f"
     video_url = sys.argv[2] if len(sys.argv) > 2 else None
@@ -101,17 +122,7 @@ def main() -> None:
     ff = imageio_ffmpeg.get_ffmpeg_exe()
     for ts in timestamps:
         h, m, s = (int(x) for x in ts.split(":"))
-        sec = h * 3600 + m * 60 + s
-        out = os.path.join(imgdir, "shot_" + ts.replace(":", "_") + ".tmp.png")
-        cmd = [
-            ff, "-hide_banner", "-loglevel", "error",
-            "-ss", str(sec), "-i", src,
-            "-frames:v", "1", "-y", out,
-        ]
-        subprocess.run(cmd, check=True)
-        saved = export_web(out, imgdir, os.path.splitext(os.path.basename(out))[0])
-        os.remove(out)
-        print("saved", saved)
+        print("saved", extract_one(ff, src, h * 3600 + m * 60 + s, ts, imgdir))
     print(f"DONE: {len(timestamps)} frames")
 
     materialize(book, tagged, imgdir)
