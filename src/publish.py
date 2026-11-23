@@ -1,7 +1,7 @@
 """将成品电子书发布到独立 orphan 分支 pages（目录名 = 视频标题）。
 
-只发布 book.html / book.md / images/*.png / fonts/*；不发布 transcript、srt、
-tagged 稿等中间物。全程使用 git plumbing + 临时 index/工作树，不切换分支、
+只发布 book.html / book.md / images/*（AVIF/WebP 为主，旧书会是 PNG）/ fonts/*；
+不发布 transcript、srt、tagged 稿等中间物。全程使用 git plumbing + 临时 index/工作树，不切换分支、
 不触碰 main 工作区与 output/ 目录。脚本只写本地 ref，推送由执行者显式完成。
 
 用法:
@@ -18,6 +18,8 @@ import sys
 import tempfile
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
+
+from image_export import IMG_EXTS as IMAGE_EXTS
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GD = os.path.join(BASE, ".git")
@@ -51,7 +53,8 @@ def _src_blob_map(src):
     if os.path.isfile(os.path.join(src, CORRECTED)):
         rels.append(CORRECTED)
     img = os.path.join(src, "images")
-    rels += ["images/" + f for f in sorted(os.listdir(img)) if f.lower().endswith(".png")]
+    rels += ["images/" + f for f in sorted(os.listdir(img))
+             if f.lower().endswith(IMAGE_EXTS)]
     fonts = os.path.join(src, "fonts")
     if os.path.isdir(fonts):
         rels += ["fonts/" + f for f in sorted(os.listdir(fonts))]
@@ -315,7 +318,7 @@ def main():
                 shutil.copyfile(os.path.join(src, CORRECTED), os.path.join(dst, CORRECTED))
             n = 0
             for fn in sorted(os.listdir(os.path.join(src, "images"))):
-                if fn.lower().endswith(".png"):
+                if fn.lower().endswith(IMAGE_EXTS):
                     shutil.copyfile(os.path.join(src, "images", fn),
                                     os.path.join(dst, "images", fn))
                     n += 1

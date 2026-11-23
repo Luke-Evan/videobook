@@ -43,6 +43,30 @@ def test_missing_slide_image_keeps_markdown(tmp_path):
     assert out == md
 
 
+def test_replace_screenshots_avif_and_webp(tmp_path):
+    """发布图是 2K AVIF（Pillow 无 AVIF 时是 WebP），旧书的 PNG 仍要能渲染。"""
+    img = tmp_path / "images"
+    img.mkdir()
+    (img / "shot_00_01_00.avif").write_bytes(b"x")
+    (img / "slide_007.avif").write_bytes(b"x")
+    (img / "shot_00_02_00.webp").write_bytes(b"x")
+    (img / "slide_012.png").write_bytes(b"x")
+    md = ("![a](SCREENSHOT:00:01:00)\n\n![b](images/slide_007.avif)\n"
+          "\n![c](images/shot_00_02_00.webp)\n\n![d](slide_012.png)\n")
+    out = pp.replace_screenshots_with_embeds(md, URL, images_dir=str(img))
+    assert "images/shot_00_01_00.avif" in out
+    assert "images/slide_007.avif" in out
+    assert "images/shot_00_02_00.webp" in out and "回到原视频 (00:02:00)" in out
+    assert "images/slide_012.png" in out
+
+
+def test_missing_shot_image_falls_back_to_embed(tmp_path):
+    """帧没截到时退回 iframe 卡片，而非把 Markdown 原样吐进页面。"""
+    md = "![a](images/shot_00_01_00.avif)\n"
+    out = pp.replace_screenshots_with_embeds(md, URL, images_dir=str(tmp_path))
+    assert "player.bilibili.com" in out and "image" not in out
+
+
 def test_render_template_supports_system_dark_mode():
     html = pp.md_to_html("# 书名", "书名")
     assert "color-scheme: light dark;" in html

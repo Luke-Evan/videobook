@@ -36,7 +36,7 @@ metadata:
 |---|---|---|---|---|
 | 1 | 提取字幕 | `python src/dump_transcript.py "<URL>"` | `references/transcript.md` | B 站需 |
 | 1b | 平台无字幕时本地 ASR 兜底 | `python src/asr_transcript.py <video_id>` | `references/transcript.md` | 否（耗时长） |
-| 1.5 | 课程官方讲义 + 4K 幻灯片（**默认执行**，课程无主页才跳过） | `python src/course_assets.py <video_id> --course-url <课程主页>` | `references/course-assets.md` | 渲染需 |
+| 1.5 | 课程官方讲义 + 4K 幻灯片（**默认执行**，课程无主页才跳过；发布成 2K AVIF） | `python src/course_assets.py <video_id> --course-url <课程主页>` | `references/course-assets.md` | 渲染需 |
 | 2 | 大模型把字幕改写成 `book.md` | 按排版指令生成（`references/stitcher-prompt.md`，仓库 `prompts/stitcher_system.md` 存在时以它为准） | `references/writing.md` | 否 |
 | 2b | 目录占位符 → 真目录 | `python src/build_toc.py output/<id>/book.md`（可 `--check` 校验；第四步渲染前也会自动兜底） | `references/writing.md` | 否 |
 | 2c | 字幕校订对照稿（可选） | `python src/make_corrected.py <video_id>` | `references/correction.md` | 否 |
@@ -67,7 +67,7 @@ metadata:
 2. 预览地址 `http://localhost:8080/book.html`，关闭服务在终端按 `Ctrl+C`；
 3. YouTube 视频需浏览器能访问 YouTube（代理），B 站视频可直接看；
 4. 截图清晰度取决于 `.capture-profile/` 里登录账号的档位；要更清晰就换账号登录后重跑第三步；
-5. 用了课程官方资料时，说明书中幻灯片插图是官方 4K 渲染图（书首已注明来源与 CC 许可），演示帧仍是视频帧，`course/` 目录可整体删除不影响阅读；
+5. 用了课程官方资料时，说明书中幻灯片插图是官方幻灯片渲染图（4K 母版重编码为 2K AVIF；书首已注明来源与 CC 许可），演示帧仍是视频帧，`course/` 目录可整体删除不影响阅读；
 6. 询问是否删除流程中产生的大文件（铁律 9）：媒体文件（`audio.m4a`、`video_source.mp4`），
    以及 `course/_probe_frames/` 这类抽帧中间产物（一次幻灯片定位可能上百 MB）；`images/` 是成品引用，建议保留。
 

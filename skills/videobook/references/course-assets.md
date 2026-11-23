@@ -1,7 +1,7 @@
 # 第 1.5 步（默认执行）：课程官方讲义 + 4K 幻灯片
 
 不少课程在录像之外还维护自己的主页（讲义 + 幻灯片课件，例如 `https://jyywiki.cn/GSE/2026/`）。
-讲义是讲师本人的书面描述（权威术语、章节骨架、参考链接），幻灯片可渲染成 4K 图片，比任何视频帧都清晰。
+讲义是讲师本人的书面描述（权威术语、章节骨架、参考链接），幻灯片则以 4K 渲染为母版、按 2K AVIF 发布（体积约 4K PNG 的 1/10），比任何视频帧都清晰。
 **本步是默认流程，不是可选项**：每讲都先确认该课程是否有主页（用户给出，或按课程名自行搜索）；只有确认没有主页才跳过，跳过后后续流程完全不变。
 
 ## 时机
@@ -17,7 +17,9 @@ python src/course_assets.py <video_id> --course-url <课程主页> [--lecture N]
 
 - 按视频标题自动匹配讲次；不匹配时用 `--list` 查看讲次表、`--lecture N` 手工指定。
 - 产出 `output/<video_id>/course/`：`*.notes.md`（讲义 Markdown）、`slides_text.md`（每页幻灯片标题 + 要点）、
-  `slides/slide_NNN.png`（4K 渲染图），并把 `book.md` 里的 `![...](SLIDE:n@HH:MM:SS)` 占位符物化为官方图。
+  `slides/slide_NNN.png`（4K 渲染母版），并把 `book.md` 里的 `![...](SLIDE:n@HH:MM:SS)` 占位符物化为官方图。
+  物化到 `images/` 的图是重编码后的 2K AVIF（扩展名 `.avif`；Pillow 缺 AVIF 编码能力时退回 `.webp`），
+  4K PNG 只作为 `course/slides/` 母版保留（感知哈希比对需要无损原图）。
 - 渲染相关参数：`--width` / `--height`（默认 1920x1080）、`--scale`（默认 2，即输出 4K PNG）、`--force`（重渲染已有 PNG）。
 - **提权**：渲染幻灯片要启动 headless Chrome，**需沙箱外执行**；只抓取不渲染（`--no-render`）沙箱内即可。
 
@@ -46,10 +48,10 @@ python src/course_assets.py <video_id> --weave           # 自动修复：重复
   并打印「timeline: N/M slides located; not shown on video: [...]」。**写到 book.md 里的 `SLIDE:n@HH:MM:SS` 建议直接取自这份文件**，
   比自己按内容估时准得多；抽帧默认步长 20s (`--step`)，**画面停留短于一个步长的页会匹配不到**，
   会被归入「未展示」；判定“课堂没讲过”前先用 `--step 10` 复核一轮。
-- 抽帧中间产物落在 `course/_probe_frames/probe_<秒数>.png`，**体积很大**（97 分钟的课约 110 MB）。
+- 抽帧中间产物落在 `course/_probe_frames/probe_<秒数>.avif`，**体积不小**（AVIF 后约为原 PNG 的 1/10，97 分钟的课仍可到上百 MB 量级）。
   它只是定位用的临时帧，按铁律 9 询问用户后再删；删掉不影响已生成的 `slide_timeline.json`，但重跑本步会重新抓。
 - **课堂未展示页**在附录里只写 `![第 n 页幻灯片 · <标题>](SLIDE:n)`（**不带** `@时间`）；
-  物化时它会被复制为 `images/slide_NNN.png`（带时间的则复制为 `images/shot_HH_MM_SS.png`），
+  物化时它会写成 `images/slide_NNN.avif`（带时间的则写为 `images/shot_HH_MM_SS.avif`），
   因此附录里的图同样不依赖 `course/`，`course/` 可整体删除。
 
 ## 截帧后升级：把「画面即幻灯片」的糊帧换成官方渲染图
@@ -58,7 +60,7 @@ python src/course_assets.py <video_id> --weave           # 自动修复：重复
 python src/course_assets.py <video_id> --course-url <课程主页> --match-shots --no-render
 ```
 
-- 脚本把每张 `images/shot_*.png` 与官方幻灯片渲染图做感知哈希（dHash）比对并打印候选：
+- 脚本把每张 `images/shot_*.*` 与官方幻灯片渲染图做感知哈希（dHash）比对并打印候选：
   distance 越小越像，**<= 55 通常是「画面即幻灯片」，> 60 基本是演示 / 板书帧**。
 - Agent 抽查确认后，把确认结果写成 `{"shot_00_00_55": 1, ...}`（值 = 幻灯片编号）的 json，再执行：
 
@@ -66,7 +68,8 @@ python src/course_assets.py <video_id> --course-url <课程主页> --match-shots
 python src/course_assets.py <video_id> --apply-map <json路径>
 ```
 
-- 糊帧即被替换为 4K 官方渲染图，原视频帧自动备份到 `images/video_frames/`。
+- 糊帧即被替换为官方渲染图（同样是 2K AVIF），原视频帧自动备份到 `images/video_frames/`。
+  替换沿用该图已有的扩展名（新书是 `.avif`，旧书是 `.png`），避免 `book.md` 链接指向不存在的文件。
 - **校验技巧**：讲师按顺序翻页，匹配出的幻灯片编号沿时间轴应**单调不减**；出现乱序的候选基本是误匹配。
 - 相关参数：`--step`（探测采样步长秒，默认 20）、`--threshold`（dHash 距离阈值，默认 55）。
 - 最后重跑第四步 `post_process.py` 生成新 HTML。

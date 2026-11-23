@@ -10,14 +10,17 @@ Usage: python extract_frames.py <video_id> [video_url]
 Reads output/<video_id>/book.tagged.md (preferred, when it exists) or
 book.md for SCREENSHOT:HH:MM:SS placeholders and renders each timestamp
 from output/<video_id>/video_source.mp4 into
-output/<video_id>/images/shot_HH_MM_SS.png (the naming post_process.py expects).
+output/<video_id>/images/shot_HH_MM_SS.<ext> (the naming post_process.py
+expects; <ext> comes from image_export.web_ext() — AVIF normally, WebP when
+Pillow lacks AVIF support). ffmpeg still writes a temp PNG per frame, which is
+then re-encoded to the publish format and removed.
 
 If video_source.mp4 is missing and a video_url is given, the source is
 downloaded automatically with yt-dlp (best avc1 tier available without
 login; pre-download a higher-quality file under the same name to skip).
 
 After extraction the markdown is materialized: every placeholder in book.md
-is replaced with a native image link ![desc](images/shot_HH_MM_SS.png), and
+is replaced with a native image link ![desc](images/shot_HH_MM_SS.<ext>), and
 the original tagged draft is kept once as book.tagged.md.
 
 The downloaded video source is a fallback-only media file. It stays on disk
@@ -31,6 +34,8 @@ import subprocess
 import sys
 
 import imageio_ffmpeg
+
+from image_export import export_web, image_path
 
 PLACEHOLDER = re.compile(r'!\[([^\]]*)\]\(SCREENSHOT:(\d{2}:\d{2}:\d{2})(?:\.\d+)?\)')
 
@@ -56,9 +61,9 @@ def materialize(book: str, tagged: str, imgdir: str) -> None:
 
     def repl(m):
         desc, ts = m.group(1), m.group(2)
-        fname = "shot_" + ts.replace(":", "_") + ".png"
-        if os.path.exists(os.path.join(imgdir, fname)):
-            return f"![{desc}](images/{fname})"
+        path = image_path(imgdir, "shot_" + ts.replace(":", "_"))
+        if path:
+            return f"![{desc}](images/{os.path.basename(path)})"
         return m.group(0)
 
     new_content, n = PLACEHOLDER.subn(repl, content)
@@ -97,14 +102,16 @@ def main() -> None:
     for ts in timestamps:
         h, m, s = (int(x) for x in ts.split(":"))
         sec = h * 3600 + m * 60 + s
-        out = os.path.join(imgdir, "shot_" + ts.replace(":", "_") + ".png")
+        out = os.path.join(imgdir, "shot_" + ts.replace(":", "_") + ".tmp.png")
         cmd = [
             ff, "-hide_banner", "-loglevel", "error",
             "-ss", str(sec), "-i", src,
             "-frames:v", "1", "-y", out,
         ]
         subprocess.run(cmd, check=True)
-        print("saved", os.path.basename(out))
+        saved = export_web(out, imgdir, os.path.splitext(os.path.basename(out))[0])
+        os.remove(out)
+        print("saved", saved)
     print(f"DONE: {len(timestamps)} frames")
 
     materialize(book, tagged, imgdir)

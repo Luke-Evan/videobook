@@ -12,7 +12,9 @@ dependencies = [
     "markdown>=3.5.0",
     "imageio-ffmpeg>=0.6.0",
     "playwright>=1.40.0",
-    "Pillow>=10.0.0",
+    # AVIF 编码（幻灯片/截帧发布成 2K AVIF）自 11.3 起可用；
+    # 缺能力时 image_export.py 自动退回 WebP，不会报错
+    "Pillow>=11.3.0",
     # 本地 ASR 兜底（平台无字幕时，src/asr_transcript.py 使用；可选）
     # Windows + NVIDIA 显卡还需: nvidia-cublas-cu12 nvidia-cudnn-cu12
     "faster-whisper>=1.0.0",

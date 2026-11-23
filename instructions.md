@@ -46,7 +46,7 @@ python src/asr_transcript.py <video_id>
 ### 第 1.5 步（增强）：抓取课程官方资料（若视频属于有公开主页的课程）
 
 不少课程在录像之外还维护自己的课程主页（讲义 + 幻灯片课件，如 `https://jyywiki.cn/GSE/2026/`）：
-讲义是讲师本人的书面描述（权威术语、章节骨架、参考链接），幻灯片则可渲染成 4K 图片，比任何视频帧都清晰。
+讲义是讲师本人的书面描述（权威术语、章节骨架、参考链接），幻灯片则以 4K 渲染为母版、按 2K AVIF 发布（体积约 4K PNG 的 1/10），比任何视频帧都清晰。
 先确认该课程是否有主页（用户给出或自行搜索课程名），有则执行：
 
 ```bash
@@ -55,7 +55,8 @@ python src/course_assets.py <video_id> --course-url <课程主页> [--lecture N]
 
 - 按视频标题自动匹配讲次（不匹配时用 `--list` 查看讲次表、`--lecture N` 手工指定）；
 - 产出 `output/<video_id>/course/`：`*.notes.md`（讲义 Markdown）、`slides_text.md`（每页幻灯片标题+要点）、
-  `slides/slide_NNN.png`（4K 渲染图），并把 `book.md` 里的 `![...](SLIDE:n@HH:MM:SS)` 占位符物化为官方图；
+  `slides/slide_NNN.png`（4K 渲染母版），并把 `book.md` 里的 `![...](SLIDE:n@HH:MM:SS)` 占位符物化为官方图；
+  物化到 `images/` 的是重编码后的 2K AVIF（扩展名 `.avif`，Pillow 缺 AVIF 编码能力时退回 `.webp`），4K PNG 只作为 `course/` 母版保留；
 - 渲染幻灯片要启动 headless Chrome，**需沙箱外执行**；只抓取不渲染（`--no-render`）沙箱内即可；
 - **幻灯片覆盖铁律**：官方幻灯片的 **每一页** 都必须在 `book.md` 中 **恰好出现一次**。交稿前自检：
 
@@ -98,7 +99,7 @@ python src/course_assets.py <video_id> --course-url <课程主页> [--lecture N]
 
 仅当运行在 Codex/ChatGPT 桌面应用内、且 ChatGPT 浏览器扩展已安装并连接时使用（在 设置 > Computer Use 中确认）：
 
-- 通过扩展控制用户真实、已登录的 Chrome：逐个 `SCREENSHOT:` 时间戳（取自 `book.md` 或 `book.tagged.md`），在 Chrome 中打开对应平台播放器页面，等待视频画面渲染后对该标签页截图，保存为 `output/<video_id>/images/shot_HH_MM_SS.png`。
+- 通过扩展控制用户真实、已登录的 Chrome：逐个 `SCREENSHOT:` 时间戳（取自 `book.md` 或 `book.tagged.md`），在 Chrome 中打开对应平台播放器页面，等待视频画面渲染后对该标签页截图，保存为 `output/<video_id>/images/shot_HH_MM_SS.avif`（截完的 PNG 临时文件随即重编码并删除）。
   - B 站播放器地址：`https://player.bilibili.com/player.html?bvid=<video_id>&t=<秒>&autoplay=1&high_quality=1&danmaku=0`
   - YouTube 播放器地址：`https://www.youtube.com/embed/<video_id>?start=<秒>&autoplay=1&high_quality=1`
 - 特点：使用登录态画质、后台运行、不接管用户屏幕。
@@ -162,7 +163,7 @@ python src/extract_frames.py <video_id> "<VIDEO_URL>"
 python src/course_assets.py <video_id> --course-url <课程主页> --match-shots --no-render
 ```
 
-脚本把每张 `images/shot_*.png` 与官方幻灯片渲染图做感知哈希比对，打印候选（distance 越小越像，
+脚本把每张 `images/shot_*.*` 与官方幻灯片渲染图做感知哈希比对，打印候选（distance 越小越像，
 ≤55 通常是"画面即幻灯片"，>60 基本是演示/板书帧）。Agent 抽查确认后，把确认结果写成
 `{"shot_00_00_55": 1, ...}`（值 = 幻灯片编号）的 json，再执行：
 
@@ -170,13 +171,13 @@ python src/course_assets.py <video_id> --course-url <课程主页> --match-shots
 python src/course_assets.py <video_id> --apply-map <json路径>
 ```
 
-糊帧即被替换为 4K 官方渲染图，原视频帧自动备份到 `images/video_frames/`。
+糊帧即被替换为官方渲染图（同样的 2K AVIF；`--apply-map` 沿用该图已有的扩展名，避免 book.md 链接指空），原视频帧自动备份到 `images/video_frames/`。
 **校验技巧**：讲师按顺序翻页，匹配出的幻灯片编号沿时间轴应单调不减；出现乱序的候选基本是误匹配。
 最后重跑第四步 `post_process.py` 生成新 HTML。
 
 #### 完成标志
 
-- `images/` 下每个时间戳都有对应的 `shot_HH_MM_SS.png`，`book.md` 中不再有 `SCREENSHOT:` 占位符。
+- `images/` 下每个时间戳都有对应的 `shot_HH_MM_SS.avif`，`book.md` 中不再有 `SCREENSHOT:` 占位符。
 - 第四步生成的 HTML 中，截图卡片内置点击放大（lightbox）：点击图片查看大图，点击空白处或按 Esc 关闭。
 
 ### 第四步：转换 HTML + 启动预览
@@ -200,7 +201,7 @@ python -m http.server 8080 --directory output/<video_id>
    - 关闭预览服务器：在终端按 `Ctrl+C`
 4. 若流程中产生过大媒体文件（如 `output/<video_id>/video_source.mp4`、`audio.m4a`），询问用户是否需要删除，得到确认后再删。
 5. 截图清晰度说明：截图为当前账号顶档的纯视频帧（非大会员通常为 720P）；如需更高清晰度，在专用配置窗口登录大会员账号后重跑 `capture_frames.py <video_id> <url>` 即可自动升级。
-6. 若本讲用了课程官方资料：说明书中幻灯片插图为官方 4K 渲染图（书首信息块已注明来源与 CC 许可），演示帧仍为视频帧；`course/` 目录可整体删除不影响阅读。
+6. 若本讲用了课程官方资料：说明书中幻灯片插图为官方渲染图（2K AVIF，由 4K 母版重编码；书首信息块已注明来源与 CC 许可），演示帧仍为视频帧；`course/` 目录可整体删除不影响阅读。
 
 
 ### 第六步（可选）：发布成品到 pages 分支
