@@ -43,6 +43,14 @@ def test_missing_slide_image_keeps_markdown(tmp_path):
     assert out == md
 
 
+def test_render_template_supports_system_dark_mode():
+    html = pp.md_to_html("# 书名", "书名")
+    assert "color-scheme: light dark;" in html
+    assert "@media (prefers-color-scheme: dark)" in html
+    assert "color: var(--text-strong);" in html
+    assert "theme: prefersDark ? 'dark' : 'default'" in html
+
+
 def test_meta_section_warning():
     """「后记 / 本书是如何生成的」这类元信息章节要能被识别出来（只告警，不自动删）。"""
     md = ("# 书名\n\n## 1. 第一章\n\n正文\n\n## 后记：本书是如何生成的\n\n本书由 B 站 AI 字幕…\n")
